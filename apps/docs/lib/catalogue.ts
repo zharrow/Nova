@@ -620,7 +620,7 @@ export const catalogue: Fiche[] = [
     categorie: "effets",
     nouveau: true,
     accroche: "Le rideau d'ouverture, en trois formes.",
-    provenance: "Loader — Bât-et-Verre · PageLoader — portfolio · AppSplash — générateur de CV",
+    provenance: "Loader — Bât-et-Verre · PageLoader — portfolio · AppSplash — générateur de CV · SiteLoader — Champlon",
     apport:
       "Trois rideaux récoltés dans trois projets, qui ne se ressemblent pas mais partagent tout ce qui compte. Quatre garde-fous, tous non négociables : il se saute à la première interaction, il ne rejoue pas dans la même session, il n'existe pas en mouvement réduit — pas « plus court », absent — et sans JavaScript il n'y a pas de rideau du tout, donc jamais de page bloquée derrière un voile qui ne se lèvera pas.",
     voie: "option",
@@ -628,9 +628,10 @@ export const catalogue: Fiche[] = [
       { id: "blades", nom: "Lames", note: "Un rideau de lames qui se retirent l'une après l'autre. Le décalage fait le calepinage — un rideau qui tombe d'un bloc n'a pas de matière." },
       { id: "greetings", nom: "Salutations", note: "Un mot d'accueil qui défile en vingt langues, puis s'efface. Il dit qu'on est arrivé quelque part, pas qu'on attend." },
       { id: "splash", nom: "Pastille", note: "Rien ne bouge, le voile s'efface. Le plus sobre — celui d'une application installée, où le rideau ne doit surtout pas se faire remarquer." },
+      { id: "seam", nom: "Liseré", note: "Le panneau se lève d'un bloc en laissant filer un liseré. Le liseré est ce qui reste du bord : sans lui, le panneau semble disparaître au lieu de se retirer." },
     ],
     options: [
-      { nom: "form", type: "blades · greetings · splash", defaut: "blades", role: "Forme du rideau." },
+      { nom: "form", type: "blades · greetings · splash · seam", defaut: "blades", role: "Forme du rideau." },
       { nom: "holdMs", type: "number", defaut: "1100", role: "Temps d'affichage avant la sortie." },
       { nom: "exitMs", type: "number", defaut: "700", role: "Durée de la sortie." },
       { nom: "skippable", type: "boolean", defaut: "true", role: "Une interaction termine le rideau." },
@@ -709,6 +710,54 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
 <SmoothScroll lerp={0.1}>
   {children}
 </SmoothScroll>`,
+  },
+  {
+    nom: "scroll-scene",
+    titre: "Scroll Scene",
+    categorie: "defilement",
+    nouveau: true,
+    accroche: "Une scène dont le défilement fournit le temps.",
+    provenance: "DataStory et SessionFlow — site Champlon",
+    apport:
+      "Les deux originaux calculaient la même progression, à la ligne près. Ce que le moteur ajoute, ce sont les TEMPS : un récit scrollé n'a jamais une seule progression, il en a dix, chacune sur sa portion de la traversée. Les écrire à la main donne dix clamp() en CSS, illisibles et impossibles à ajuster ; ici chaque temps est nommé et publié comme sa propre variable. Trois garde-fous : la mesure se fait dans l'image d'animation et jamais dans un écouteur de défilement, la boucle ne tourne que tant que la scène est à l'écran, et en mouvement réduit la progression est posée une fois à l'état d'arrivée — une scène figée à zéro serait une page vide.",
+    options: [
+      { nom: "beats", type: "Record<string, [number, number]>", defaut: "—", role: "Temps nommés : début et fin sur la traversée, publiés de 0 à 1." },
+      { nom: "pulses", type: "Record<string, [number, number, number]>", defaut: "—", role: "Pulsations : début, sommet, fin. Pour ce qui monte puis redescend." },
+      { nom: "easing", type: "Easing", defaut: "smootherstep", role: "Courbe de --nova-t-eased." },
+      { nom: "restingProgress", type: "number", defaut: "1", role: "Valeur en mouvement réduit. L'état d'arrivée." },
+      { nom: "onProgress", type: "(t: number) => void", defaut: "—", role: "Pour ce que le CSS ne sait pas faire." },
+    ],
+    usage: `<ScrollScene
+  className="h-[300vh]"
+  beats={{ arrivee: [0.1, 0.4], stockage: [0.45, 0.8] }}
+  pulses={{ paquet: [0.2, 0.5, 0.8] }}
+>
+  <div style={{ opacity: "var(--nova-arrivee)" }}>Le premier temps.</div>
+  <div style={{ transform: "scale(var(--nova-paquet))" }}>Le paquet.</div>
+</ScrollScene>`,
+  },
+  {
+    nom: "text-highlight",
+    titre: "Text Highlight",
+    categorie: "texte",
+    nouveau: true,
+    accroche: "Surligne un passage dans du contenu déjà rendu.",
+    provenance: "PhraseHighlight — générateur de CV",
+    apport:
+      "Une bande PAR LIGNE VISUELLE, pas un rectangle autour du bloc : les bandes épousent le texte, y compris quand il se casse sur trois lignes ou traverse plusieurs balises. Le passage n'a pas besoin d'être balisé — il est retrouvé dans le DOM. Deux difficultés traitées : le texte rendu n'est pas le texte source, donc on aplatit le sous-arbre en une chaîne normalisée avec une table qui ramène chaque caractère à son nœud ; et la mise en page bouge après le montage, ce que l'original relevait toutes les 800 ms — ici on écoute ce qui bouge réellement, le redimensionnement, l'arrivée des polices, et les mutations du sous-arbre.",
+    options: [
+      { nom: "text", type: "string", defaut: "—", role: "Le passage à retrouver. Casse et blancs ignorés." },
+      { nom: "className", type: "string", defaut: "—", role: "Classes posées sur les BANDES. C'est là que vit la couleur." },
+      { nom: "stagger", type: "number", defaut: "30", role: "Décalage entre deux lignes, en ms." },
+      { nom: "padding", type: "[number, number]", defaut: "[2, 1]", role: "Débord horizontal et vertical de la bande." },
+      { nom: "onMiss", type: "() => void", defaut: "—", role: "Passage introuvable. À vous de replier — le moteur ne devine pas." },
+    ],
+    usage: `<TextHighlight
+  text="nous le pratiquons d'abord sur nous-mêmes"
+  onMiss={() => surlignerLeBlocEntier()}
+>
+  <p>{contenu}</p>
+</TextHighlight>`,
   },
 ];
 

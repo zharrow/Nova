@@ -496,6 +496,29 @@
   to   { opacity: 1; transform: none; }
 }
 
+/* `seam` — le panneau se lève d'un bloc en laissant filer un liseré. Le
+   liseré est ce qui reste du bord : sans lui, le panneau semble disparaître
+   au lieu de se retirer. */
+[data-nova-loader="seam"] {
+  transition: transform var(--nova-loader-exit, 700ms) var(--nova-ease-expo);
+}
+[data-nova-loader="seam"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: var(--nova-accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform calc(var(--nova-loader-exit, 700ms) * 0.5) ease-out;
+}
+[data-nova-loader="seam"][data-nova-loader-state="leaving"] {
+  transform: translateY(-100%);
+}
+[data-nova-loader="seam"][data-nova-loader-state="leaving"]::after {
+  transform: scaleX(1);
+}
+
 /* `splash` — rien ne bouge, le voile s'efface. */
 [data-nova-loader="splash"] {
   transition: opacity var(--nova-loader-exit, 700ms) ease-out;
@@ -552,6 +575,65 @@ html.lenis body {
   inset: 0;
   transform-origin: 50% 100%;
   pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   ScrollScene — la scène dont le défilement fournit le temps
+
+   Le moteur ne pose que des variables : `--nova-t`, `--nova-t-eased`, et une
+   par temps nommé. Tout le dessin appartient au projet, qui les lit où il veut
+   dans la scène. Ces deux règles ne font que poser la géométrie qui rend la
+   traversée possible.
+   -------------------------------------------------------------------------- */
+
+[data-nova-scroll-scene] {
+  position: relative;
+}
+/* L'enfant collant : c'est lui qui reste à l'écran pendant que la scène
+   défile derrière. Sans `position: sticky` sur un enfant, la progression se
+   calculerait pour rien — il n'y aurait rien à voir bouger. */
+.nova-scroll-scene__pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   TextHighlight — les bandes posées sur un passage
+   -------------------------------------------------------------------------- */
+
+[data-nova-highlight] {
+  position: relative;
+}
+
+.nova-highlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Sous le texte : une bande de surlignage passe DERRIÈRE les mots, sinon
+     elle les voile. */
+  z-index: 0;
+}
+
+.nova-highlight__band {
+  position: absolute;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--nova-accent) 22%, transparent);
+  opacity: 0;
+}
+
+/* L'état de repos n'existe que lorsque le moteur a armé : sans JavaScript, il
+   n'y a pas de bande du tout, donc rien à révéler. */
+[data-nova-highlight-state="shown"] .nova-highlight__band {
+  animation: nova-highlight-in var(--nova-highlight-duration, 350ms)
+    var(--nova-ease-out) var(--nova-highlight-delay, 0ms) both;
+}
+
+@keyframes nova-highlight-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* --------------------------------------------------------------------------

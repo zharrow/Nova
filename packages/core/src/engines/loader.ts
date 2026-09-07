@@ -10,6 +10,8 @@
  *   `greetings`  un mot d'accueil qui défile en vingt langues (portfolio)
  *   `splash`     une pastille brève, réservée à l'application installée
  *                (générateur de CV)
+ *   `seam`       le panneau se lève d'un bloc en laissant filer un liseré
+ *                (site Champlon)
  *
  * Quatre garde-fous, tous tirés des originaux et tous non négociables :
  *
@@ -29,7 +31,7 @@ import { isBrowser, prefersReducedMotion } from "../internal/env";
 import { mergeOptions } from "../internal/options";
 import type { NovaInstance } from "../internal/types";
 
-export type LoaderForm = "blades" | "greetings" | "splash";
+export type LoaderForm = "blades" | "greetings" | "splash" | "seam";
 
 export interface LoaderOptions {
   /** Forme du rideau. Défaut : `blades`. */

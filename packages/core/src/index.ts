@@ -57,6 +57,12 @@ export type { ScrollMarqueeOptions } from "./engines/scroll-marquee";
 export { createRollText } from "./engines/roll-text";
 export type { RollTextOptions } from "./engines/roll-text";
 
+export { createScrollScene } from "./engines/scroll-scene";
+export type { ScrollSceneOptions } from "./engines/scroll-scene";
+
+export { createTextHighlight } from "./engines/text-highlight";
+export type { TextHighlightOptions } from "./engines/text-highlight";
+
 export { createSpotlight } from "./engines/spotlight";
 export type { SpotlightOptions } from "./engines/spotlight";
 

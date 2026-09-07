@@ -22,6 +22,8 @@ import {
   Loader,
   useFlight,
   useExpand,
+  ScrollScene,
+  TextHighlight,
 } from "@nova-ui/react";
 
 /**
@@ -769,6 +771,90 @@ export function DemoSmoothScroll({ compact }: PropsDemo) {
   );
 }
 
+/**
+ * La scène ne peut pas se démontrer dans un encadré : elle a besoin de trois
+ * hauteurs d'écran. On montre donc ce qu'elle PRODUIT — la progression et les
+ * temps nommés — pilotés par un curseur. C'est exactement ce que le moteur
+ * publie, à ceci près que c'est la molette qui le fournit en production.
+ */
+export function DemoScrollScene({ compact }: PropsDemo) {
+  const [t, setT] = useState(0.5);
+  const segment = (a: number, b: number) =>
+    Math.min(1, Math.max(0, (t - a) / (b - a)));
+  const pulse = (a: number, p: number, b: number) =>
+    t <= a || t >= b ? 0 : t < p ? (t - a) / (p - a) : (b - t) / (b - p);
+
+  const temps = [
+    { nom: "arrivee", valeur: segment(0.05, 0.4) },
+    { nom: "stockage", valeur: segment(0.35, 0.75) },
+    { nom: "paquet", valeur: pulse(0.2, 0.5, 0.8) },
+  ];
+
+  return (
+    <Scene compact={compact}>
+      <div className="w-full max-w-sm">
+        <div className="flex items-baseline justify-between">
+          <span className="cote">--nova-t</span>
+          <span className="font-mono text-sm tabular-nums">{t.toFixed(3)}</span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.001}
+          value={t}
+          onChange={(e) => setT(Number(e.target.value))}
+          aria-label="Progression de la scène"
+          className="mt-2 w-full accent-signal"
+        />
+        <ul className="mt-4 space-y-2">
+          {temps.map((temp) => (
+            <li key={temp.nom} className="flex items-center gap-3">
+              <span className="cote w-20 shrink-0">{temp.nom}</span>
+              <span className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+                <span
+                  className="block h-full bg-signal transition-none"
+                  style={{ width: `${temp.valeur * 100}%` }}
+                />
+              </span>
+            </li>
+          ))}
+        </ul>
+        {!compact ? (
+          <span className="cote mt-4 block">
+            en production, c&apos;est la molette qui fournit t
+          </span>
+        ) : null}
+      </div>
+    </Scene>
+  );
+}
+
+export function DemoTextHighlight({ compact }: PropsDemo) {
+  const { cle, rejouer } = useRejeu();
+  return (
+    <Scene onRejouer={rejouer} compact={compact}>
+      <TextHighlight
+        key={cle}
+        text="nous le pratiquons d'abord sur nous-mêmes"
+        trigger="mount"
+        className="bg-signal/20"
+        as="p"
+      >
+        <span
+          className={cn(
+            "relative block max-w-[30ch] text-center leading-relaxed",
+            compact ? "text-sm" : "text-base",
+          )}
+        >
+          Le conseil que nous vendons, nous le pratiquons d&apos;abord sur
+          nous-mêmes.
+        </span>
+      </TextHighlight>
+    </Scene>
+  );
+}
+
 const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   reveal: DemoReveal,
   blinds: DemoBlinds,
@@ -777,8 +863,10 @@ const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   "text-effect": DemoTextEffect,
   marquee: DemoMarquee,
   "scroll-marquee": DemoScrollMarquee,
+  "scroll-scene": DemoScrollScene,
   "roll-text": DemoRollText,
   "brush-underline": DemoBrushUnderline,
+  "text-highlight": DemoTextHighlight,
   spotlight: DemoSpotlight,
   cursor: DemoCursor,
   halftone: DemoHalftone,

@@ -217,6 +217,27 @@
       "dependencies": []
     },
     {
+      "name": "scroll-scene",
+      "title": "Scroll Scene",
+      "description": "Une scène dont le défilement fournit le temps : une progression de 0 à 1, et autant de temps nommés qu'il en faut.",
+      "exports": [
+        "ScrollScene"
+      ],
+      "dependencies": [],
+      "files": [
+        {
+          "path": "packages/core/src/engines/scroll-scene.ts",
+          "target": "engines/scroll-scene.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/scroll-scene.tsx",
+          "target": "scroll-scene.tsx",
+          "kind": "component"
+        }
+      ]
+    },
+    {
       "name": "roll-text",
       "title": "Roll Text",
       "description": "Label qui pivote sur lui-même au survol de son bouton — pas du texte, du bouton.",
@@ -257,6 +278,27 @@
         }
       ],
       "dependencies": []
+    },
+    {
+      "name": "text-highlight",
+      "title": "Text Highlight",
+      "description": "Surligne un passage dans du contenu déjà rendu, une bande par ligne visuelle. Le passage n'a pas besoin d'être balisé.",
+      "exports": [
+        "TextHighlight"
+      ],
+      "dependencies": [],
+      "files": [
+        {
+          "path": "packages/core/src/engines/text-highlight.ts",
+          "target": "engines/text-highlight.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/text-highlight.tsx",
+          "target": "text-highlight.tsx",
+          "kind": "component"
+        }
+      ]
     },
     {
       "name": "spotlight",
@@ -367,7 +409,7 @@
     {
       "name": "loader",
       "title": "Loader",
-      "description": "Le rideau d'ouverture, en trois formes. Se saute, ne rejoue pas, n'existe pas en mouvement réduit.",
+      "description": "Le rideau d'ouverture, en quatre formes. Se saute, ne rejoue pas, n'existe pas en mouvement réduit.",
       "exports": [
         "Loader"
       ],

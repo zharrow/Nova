@@ -118,7 +118,7 @@ Les formes partagent-elles le mécanisme ?
 | `blinds` | frère de `reveal` | 2 — colonnes, rangs |
 | `marquee` | option | 4 sens — `left` `right` `up` `down` |
 | `scroll-marquee` | frère de `marquee` | 1 |
-| `loader` | option | 3 — `blades` `greetings` `splash` |
+| `loader` | option | 4 — `blades` `greetings` `splash` `seam` |
 | `cursor` | option | 2 — `blob`, `dot-ring` |
 | `scramble-text` | usage | 2 — au survol, à intervalle |
 | `counter` | usage | 3 — brut, localisé, monétaire |
@@ -128,6 +128,8 @@ Les formes partagent-elles le mécanisme ?
 | `roll-text` | — | 1 |
 | `spotlight` | — | 1, mais le dessin est entièrement surchargeable en CSS |
 | `flight` | — | 1 |
+| `scroll-scene` | — | 1 |
+| `text-highlight` | — | 1 |
 | `graph` | — | 1 |
 
 Trois familles sont nées de la récolte elle-même, en réunissant des pièces
@@ -166,13 +168,24 @@ un usage de `counter` — une valeur qui change se réanime toute seule.
 `PageTransition` est un `reveal` monté à l'entrée. Les marquees de Bât-et-Verre
 sont `scroll-marquee` avec une inclinaison.
 
-**Repéré, pas encore pris.** Deux pièces valent le détour et attendent :
+**Pris depuis.** Les deux pièces qui attendaient sont entrées, avec la levée
+de la règle du zéro dépendance : `useExpandTransition` est devenu `Expand`,
+`phrase-highlight` est devenu `TextHighlight`.
 
-- `phrase-highlight` (générateur de CV) — surligner un passage de texte
-  quelconque dans du contenu déjà rendu, une bande par ligne visuelle, via
-  l'API `Range`. Primitif rare et utile ; il n'existe nulle part ailleurs.
-- `useExpandTransition` (CRM Closer) — **pris**. C'est cette pièce qui a fait
-  lever la règle du zéro dépendance : voir [DEPENDANCES.md](DEPENDANCES.md).
+**Écarté à la deuxième passe.** Formly n'a rien de récupérable — ses fichiers
+animés sont des modales, des formulaires et des écrans. Le site Champlon est
+très lié à sa marque : le monogramme en pixels et la carte d'Amérique latine ne
+se généralisent pas. Mais deux de ses pièces ont donné des familles :
+`DataStory` et `SessionFlow` calculaient la même progression scrollée, devenue
+`ScrollScene` ; `SiteLoader` a donné la quatrième forme du `Loader`.
+
+**Repéré, toujours pas pris.** Une pièce vaut encore le détour :
+
+- `VisionneuseVerre` (Bât-et-Verre) — une visionneuse qui s'ouvre en fleur
+  depuis le point cliqué, avec un FLIP de la vignette vers le cadre. Portable
+  maintenant que GSAP est admis, mais elle doit se brancher sur le `Dialog` de
+  Radix pour la sémantique et le piège de focus — voir
+  [DEPENDANCES.md](DEPENDANCES.md). C'est le prochain gros morceau.
 
 ## Conséquences pratiques
 

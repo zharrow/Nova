@@ -40,6 +40,12 @@ export type { ScrollMarqueeProps } from "./components/scroll-marquee";
 export { RollText } from "./components/roll-text";
 export type { RollTextProps } from "./components/roll-text";
 
+export { ScrollScene } from "./components/scroll-scene";
+export type { ScrollSceneProps } from "./components/scroll-scene";
+
+export { TextHighlight } from "./components/text-highlight";
+export type { TextHighlightProps } from "./components/text-highlight";
+
 export { Spotlight } from "./components/spotlight";
 export type { SpotlightProps } from "./components/spotlight";
 
@@ -81,6 +87,8 @@ export type {
   ScrollMarqueeOptions,
   RollTextOptions,
   SpotlightOptions,
+  ScrollSceneOptions,
+  TextHighlightOptions,
   HalftoneOptions,
   HalftoneSource,
   CoverageFn,
