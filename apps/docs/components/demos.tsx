@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Reveal,
   RevealGroup,
@@ -15,6 +15,10 @@ import {
   Halftone,
   Graph,
   useConfetti,
+  BrushUnderline,
+  Blinds,
+  Loader,
+  useFlight,
 } from "@nova-ui/react";
 
 /**
@@ -402,12 +406,12 @@ export function DemoSpotlight({ compact }: PropsDemo) {
  * librairie, pas une signature imposée à toutes les pages. La démonstration
  * le met donc en marche à la demande, et le retire quand on la quitte.
  */
-export function DemoCursor({ compact }: PropsDemo) {
+export function DemoCursor({ forme = "blob", compact }: PropsDemo) {
   const [actif, setActif] = useState(false);
   return (
     <Scene compact={compact}>
       <div className="text-center">
-        {actif ? <Cursor /> : null}
+        {actif ? <Cursor key={forme} variant={forme as never} /> : null}
         <button
           type="button"
           onClick={() => setActif((v) => !v)}
@@ -553,19 +557,137 @@ export function DemoConfetti({ forme = "mixed", compact }: PropsDemo) {
   );
 }
 
+export function DemoBlinds({ forme = "vertical", compact }: PropsDemo) {
+  const { cle, rejouer } = useRejeu(forme);
+  return (
+    <Scene onRejouer={rejouer} compact={compact}>
+      <Blinds
+        key={cle}
+        trigger="mount"
+        orientation={forme as never}
+        count={forme === "vertical" ? 7 : 5}
+        color="var(--color-surface)"
+        className={[
+          compact ? "h-32 w-48" : "h-40 w-64",
+          "overflow-hidden rounded-nova",
+        ].join(" ")}
+      >
+        {/* Une mire plutôt qu'une image : la démo ne charge aucune ressource,
+            et le motif rend le passage des lames lisible. */}
+        <div className="h-full w-full bg-[repeating-linear-gradient(135deg,var(--color-encre)_0_10px,var(--color-surface-haute)_10px_20px)]" />
+      </Blinds>
+    </Scene>
+  );
+}
+
+export function DemoBrushUnderline({ compact }: PropsDemo) {
+  const { cle, rejouer } = useRejeu();
+  return (
+    <Scene onRejouer={rejouer} compact={compact}>
+      <p
+        key={cle}
+        className={[
+          "text-center font-medium tracking-tight",
+          compact ? "text-lg" : "text-2xl sm:text-3xl",
+        ].join(" ")}
+      >
+        Rendre lisible{" "}
+        <BrushUnderline seed={3} trigger="mount" delay={260}>
+          ce qui ne l&apos;est pas
+        </BrushUnderline>
+        .
+      </p>
+    </Scene>
+  );
+}
+
+/**
+ * Le rideau est monté DANS la scène, pas sur la page : `position: fixed` le
+ * sortirait de son encadré et couvrirait tout le site. Une démonstration ne
+ * doit pas faire ce que le composant ferait en production.
+ */
+export function DemoLoader({ forme = "blades", compact }: PropsDemo) {
+  const { cle, rejouer } = useRejeu(forme);
+  return (
+    <Scene onRejouer={rejouer} compact={compact} className="isolate">
+      <Loader
+        key={cle}
+        form={forme as never}
+        /* `null` : le rideau doit rejouer à chaque clic sur « rejouer ». En
+           production il ne rejoue pas dans la même session. */
+        sessionKey={null}
+        holdMs={1600}
+        exitMs={700}
+        skippable={false}
+        className="!absolute inset-0 !z-10 bg-surface"
+      >
+        {forme === "greetings" ? null : (
+          <p className="font-mono text-sm tracking-[0.16em] text-sourdine">
+            NOVA
+          </p>
+        )}
+      </Loader>
+      <p className="cote">le rideau se lève</p>
+    </Scene>
+  );
+}
+
+export function DemoFlight({ compact }: PropsDemo) {
+  const voler = useFlight({ duration: 800 });
+  const source = useRef<HTMLButtonElement>(null);
+  const cible = useRef<HTMLSpanElement>(null);
+  const [recus, setRecus] = useState(0);
+
+  async function envoyer() {
+    if (!source.current || !cible.current) return;
+    const { flew } = await voler(source.current, cible.current, {
+      onArrive: () => setRecus((n) => n + 1),
+    });
+    // `flew: false` — source hors écran ou mouvement réduit. Le compteur a
+    // quand même bougé : c'est tout l'intérêt du repli.
+    if (!flew) return;
+  }
+
+  return (
+    <Scene compact={compact}>
+      <div className="flex w-full items-center justify-between gap-6">
+        <button
+          ref={source}
+          type="button"
+          onClick={envoyer}
+          className="rounded-nova border border-filet bg-surface-haute px-4 py-2 font-mono text-xs tracking-wider text-sourdine transition-colors hover:border-encre hover:text-encre"
+        >
+          preuve
+        </button>
+        <span className="cote">→</span>
+        <span
+          ref={cible}
+          className="flex size-10 items-center justify-center rounded-nova border border-signal font-mono text-sm text-signal"
+        >
+          {recus}
+        </span>
+      </div>
+    </Scene>
+  );
+}
+
 const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   reveal: DemoReveal,
+  blinds: DemoBlinds,
   "scramble-text": DemoScrambleText,
   counter: DemoCounter,
   "text-effect": DemoTextEffect,
   marquee: DemoMarquee,
   "scroll-marquee": DemoScrollMarquee,
   "roll-text": DemoRollText,
+  "brush-underline": DemoBrushUnderline,
   spotlight: DemoSpotlight,
   cursor: DemoCursor,
   halftone: DemoHalftone,
   graph: DemoGraph,
   confetti: DemoConfetti,
+  loader: DemoLoader,
+  flight: DemoFlight,
 };
 
 /**

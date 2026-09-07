@@ -8,6 +8,7 @@
 
 export { useNovaEngine } from "./hooks/use-nova-engine";
 export { useConfetti } from "./hooks/use-confetti";
+export { useFlight } from "./hooks/use-flight";
 
 export { Reveal, RevealGroup } from "./components/reveal";
 export type { RevealProps, RevealGroupProps } from "./components/reveal";
@@ -42,6 +43,15 @@ export type { GraphProps } from "./components/graph";
 export { Cursor } from "./components/cursor";
 export type { CursorProps } from "./components/cursor";
 
+export { BrushUnderline } from "./components/brush-underline";
+export type { BrushUnderlineProps } from "./components/brush-underline";
+
+export { Blinds } from "./components/blinds";
+export type { BlindsProps } from "./components/blinds";
+
+export { Loader } from "./components/loader";
+export type { LoaderProps } from "./components/loader";
+
 /* Les types et utilitaires du cœur sont ré-exportés : un projet React n'a
    ainsi qu'une seule dépendance à déclarer. */
 export type {
@@ -66,7 +76,14 @@ export type {
   GraphNode,
   GraphEdge,
   CursorOptions,
+  CursorVariant,
+  BrushUnderlineOptions,
+  BlindsOptions,
+  LoaderOptions,
+  LoaderForm,
+  FlightOptions,
+  FlightResult,
   ConfettiOptions,
   Easing,
 } from "@nova-ui/core";
-export { confetti, prefersReducedMotion, easings } from "@nova-ui/core";
+export { confetti, flight, prefersReducedMotion, easings } from "@nova-ui/core";

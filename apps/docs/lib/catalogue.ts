@@ -434,11 +434,12 @@ export const catalogue: Fiche[] = [
     nom: "cursor",
     categorie: "pointeur",
     titre: "Cursor",
-    accroche: "Un disque qui suit le pointeur et grossit sur ce qui se clique.",
-    provenance: "Cursor — portfolio",
+    accroche: "Un curseur additif, qui augmente le curseur système sans le remplacer.",
+    provenance: "Cursor — portfolio · Curseur — Bât-et-Verre 3D",
     apport:
-      "Le suivi du pointeur est mutualisé : un seul écouteur pour toute la page, quel que soit le nombre d'effets qui s'en servent.",
+      "Deux formes récoltées dans deux projets, et le choix n'est pas cosmétique : le disque écrase ce qu'il survole, le point ne masque rien. Le suivi du pointeur est mutualisé — un seul écouteur pour toute la page, quel que soit le nombre d'effets qui s'en servent.",
     options: [
+      { nom: "variant", type: "blob · dot-ring", defaut: "blob", role: "Forme du curseur." },
       { nom: "lerp", type: "number", defaut: "0.2", role: "Rattrapage par frame, entre 0 et 1." },
       { nom: "hoverScale", type: "number", defaut: "2.6", role: "Agrandissement au survol." },
       { nom: "hoverSelector", type: "string", defaut: "a, button, input…", role: "Ce qui déclenche l'agrandissement." },
@@ -447,6 +448,19 @@ export const catalogue: Fiche[] = [
 <Cursor />
 
 /* Le curseur système reste visible — Nova l'augmente. */`,
+    voie: "option",
+    formes: [
+      {
+        id: "blob",
+        nom: "Disque",
+        note: "Un disque unique qui suit en retard et grossit sur ce qui se clique. Il écrase ce qu'il survole — à réserver aux pages aérées.",
+      },
+      {
+        id: "dot-ring",
+        nom: "Point et anneau",
+        note: "Un point posé exactement sur le pointeur, et un anneau qui traîne derrière. Le point dit où l'on est, l'anneau d'où l'on vient. Sur une interface dense, c'est la seule forme lisible : le point ne masque rien.",
+      },
+    ],
   },
   {
     nom: "confetti",
@@ -552,6 +566,102 @@ export const catalogue: Fiche[] = [
   groupLabels={{ cyber: "Cybersécurité", ia: "Intelligence artificielle" }}
   autoCycle={1700}
 />`,
+  },
+  {
+    nom: "blinds",
+    titre: "Blinds",
+    categorie: "defilement",
+    nouveau: true,
+    accroche: "Le contenu apparaît derrière des lames qui se retirent une à une.",
+    provenance: "Claustra — Bât-et-Verre",
+    apport:
+      "C'est un frère de Reveal, pas une de ses formes : il faut injecter des lames, les mesurer, les décaler, et personne qui veut un simple fondu ne devrait embarquer ce code. Même règle d'or que partout — en mouvement réduit, sans JavaScript, ou pour un bloc déjà à l'écran, aucune lame n'est posée du tout.",
+    voie: "option",
+    formes: [
+      { id: "vertical", nom: "Colonnes", note: "Des lames verticales, comme un calepinage qu'on démonte. Le motif d'origine." },
+      { id: "horizontal", nom: "Rangs", note: "Des lames horizontales, qui se retirent latéralement. Convient aux blocs larges et bas." },
+    ],
+    options: [
+      { nom: "count", type: "number", defaut: "6", role: "Nombre de lames." },
+      { nom: "orientation", type: "vertical · horizontal", defaut: "vertical", role: "Sens des lames." },
+      { nom: "retract", type: "up · down · left · right", defaut: "déduit", role: "Vers où la lame se retire." },
+      { nom: "stagger", type: "number", defaut: "55", role: "Décalage entre deux lames, en ms." },
+      { nom: "duration", type: "number", defaut: "650", role: "Durée du retrait d'une lame." },
+      { nom: "color", type: "string", defaut: "fond hérité", role: "Couleur des lames." },
+    ],
+    usage: `<Blinds count={6} className="aspect-video">
+  <img src="/verriere.jpg" alt="" />
+</Blinds>`,
+  },
+  {
+    nom: "brush-underline",
+    titre: "Brush Underline",
+    categorie: "texte",
+    nouveau: true,
+    accroche: "Un trait de marqueur derrière un mot.",
+    provenance: "BrushUnderline — générateur de CV",
+    apport:
+      "Le trait n'est pas une forme CSS : c'est un chemin SVG passé dans un feTurbulence et un feDisplacementMap, qui rongent ses bords au bruit fractal. Une seconde turbulence, plus fine, mange des trous dans la masse — le remplissage devient une brosse sèche, pas un aplat. Deux ajouts sur l'original : le rognage est posé sur l'enveloppe et jamais sur les chemins, sans quoi le filtre se recalcule à chaque image et les bords grésillent ; et la graine du bruit est un réglage, parce que deux traits identiques au pixel se lisent comme un tampon.",
+    options: [
+      { nom: "color", type: "string", defaut: "--nova-brush-color", role: "Couleur du trait. Un surligneur, pas l'accent : le texte se lit par-dessus." },
+      { nom: "seed", type: "number", defaut: "9", role: "Graine du bruit. À varier d'une occurrence à l'autre." },
+      { nom: "weight", type: "number", defaut: "0.5", role: "Épaisseur relative, entre 0 et 1." },
+      { nom: "duration", type: "number", defaut: "1100", role: "Durée du tracé, en ms." },
+      { nom: "delay", type: "number", defaut: "180", role: "Retard avant le tracé." },
+      { nom: "trigger", type: "view · mount · manual", defaut: "view", role: "Quand tracer." },
+    ],
+    usage: `<h2>
+  Rendre lisible <BrushUnderline seed={3}>ce qui ne l'est pas</BrushUnderline>.
+</h2>`,
+  },
+  {
+    nom: "loader",
+    titre: "Loader",
+    categorie: "effets",
+    nouveau: true,
+    accroche: "Le rideau d'ouverture, en trois formes.",
+    provenance: "Loader — Bât-et-Verre · PageLoader — portfolio · AppSplash — générateur de CV",
+    apport:
+      "Trois rideaux récoltés dans trois projets, qui ne se ressemblent pas mais partagent tout ce qui compte. Quatre garde-fous, tous non négociables : il se saute à la première interaction, il ne rejoue pas dans la même session, il n'existe pas en mouvement réduit — pas « plus court », absent — et sans JavaScript il n'y a pas de rideau du tout, donc jamais de page bloquée derrière un voile qui ne se lèvera pas.",
+    voie: "option",
+    formes: [
+      { id: "blades", nom: "Lames", note: "Un rideau de lames qui se retirent l'une après l'autre. Le décalage fait le calepinage — un rideau qui tombe d'un bloc n'a pas de matière." },
+      { id: "greetings", nom: "Salutations", note: "Un mot d'accueil qui défile en vingt langues, puis s'efface. Il dit qu'on est arrivé quelque part, pas qu'on attend." },
+      { id: "splash", nom: "Pastille", note: "Rien ne bouge, le voile s'efface. Le plus sobre — celui d'une application installée, où le rideau ne doit surtout pas se faire remarquer." },
+    ],
+    options: [
+      { nom: "form", type: "blades · greetings · splash", defaut: "blades", role: "Forme du rideau." },
+      { nom: "holdMs", type: "number", defaut: "1100", role: "Temps d'affichage avant la sortie." },
+      { nom: "exitMs", type: "number", defaut: "700", role: "Durée de la sortie." },
+      { nom: "skippable", type: "boolean", defaut: "true", role: "Une interaction termine le rideau." },
+      { nom: "sessionKey", type: "string · null", defaut: "nova:loader", role: "Clé de session. null le fait rejouer à chaque montage." },
+      { nom: "onDone", type: "() => void", defaut: "—", role: "Appelé à la fin, ou tout de suite s'il ne joue pas." },
+    ],
+    usage: `/* Une seule fois, dans le layout racine : */
+<Loader form="blades" onDone={() => setPret(true)}>
+  <p>Bât &amp; Verre — Maison de lumière</p>
+</Loader>`,
+  },
+  {
+    nom: "flight",
+    titre: "Flight",
+    categorie: "effets",
+    nouveau: true,
+    accroche: "Un fantôme qui vole d'un élément vers un autre.",
+    provenance: "FindingFlightLayer — générateur de CV · VisionneuseVerre — Bât-et-Verre",
+    apport:
+      "Le geste qui relie deux endroits d'une page : la preuve qui part du texte et rejoint sa marge, l'article qui rejoint le panier. Deux principes tenus des originaux. Rien ne vole depuis une source hors écran — un vol qu'on ne voit pas n'a aucun sens spatial, et le résultat le signale pour qu'on replie sur autre chose. Et le fantôme est inerte : cloné sans identifiants, hors de l'ordre de tabulation, hors de l'arbre d'accessibilité, parce qu'un doublon annonçable ferait entendre deux fois la même chose.",
+    options: [
+      { nom: "duration", type: "number", defaut: "900", role: "Durée du vol, en ms." },
+      { nom: "arc", type: "number", defaut: "0.18", role: "Cambrure, en fraction de la distance. 0 donne une ligne droite." },
+      { nom: "scale", type: "number", defaut: "0.6", role: "Échelle à l'arrivée." },
+      { nom: "ghost", type: "HTMLElement", defaut: "clone de la source", role: "Faire voler autre chose que ce qu'on montre." },
+      { nom: "onArrive", type: "() => void", defaut: "—", role: "Appelé à l'arrivée, ou tout de suite si le vol n'a pas lieu." },
+    ],
+    usage: `const voler = useFlight({ duration: 700 });
+
+const { flew } = await voler(source, marge);
+if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
 ];
 

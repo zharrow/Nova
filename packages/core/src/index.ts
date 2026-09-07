@@ -61,7 +61,19 @@ export { createSpotlight } from "./engines/spotlight";
 export type { SpotlightOptions } from "./engines/spotlight";
 
 export { createCursor } from "./engines/cursor";
-export type { CursorOptions } from "./engines/cursor";
+export type { CursorOptions, CursorVariant } from "./engines/cursor";
+
+export { createBrushUnderline } from "./engines/brush-underline";
+export type { BrushUnderlineOptions } from "./engines/brush-underline";
+
+export { createBlinds } from "./engines/blinds";
+export type { BlindsOptions } from "./engines/blinds";
+
+export { createLoader } from "./engines/loader";
+export type { LoaderOptions, LoaderForm } from "./engines/loader";
+
+export { flight } from "./engines/flight";
+export type { FlightOptions, FlightResult } from "./engines/flight";
 
 export { createHalftone } from "./engines/halftone";
 export type {

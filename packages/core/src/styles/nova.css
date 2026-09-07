@@ -21,6 +21,12 @@
 
   --nova-cursor-size: 1.25rem;
   --nova-cursor-color: #ffffff;
+
+  /* Le trait de marqueur a son propre jeton, et ce n'est PAS `--nova-accent`.
+     Un accent est fait pour porter du texte ; un marqueur passe DERRIÈRE le
+     texte, et doit donc rester assez clair pour qu'on lise par-dessus. Repris
+     du jaune de l'original. */
+  --nova-brush-color: #facc15;
 }
 
 /* --------------------------------------------------------------------------
@@ -260,16 +266,46 @@
   left: 0;
   top: 0;
   z-index: 9999;
+  pointer-events: none;
+  /* Le curseur AUGMENTE le curseur système, il ne le remplace pas : le mode
+     `difference` le rend lisible sur fond clair comme sur fond sombre. */
+  mix-blend-mode: difference;
+}
+
+/* `blob` — l'hôte EST le disque. */
+[data-nova-cursor-variant="blob"] {
   width: var(--nova-cursor-size);
   height: var(--nova-cursor-size);
   border-radius: 50%;
   background: var(--nova-cursor-color);
-  pointer-events: none;
   opacity: 0;
   will-change: transform;
-  /* Le curseur AUGMENTE le curseur système, il ne le remplace pas : le mode
-     `difference` le rend lisible sur fond clair comme sur fond sombre. */
-  mix-blend-mode: difference;
+}
+
+/* `dot-ring` — l'hôte est un cadre, les deux pièces sont dedans. Le point est
+   posé sur le pointeur, l'anneau traîne derrière lui. */
+[data-nova-cursor-variant="dot-ring"] {
+  inset: 0;
+}
+.nova-cursor__dot,
+.nova-cursor__ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  opacity: 0;
+  will-change: transform;
+  transition: opacity 300ms ease-out;
+}
+.nova-cursor__dot {
+  width: calc(var(--nova-cursor-size) * 0.3);
+  height: calc(var(--nova-cursor-size) * 0.3);
+  background: var(--nova-cursor-color);
+}
+.nova-cursor__ring {
+  width: calc(var(--nova-cursor-size) * 1.4);
+  height: calc(var(--nova-cursor-size) * 1.4);
+  border: 1px solid var(--nova-cursor-color);
 }
 
 [data-nova-cursor-state="off"] {
@@ -320,6 +356,171 @@
 }
 
 /* --------------------------------------------------------------------------
+   BrushUnderline — le trait de marqueur
+   -------------------------------------------------------------------------- */
+
+[data-nova-brush] {
+  position: relative;
+  display: inline-block;
+  /* Isole le contexte d'empilement : sans cela, le `z-index: -1` de la couche
+     la ferait passer derrière le fond du parent, donc disparaître. */
+  isolation: isolate;
+}
+
+.nova-brush {
+  position: absolute;
+  inset: -0.5rem -0.75rem;
+  z-index: -1;
+  pointer-events: none;
+  /* Le rognage est posé sur l'ENVELOPPE, jamais sur les chemins : rogner un
+     chemin ferait recalculer le filtre de turbulence à chaque image, et les
+     bords déchiquetés se mettraient à grésiller. */
+  overflow: hidden;
+  clip-path: inset(0 -5% 0 0);
+  transition: clip-path var(--nova-brush-duration, 1100ms)
+    cubic-bezier(0.7, 0, 0.3, 1) var(--nova-brush-delay, 180ms);
+}
+.nova-brush svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* L'état de repos n'existe QUE lorsque le moteur l'a armé : sans JavaScript,
+   le trait est simplement déjà peint. */
+[data-nova-brush-state="hidden"] .nova-brush {
+  clip-path: inset(0 105% 0 0);
+}
+
+/* --------------------------------------------------------------------------
+   Blinds — le dévoilement en claustra
+   -------------------------------------------------------------------------- */
+
+[data-nova-blinds] {
+  position: relative;
+}
+
+.nova-blinds {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+  z-index: 2;
+}
+[data-nova-blinds="horizontal"] .nova-blinds {
+  flex-direction: column;
+}
+
+.nova-blind {
+  flex: 1;
+  /* Un pixel de recouvrement : sans lui, l'arrondi sous-pixel laisse voir un
+     filet clair entre deux lames. */
+  margin-right: -1px;
+  background: var(--nova-blinds-color, var(--nova-fond, currentColor));
+  transform: scaleY(1);
+  transition: transform var(--nova-blinds-duration, 650ms)
+    var(--nova-blinds-easing, var(--nova-ease-expo))
+    var(--nova-blind-delay, 0ms);
+}
+[data-nova-blinds="horizontal"] .nova-blind {
+  margin-right: 0;
+  margin-bottom: -1px;
+  transform: scaleX(1);
+}
+
+[data-nova-blinds-retract="up"] .nova-blind    { transform-origin: 50% 0%; }
+[data-nova-blinds-retract="down"] .nova-blind  { transform-origin: 50% 100%; }
+[data-nova-blinds-retract="left"] .nova-blind  { transform-origin: 0% 50%; }
+[data-nova-blinds-retract="right"] .nova-blind { transform-origin: 100% 50%; }
+
+[data-nova-blinds-state="shown"] .nova-blind {
+  transform: scale(0);
+}
+
+/* --------------------------------------------------------------------------
+   Loader — le rideau d'ouverture
+   -------------------------------------------------------------------------- */
+
+[data-nova-loader] {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Fini : le rideau ne doit plus rien intercepter, ni rester dans la page. */
+[data-nova-loader-state="done"] {
+  display: none;
+}
+
+.nova-loader__content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  transition:
+    opacity calc(var(--nova-loader-exit, 700ms) * 0.45) ease-in,
+    transform calc(var(--nova-loader-exit, 700ms) * 0.45) ease-in;
+}
+[data-nova-loader-state="leaving"] .nova-loader__content {
+  opacity: 0;
+  transform: translateY(-0.9rem);
+}
+
+/* `blades` — les lames se retirent l'une après l'autre. */
+.nova-loader__blades {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+.nova-loader__blade {
+  flex: 1;
+  margin-right: -1px;
+  background: var(--nova-loader-color, var(--nova-fond, #fff));
+  transform-origin: 50% 0%;
+  transition: transform calc(var(--nova-loader-exit, 700ms) * 0.9)
+    var(--nova-ease-expo) var(--nova-blade-delay, 0ms);
+}
+[data-nova-loader-state="leaving"] .nova-loader__blade {
+  transform: scaleY(0);
+}
+
+/* `greetings` — le mot d'accueil, remplacé à chaque pas. */
+.nova-loader__greeting {
+  display: block;
+  animation: nova-loader-greeting 150ms ease-out;
+}
+@keyframes nova-loader-greeting {
+  from { opacity: 0; transform: translateY(0.6rem); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* `splash` — rien ne bouge, le voile s'efface. */
+[data-nova-loader="splash"] {
+  transition: opacity var(--nova-loader-exit, 700ms) ease-out;
+}
+[data-nova-loader="splash"][data-nova-loader-state="leaving"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Flight — le fantôme en vol
+   -------------------------------------------------------------------------- */
+
+[data-nova-flight] {
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  pointer-events: none;
+}
+.nova-flight__ghost {
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* --------------------------------------------------------------------------
    Confetti
    -------------------------------------------------------------------------- */
 
@@ -349,6 +550,17 @@
     opacity: 1 !important;
     transform: none !important;
     clip-path: none !important;
+  }
+  /* Les lames et le trait de pinceau ne sont pas posés du tout par leurs
+     moteurs dans ce mode. Ces règles ne couvrent que du markup rendu côté
+     serveur avant l'hydratation. */
+  .nova-blinds,
+  [data-nova-loader] {
+    display: none !important;
+  }
+  .nova-brush {
+    transition: none !important;
+    clip-path: inset(0 -5% 0 0) !important;
   }
   .nova-split__unit {
     transform: none !important;

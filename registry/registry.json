@@ -25,6 +25,10 @@
         "target": "internal/options.ts"
       },
       {
+        "path": "packages/core/src/internal/uid.ts",
+        "target": "internal/uid.ts"
+      },
+      {
         "path": "packages/core/src/internal/easing.ts",
         "target": "internal/easing.ts"
       },
@@ -69,6 +73,26 @@
         {
           "path": "packages/react/src/components/reveal.tsx",
           "target": "reveal.tsx",
+          "kind": "component"
+        }
+      ]
+    },
+    {
+      "name": "blinds",
+      "title": "Blinds",
+      "description": "Dévoilement en claustra : le contenu apparaît derrière des lames qui se retirent une à une.",
+      "exports": [
+        "Blinds"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/blinds.ts",
+          "target": "engines/blinds.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/blinds.tsx",
+          "target": "blinds.tsx",
           "kind": "component"
         }
       ]
@@ -194,6 +218,26 @@
       ]
     },
     {
+      "name": "brush-underline",
+      "title": "Brush Underline",
+      "description": "Un trait de marqueur derrière un mot, rongé au bruit fractal, qui se peint à l'entrée en vue.",
+      "exports": [
+        "BrushUnderline"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/brush-underline.ts",
+          "target": "engines/brush-underline.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/brush-underline.tsx",
+          "target": "brush-underline.tsx",
+          "kind": "component"
+        }
+      ]
+    },
+    {
       "name": "spotlight",
       "title": "Spotlight",
       "description": "Halo de repérage qui suit le curseur dans un panneau. Le moteur publie les coordonnées, le dessin reste au CSS.",
@@ -216,7 +260,7 @@
     {
       "name": "cursor",
       "title": "Cursor",
-      "description": "Curseur additif qui suit le pointeur et grossit sur les éléments interactifs.",
+      "description": "Curseur additif, en disque unique ou en point suivi d'un anneau qui traîne. Le curseur système reste visible.",
       "exports": [
         "Cursor"
       ],
@@ -290,6 +334,47 @@
         {
           "path": "packages/react/src/components/graph.tsx",
           "target": "graph.tsx",
+          "kind": "component"
+        }
+      ]
+    },
+    {
+      "name": "loader",
+      "title": "Loader",
+      "description": "Le rideau d'ouverture, en trois formes. Se saute, ne rejoue pas, n'existe pas en mouvement réduit.",
+      "exports": [
+        "Loader"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/loader.ts",
+          "target": "engines/loader.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/loader.tsx",
+          "target": "loader.tsx",
+          "kind": "component"
+        }
+      ]
+    },
+    {
+      "name": "flight",
+      "title": "Flight",
+      "description": "Un fantôme qui vole d'un élément vers un autre. Le geste qui relie deux endroits d'une page.",
+      "exports": [
+        "useFlight",
+        "flight"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/flight.ts",
+          "target": "engines/flight.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/hooks/use-flight.ts",
+          "target": "use-flight.ts",
           "kind": "component"
         }
       ]

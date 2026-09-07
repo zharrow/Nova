@@ -10,9 +10,15 @@ npx novaui add reveal scramble-text marquee
 
 ## Pourquoi celle-ci
 
-Douze **familles** tirées de projets en production — portfolio, Bât-et-Verre,
-rent_app, KaopyX — et non d'une page blanche. Quarante-trois formes en tout :
-une entrée du catalogue n'est pas une pièce unique. Voir [VARIANTES.md](VARIANTES.md). Chacun a été réécrit sur un socle commun,
+Seize **familles** tirées de projets en production — portfolio, Bât-et-Verre,
+KaopyX, générateur de CV, rent_app — et non d'une page blanche. Cinquante et
+une formes en tout : une entrée du catalogue n'est pas une pièce unique. Voir
+[VARIANTES.md](VARIANTES.md).
+
+Trois familles n'existaient dans aucun projet : elles n'apparaissent qu'en
+mettant les pièces côte à côte. `Loader` réunit trois rideaux d'ouverture
+écrits séparément ; `Cursor` deux curseurs ; `Flight` deux usages du même
+geste. Chacun a été réécrit sur un socle commun,
 sans GSAP ni framer-motion.
 
 Trois choix structurent tout le reste :
@@ -35,7 +41,7 @@ ne fait que brancher ce contrat sur son cycle de vie.
 
 ```
 packages/
-  core/     @nova-ui/core   — moteurs TypeScript, zéro dépendance, 65 tests
+  core/     @nova-ui/core   — moteurs TypeScript, zéro dépendance, 90 tests
   react/    @nova-ui/react  — composants React, 14 tests
   cli/      novaui          — CLI de copie, zéro dépendance
 registry/                   — manifeste + sources réécrites pour la copie
@@ -70,7 +76,11 @@ projet par projet sans toucher au moteur.
 | `createScrollMarquee` | `TriadMarquee` — KaopyX |
 | `createRollText` | `RollText` — portfolio, puis KaopyX |
 | `createSpotlight` | `RegLight` — KaopyX |
-| `createCursor` | `Cursor` — portfolio |
+| `createCursor` | `Cursor` — portfolio · `Curseur` — Bât-et-Verre 3D |
+| `createBlinds` | `Claustra` — Bât-et-Verre |
+| `createBrushUnderline` | `BrushUnderline` — générateur de CV |
+| `createLoader` | `Loader`, `PageLoader`, `AppSplash` — trois projets |
+| `flight` | `FindingFlightLayer` · `VisionneuseVerre` |
 | `createHalftone` | `EyeO` et `PixelClock` — KaopyX |
 | `createGraph` | `KnowledgeGraph` — KaopyX |
 | `confetti` | `triggerConfetti` — portfolio |
@@ -105,7 +115,7 @@ registry distant le jour où il y en aura un.
 ```bash
 pnpm install
 pnpm build              # core, react, docs
-pnpm test               # 79 tests
+pnpm test               # 104 tests
 pnpm typecheck
 pnpm registry:build     # régénère registry/dist
 pnpm --filter novaui build

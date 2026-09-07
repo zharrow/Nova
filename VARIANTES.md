@@ -115,31 +115,66 @@ Les formes partagent-elles le mécanisme ?
 |---|---|---|
 | `text-effect` | option | 17 — `line` `word` `letter` `flip` `curtain` `blur` `focus` `center` `shear` `wave` `tracking` `weight` `roll` `typewriter` `reading` `reading-blur` `highlight` |
 | `reveal` | option + frère | 7 variantes, plus `RevealGroup` pour le décalage de groupe |
+| `blinds` | frère de `reveal` | 2 — colonnes, rangs |
 | `marquee` | option | 4 sens — `left` `right` `up` `down` |
 | `scroll-marquee` | frère de `marquee` | 1 |
+| `loader` | option | 3 — `blades` `greetings` `splash` |
+| `cursor` | option | 2 — `blob`, `dot-ring` |
 | `scramble-text` | usage | 2 — au survol, à intervalle |
 | `counter` | usage | 3 — brut, localisé, monétaire |
 | `halftone` | option | 2 formes de module, 3 natures de source |
 | `confetti` | option | 3 formes de particule |
+| `brush-underline` | — | 1 |
 | `roll-text` | — | 1 |
 | `spotlight` | — | 1, mais le dessin est entièrement surchargeable en CSS |
-| `cursor` | — | 1 |
+| `flight` | — | 1 |
 | `graph` | — | 1 |
+
+Trois familles sont nées de la récolte elle-même, en réunissant des pièces
+écrites séparément dans des projets différents :
+
+- **`loader`** — le rideau de lames de Bât-et-Verre, les salutations du
+  portfolio, la pastille du générateur de CV. Trois rideaux qui ne se
+  ressemblent pas, et qui partagent pourtant leurs quatre garde-fous.
+- **`cursor`** — le disque du portfolio et le point-anneau de Bât-et-Verre 3D.
+  Le choix n'est pas cosmétique : le disque écrase ce qu'il survole, le point
+  ne masque rien.
+- **`flight`** — la preuve qui vole vers sa marge (générateur de CV) et
+  l'ouverture FLIP de la visionneuse (Bât-et-Verre). Deux usages du même geste.
+
+Aucune des trois n'existait comme composant dans les projets d'origine. Elles
+n'apparaissent qu'une fois les pièces mises côte à côte — c'est l'argument le
+plus fort de la méthode.
 
 ## Ce qui reste à récolter
 
-La récolte n'est pas finie. Les projets suivants n'ont pas encore été
-dépouillés, et chacun ajoutera très probablement des formes à des familles qui
-existent déjà plutôt que des familles nouvelles :
+La récolte est faite pour l'essentiel. Ce qui a été laissé, et pourquoi :
 
-- `Batetverre3D` — `marquee`, `reveal` (variante « joint »), `split-title`
-- `batetverre` — `marquee`, `visionneuse-verre`
-- `generate_ats_cv` — `brush-underline`, `animated-score`, `finding-flight-layer`
-- `rent_app` — `PageTransition`, `AnimatedCounter`
-- `KPX` — les huit tracés SVG de `anim.css`, non retenus pour l'instant
+**Écarté — non réutilisable.** Les huit tracés SVG de `anim.css` (KPX) sont
+trop liés à leurs glyphes. `LaboCompare` (portfolio) n'est pas un comparateur,
+c'est une mise en page à deux colonnes. Les icônes `animate-ui` (CRM Closer)
+viennent d'une librairie tierce.
 
-Quand une de ces pièces arrive, la première question n'est pas « comment
-l'appeler » mais **« de quelle famille est-elle une forme ? »**.
+**Écarté — composition de site, pas composant.** `StatBoard`, `MissionCard`,
+`Ticker`, les en-têtes et pieds de page, `AccentSwitch`, `SignalBand`,
+`menu-capsule`, `planche-hero`, les diagrammes et les scènes Three.js de
+Bât-et-Verre 3D.
+
+**Déjà couvert par une famille existante.** `text-generate-effect` et
+`assembling-title` sont la forme `blur` de `text-effect`. `AnimatedScore` est
+un usage de `counter` — une valeur qui change se réanime toute seule.
+`PageTransition` est un `reveal` monté à l'entrée. Les marquees de Bât-et-Verre
+sont `scroll-marquee` avec une inclinaison.
+
+**Repéré, pas encore pris.** Deux pièces valent le détour et attendent :
+
+- `phrase-highlight` (générateur de CV) — surligner un passage de texte
+  quelconque dans du contenu déjà rendu, une bande par ligne visuelle, via
+  l'API `Range`. Primitif rare et utile ; il n'existe nulle part ailleurs.
+- `useExpandTransition` (CRM Closer) — la substitution de deux arbres DOM sous
+  un voile dont le bord cadence tout le reste. Remarquable, mais adossé à GSAP
+  et à son plugin Flip, donc à réécrire entièrement pour tenir la règle du
+  zéro dépendance.
 
 ## Conséquences pratiques
 
