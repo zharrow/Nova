@@ -1,0 +1,209 @@
+/* ==========================================================================
+   Nova — feuille de style des moteurs.
+   Importer une fois par application :  import "@nova-ui/core/styles.css"
+
+   Principe : les moteurs JavaScript ne posent que des attributs `data-*` et
+   quelques variables CSS. Toute l'apparence vit ici, donc reste surchargeable
+   projet par projet sans toucher au moteur.
+
+   Principe n°2 : l'état par défaut est VISIBLE. Chaque règle qui masque est
+   conditionnée à un attribut posé par JavaScript — sans JS, tout s'affiche.
+   ========================================================================== */
+
+:root {
+  /* Courbe signature : démarre vite, se pose longuement. */
+  --nova-ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --nova-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Couleur d'accent des moteurs (caractères brouillés, etc.).
+     Par défaut : la couleur du texte, donc invisible tant qu'on ne la règle pas. */
+  --nova-accent: currentColor;
+
+  --nova-cursor-size: 1.25rem;
+  --nova-cursor-color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   Reveal
+   -------------------------------------------------------------------------- */
+
+[data-nova-reveal] {
+  transition-property: opacity, transform, clip-path;
+  transition-duration: var(--nova-reveal-duration, 700ms);
+  transition-delay: var(--nova-reveal-delay, 0ms);
+  transition-timing-function: var(--nova-reveal-easing, var(--nova-ease-expo));
+}
+
+[data-nova-reveal="hidden"][data-nova-reveal-variant="fade"] {
+  opacity: 0;
+}
+[data-nova-reveal="hidden"][data-nova-reveal-variant="slide-up"] {
+  opacity: 0;
+  transform: translateY(var(--nova-reveal-distance, 1.5rem));
+}
+[data-nova-reveal="hidden"][data-nova-reveal-variant="slide-down"] {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--nova-reveal-distance, 1.5rem)));
+}
+[data-nova-reveal="hidden"][data-nova-reveal-variant="slide-left"] {
+  opacity: 0;
+  transform: translateX(var(--nova-reveal-distance, 1.5rem));
+}
+[data-nova-reveal="hidden"][data-nova-reveal-variant="slide-right"] {
+  opacity: 0;
+  transform: translateX(calc(-1 * var(--nova-reveal-distance, 1.5rem)));
+}
+[data-nova-reveal="hidden"][data-nova-reveal-variant="scale"] {
+  opacity: 0;
+  transform: scale(0.94);
+}
+/* « Le joint qui s'ouvre » : un dévoilement par masque, sans fondu — l'image
+   ne doit jamais être translucide, seulement partiellement révélée. */
+[data-nova-reveal="hidden"][data-nova-reveal-variant="mask"] {
+  clip-path: inset(0 0 100% 0);
+}
+[data-nova-reveal="shown"][data-nova-reveal-variant="mask"] {
+  clip-path: inset(0 0 0% 0);
+}
+
+/* --------------------------------------------------------------------------
+   SplitText
+   -------------------------------------------------------------------------- */
+
+.nova-split__window {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* Compense le débord des jambages (g, j, p, q) que `overflow: hidden`
+     couperait autrement — la fenêtre est agrandie puis remontée d'autant. */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.nova-split__unit {
+  display: inline-block;
+  transition: transform var(--nova-split-duration, 800ms)
+    var(--nova-split-easing, var(--nova-ease-expo))
+    var(--nova-split-delay, 0ms);
+}
+
+[data-nova-split-state="hidden"] .nova-split__unit {
+  /* 115 % et non 100 % : la lettre doit sortir complètement de sa fenêtre,
+     jambages compris. */
+  transform: translateY(115%);
+}
+
+/* --------------------------------------------------------------------------
+   Scramble
+   -------------------------------------------------------------------------- */
+
+[data-nova-scramble] {
+  /* Les ligatures feraient sauter la métrique pendant le brouillage. */
+  font-variant-ligatures: none;
+}
+
+[data-nova-scrambled="true"] {
+  color: var(--nova-accent);
+}
+
+/* --------------------------------------------------------------------------
+   Marquee
+   -------------------------------------------------------------------------- */
+
+[data-nova-marquee] {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.nova-marquee__track {
+  display: inline-flex;
+  will-change: transform;
+  animation: nova-marquee var(--nova-marquee-duration, 20s) linear infinite;
+}
+
+.nova-marquee__group {
+  display: inline-flex;
+  flex-shrink: 0;
+  /* L'écart est un padding interne, pas un `gap` de flex : chaque copie fait
+     ainsi exactement un pas de boucle, et la translation reste exacte. */
+  padding-right: var(--nova-marquee-gap, 0px);
+}
+
+[data-nova-marquee-direction="right"] .nova-marquee__track {
+  animation-direction: reverse;
+}
+
+[data-nova-marquee-state="paused"] .nova-marquee__track,
+[data-nova-marquee-pause="hover"]:hover .nova-marquee__track {
+  animation-play-state: paused;
+}
+
+@keyframes nova-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--nova-marquee-shift, -50%));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Cursor
+   -------------------------------------------------------------------------- */
+
+[data-nova-cursor] {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9999;
+  width: var(--nova-cursor-size);
+  height: var(--nova-cursor-size);
+  border-radius: 50%;
+  background: var(--nova-cursor-color);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform;
+  /* Le curseur AUGMENTE le curseur système, il ne le remplace pas : le mode
+     `difference` le rend lisible sur fond clair comme sur fond sombre. */
+  mix-blend-mode: difference;
+}
+
+[data-nova-cursor-state="off"] {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Confetti
+   -------------------------------------------------------------------------- */
+
+[data-nova-confetti] {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Mouvement réduit — filet de sécurité.
+   Les moteurs se désarment déjà eux-mêmes ; cette règle garantit qu'aucune
+   transition résiduelle ne subsiste, y compris sur du markup rendu côté
+   serveur avant l'hydratation.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-nova-reveal],
+  .nova-split__unit,
+  .nova-marquee__track {
+    transition: none !important;
+    animation: none !important;
+  }
+  [data-nova-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+  .nova-split__unit {
+    transform: none !important;
+  }
+}

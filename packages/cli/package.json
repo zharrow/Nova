@@ -1,0 +1,28 @@
+{
+  "name": "novaui",
+  "version": "0.1.0",
+  "description": "CLI Nova \u2014 ajoute des composants anim\u00e9s \u00e0 un projet React, en copiant leur source.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "novaui": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "registry"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup && node scripts/copy-registry.mjs",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,83 @@
+@import "tailwindcss";
+@import "@nova-ui/core/styles.css";
+
+/* ==========================================================================
+   Nova — site vitrine.
+   Direction : instrument de mesure. Noir profond, filets d'un pixel, libellés
+   en chasse fixe, une seule couleur incandescente. Le composant démontré doit
+   être la seule chose colorée à l'écran.
+   ========================================================================== */
+
+@theme {
+  --color-fond: #08090b;
+  --color-surface: #0e1013;
+  --color-surface-haute: #14171c;
+  --color-filet: #21252c;
+  --color-encre: #e9e7e2;
+  --color-sourdine: #82868f;
+  --color-signal: #ff5b1f;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  --radius-nova: 2px;
+}
+
+:root {
+  color-scheme: dark;
+  /* Les caractères encore brouillés du Scramble prennent la couleur signal. */
+  --nova-accent: var(--color-signal);
+  --nova-cursor-color: #ffffff;
+}
+
+body {
+  background: var(--color-fond);
+  color: var(--color-encre);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Libellé technique : petite capitale en chasse fixe, très espacée. */
+.cote {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-sourdine);
+}
+
+/* Fond quadrillé discret — la trame de l'instrument. */
+.trame {
+  background-image:
+    linear-gradient(to right, var(--color-filet) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-filet) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* Le lien qui se souligne depuis la gauche. */
+.lien {
+  position: relative;
+}
+.lien::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 400ms var(--nova-ease-expo);
+}
+.lien:hover::after,
+.lien[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lien::after {
+    transition: none;
+  }
+}

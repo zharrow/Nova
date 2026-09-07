@@ -1,0 +1,99 @@
+{
+  "name": "nova",
+  "homepage": "https://github.com/Zharrow/nova-ui",
+  "framework": "react",
+  "comment": [
+    "Manifeste du registry Nova. Les chemins sont relatifs à la racine du dépôt.",
+    "`scripts/build-registry.ts` lit ce fichier, résout le contenu des sources,",
+    "réécrit les imports pour un projet consommateur, et produit registry/dist.",
+    "",
+    "`base` est ce que `novaui init` installe une fois : le socle partagé par",
+    "tous les composants. Les `items` sont ce que `novaui add` copie ensuite."
+  ],
+  "base": {
+    "files": [
+      { "path": "packages/core/src/internal/types.ts", "target": "internal/types.ts" },
+      { "path": "packages/core/src/internal/env.ts", "target": "internal/env.ts" },
+      { "path": "packages/core/src/internal/options.ts", "target": "internal/options.ts" },
+      { "path": "packages/core/src/internal/easing.ts", "target": "internal/easing.ts" },
+      { "path": "packages/core/src/internal/ticker.ts", "target": "internal/ticker.ts" },
+      { "path": "packages/core/src/internal/in-view.ts", "target": "internal/in-view.ts" },
+      { "path": "packages/core/src/internal/pointer.ts", "target": "internal/pointer.ts" },
+      { "path": "packages/react/src/hooks/use-nova-engine.ts", "target": "use-nova-engine.ts" },
+      { "path": "packages/react/src/polymorphic.ts", "target": "polymorphic.ts" }
+    ],
+    "css": "packages/core/src/styles/nova.css"
+  },
+  "items": [
+    {
+      "name": "reveal",
+      "title": "Reveal",
+      "description": "Apparition au scroll. L'état par défaut reste visible : rien ne peut rester masqué si l'observer ne tire pas.",
+      "exports": ["Reveal", "RevealGroup"],
+      "files": [
+        { "path": "packages/core/src/engines/reveal.ts", "target": "engines/reveal.ts", "kind": "lib" },
+        { "path": "packages/react/src/components/reveal.tsx", "target": "reveal.tsx", "kind": "component" }
+      ]
+    },
+    {
+      "name": "scramble-text",
+      "title": "Scramble Text",
+      "description": "Texte qui se brouille puis se décode, lettre par lettre.",
+      "exports": ["ScrambleText"],
+      "files": [
+        { "path": "packages/core/src/engines/scramble.ts", "target": "engines/scramble.ts", "kind": "lib" },
+        { "path": "packages/react/src/components/scramble-text.tsx", "target": "scramble-text.tsx", "kind": "component" }
+      ]
+    },
+    {
+      "name": "counter",
+      "title": "Counter",
+      "description": "Nombre qui compte jusqu'à sa valeur. La place est réservée dès le premier rendu, donc rien ne bouge autour.",
+      "exports": ["Counter"],
+      "files": [
+        { "path": "packages/core/src/engines/counter.ts", "target": "engines/counter.ts", "kind": "lib" },
+        { "path": "packages/react/src/components/counter.tsx", "target": "counter.tsx", "kind": "component" }
+      ]
+    },
+    {
+      "name": "split-text",
+      "title": "Split Text",
+      "description": "Titre qui monte dans son masque, mot par mot ou lettre par lettre.",
+      "exports": ["SplitText"],
+      "files": [
+        { "path": "packages/core/src/engines/split-text.ts", "target": "engines/split-text.ts", "kind": "lib" },
+        { "path": "packages/react/src/components/split-text.tsx", "target": "split-text.tsx", "kind": "component" }
+      ]
+    },
+    {
+      "name": "marquee",
+      "title": "Marquee",
+      "description": "Bandeau défilant infini, réglé en pixels par seconde pour que deux bandeaux s'accordent.",
+      "exports": ["Marquee"],
+      "files": [
+        { "path": "packages/core/src/engines/marquee.ts", "target": "engines/marquee.ts", "kind": "lib" },
+        { "path": "packages/react/src/components/marquee.tsx", "target": "marquee.tsx", "kind": "component" }
+      ]
+    },
+    {
+      "name": "cursor",
+      "title": "Cursor",
+      "description": "Curseur additif qui suit le pointeur et grossit sur les éléments interactifs.",
+      "exports": ["Cursor"],
+      "files": [
+        { "path": "packages/core/src/engines/cursor.ts", "target": "engines/cursor.ts", "kind": "lib" },
+        { "path": "packages/react/src/components/cursor.tsx", "target": "cursor.tsx", "kind": "component" }
+      ]
+    },
+    {
+      "name": "confetti",
+      "title": "Confetti",
+      "description": "Salve de particules, interrompue proprement au démontage.",
+      "exports": ["useConfetti", "confetti"],
+      "files": [
+        { "path": "packages/core/src/engines/confetti.ts", "target": "engines/confetti.ts", "kind": "lib" },
+        { "path": "packages/react/src/hooks/use-confetti.ts", "target": "use-confetti.ts", "kind": "component" }
+      ]
+    }
+  ]
+}

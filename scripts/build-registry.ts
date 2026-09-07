@@ -1,0 +1,237 @@
+/**
+ * Construit le registry Nova.
+ *
+ * Les sources du monorepo sont écrites pour le monorepo : elles s'importent
+ * entre elles via `@nova-ui/core` et des chemins relatifs de paquet. Une fois
+ * copiées dans le projet d'un utilisateur, ces imports ne résolvent plus rien.
+ *
+ * Ce script les réécrit. Il lit d'abord `packages/core/src/index.ts` pour
+ * savoir quel symbole vient de quel module, puis remplace chaque import de
+ * `@nova-ui/core` par des imports directs vers les fichiers réellement copiés.
+ * Le résultat est du code qui se lit comme s'il avait été écrit à la main dans
+ * le projet — ce qui est tout l'intérêt du modèle « copier-coller ».
+ *
+ * Le préfixe de chemin reste un jeton `%NOVA_LIB%` : c'est la CLI qui le
+ * remplace par l'alias configuré dans `nova.json`.
+ */
+
+import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const LIB_TOKEN = "%NOVA_LIB%";
+
+interface RegistryFile {
+  path: string;
+  target: string;
+  kind?: "lib" | "component";
+}
+
+interface RegistryItem {
+  name: string;
+  title: string;
+  description: string;
+  exports: string[];
+  files: RegistryFile[];
+}
+
+interface Manifest {
+  name: string;
+  homepage: string;
+  framework: string;
+  base: { files: RegistryFile[]; css: string };
+  items: RegistryItem[];
+}
+
+/** Symbole exporté par `@nova-ui/core` → module qui le définit réellement. */
+interface SymbolOrigin {
+  /** Chemin du module, relatif à la racine de la lib copiée. Ex. `engines/reveal`. */
+  module: string;
+  /** Nom local dans ce module, s'il diffère du nom exporté. */
+  localName: string;
+}
+
+/**
+ * Lit la barrique d'exports du cœur et en déduit l'origine de chaque symbole.
+ * C'est ce qui permet de remplacer `from "@nova-ui/core"` par des chemins
+ * précis, au lieu de forcer l'utilisateur à copier tout le paquet.
+ */
+async function readSymbolMap(): Promise<Map<string, SymbolOrigin>> {
+  const source = await readFile(
+    join(ROOT, "packages/core/src/index.ts"),
+    "utf8",
+  );
+  const map = new Map<string, SymbolOrigin>();
+  const statement = /export\s+(type\s+)?\{([^}]*)\}\s+from\s+"\.\/([^"]+)"/g;
+
+  for (const match of source.matchAll(statement)) {
+    const module = match[3]!;
+    for (const raw of match[2]!.split(",")) {
+      const specifier = raw.trim();
+      if (!specifier) continue;
+      const [localName, exportedName] = specifier.split(/\s+as\s+/);
+      map.set((exportedName ?? localName)!.trim(), {
+        module,
+        localName: localName!.trim(),
+      });
+    }
+  }
+  return map;
+}
+
+/**
+ * Réécrit un import de `@nova-ui/core` en un ou plusieurs imports directs,
+ * regroupés par module d'origine.
+ */
+function rewriteCoreImport(
+  specifiers: string,
+  isTypeOnly: boolean,
+  symbols: Map<string, SymbolOrigin>,
+  context: string,
+): string {
+  const byModule = new Map<string, string[]>();
+
+  for (const raw of specifiers.split(",")) {
+    const name = raw.trim();
+    if (!name) continue;
+
+    const origin = symbols.get(name);
+    if (!origin) {
+      throw new Error(
+        `Le symbole "${name}" importé par ${context} n'est pas exporté par ` +
+          `packages/core/src/index.ts — le registry ne saurait pas où le trouver.`,
+      );
+    }
+
+    const specifier =
+      origin.localName === name ? name : `${origin.localName} as ${name}`;
+    const list = byModule.get(origin.module) ?? [];
+    list.push(specifier);
+    byModule.set(origin.module, list);
+  }
+
+  return [...byModule.entries()]
+    .map(
+      ([module, names]) =>
+        `import ${isTypeOnly ? "type " : ""}{ ${names.join(", ")} } from "${LIB_TOKEN}/${module}";`,
+    )
+    .join("\n");
+}
+
+/** Applique toutes les réécritures d'import à un fichier copié. */
+function rewriteSource(
+  source: string,
+  file: RegistryFile,
+  symbols: Map<string, SymbolOrigin>,
+): string {
+  let output = source;
+
+  // 1. Imports du cœur, éclatés vers leurs modules réels.
+  output = output.replace(
+    /import\s+(type\s+)?\{([^}]*)\}\s+from\s+"@nova-ui\/core";/g,
+    (_full, typeKeyword: string | undefined, specifiers: string) =>
+      rewriteCoreImport(specifiers, Boolean(typeKeyword), symbols, file.path),
+  );
+
+  // 2. Chemins internes au paquet React → racine de la lib copiée.
+  output = output.replace(
+    /from\s+"\.\.\/hooks\/([^"]+)"/g,
+    `from "${LIB_TOKEN}/$1"`,
+  );
+  output = output.replace(
+    /from\s+"\.\.\/polymorphic"/g,
+    `from "${LIB_TOKEN}/polymorphic"`,
+  );
+
+  // Les fichiers du cœur gardent leurs chemins relatifs : l'arborescence
+  // `internal/` et `engines/` est reproduite telle quelle chez l'utilisateur.
+
+  // Garde-fou : plus aucun import ne doit pointer vers un paquet du monorepo.
+  // On ne teste que les `from "..."`, pas le texte : les commentaires peuvent
+  // légitimement citer @nova-ui/core pour expliquer d'où vient le fichier.
+  const leftover = output.match(/from\s+"@nova-ui\/[^"]+"/);
+  if (leftover) {
+    throw new Error(
+      `${file.path} : import non réécrit — ${leftover[0]}`,
+    );
+  }
+  return output;
+}
+
+async function main(): Promise<void> {
+  const manifest: Manifest = JSON.parse(
+    await readFile(join(ROOT, "registry/registry.json"), "utf8"),
+  );
+  const symbols = await readSymbolMap();
+
+  const outputDirectory = join(ROOT, "registry/dist");
+  await rm(outputDirectory, { recursive: true, force: true });
+  await mkdir(outputDirectory, { recursive: true });
+
+  async function resolveFiles(files: RegistryFile[]) {
+    return Promise.all(
+      files.map(async (file) => ({
+        target: file.target,
+        kind: file.kind ?? "lib",
+        content: rewriteSource(
+          await readFile(join(ROOT, file.path), "utf8"),
+          file,
+          symbols,
+        ),
+      })),
+    );
+  }
+
+  // Socle — installé une fois par `novaui init`.
+  const base = {
+    files: await resolveFiles(manifest.base.files),
+    css: await readFile(join(ROOT, manifest.base.css), "utf8"),
+  };
+  await writeFile(
+    join(outputDirectory, "base.json"),
+    JSON.stringify(base, null, 2),
+  );
+
+  // Un fichier par composant — ce que `novaui add` télécharge.
+  for (const item of manifest.items) {
+    const payload = {
+      name: item.name,
+      title: item.title,
+      description: item.description,
+      exports: item.exports,
+      files: await resolveFiles(item.files),
+    };
+    await writeFile(
+      join(outputDirectory, `${item.name}.json`),
+      JSON.stringify(payload, null, 2),
+    );
+  }
+
+  // Index — ce que `novaui list` affiche.
+  const index = {
+    name: manifest.name,
+    homepage: manifest.homepage,
+    framework: manifest.framework,
+    generatedAt: new Date().toISOString(),
+    items: manifest.items.map((item) => ({
+      name: item.name,
+      title: item.title,
+      description: item.description,
+      exports: item.exports,
+    })),
+  };
+  await writeFile(
+    join(outputDirectory, "index.json"),
+    JSON.stringify(index, null, 2),
+  );
+
+  console.log(
+    `Registry construit : ${manifest.items.length} composants + socle (${base.files.length} fichiers).`,
+  );
+}
+
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
+});

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.next/
+.turbo/
+*.tsbuildinfo
+.DS_Store
+.env*
+!.env.example
+coverage/
+.gstack/
+.gstack-shots/
+registry/dist/
+packages/cli/registry/

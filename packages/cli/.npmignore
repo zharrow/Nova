@@ -1,0 +1,10 @@
+# Volontairement quasi vide.
+#
+# Sans ce fichier, `npm publish` se rabat sur le .gitignore de la racine, qui
+# exclut `packages/cli/registry/` (artefact de build). Le paquet serait alors
+# publié sans son registry embarqué, et `npx novaui add` ne trouverait aucun
+# composant. Le champ `files` du package.json reste l'allowlist réelle.
+src/
+scripts/
+tsup.config.ts
+tsconfig.json
