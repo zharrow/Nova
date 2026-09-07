@@ -253,6 +253,46 @@
           "kind": "component"
         }
       ]
+    },
+    {
+      "name": "halftone",
+      "title": "Halftone",
+      "description": "Trame d'imprimeur sur canvas : une grille de modules dont la taille dit la valeur. Depuis une image, un canvas, ou une forme calculée.",
+      "exports": [
+        "Halftone"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/halftone.ts",
+          "target": "engines/halftone.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/halftone.tsx",
+          "target": "halftone.tsx",
+          "kind": "component"
+        }
+      ]
+    },
+    {
+      "name": "graph",
+      "title": "Graph",
+      "description": "Graphe de connaissances sur canvas, doublé d'une liste HTML qui porte toute l'information et pilote le visuel.",
+      "exports": [
+        "Graph"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/graph.ts",
+          "target": "engines/graph.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/graph.tsx",
+          "target": "graph.tsx",
+          "kind": "component"
+        }
+      ]
     }
   ]
 }

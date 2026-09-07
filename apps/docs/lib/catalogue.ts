@@ -237,6 +237,57 @@ export const catalogue: Fiche[] = [
 
 <button onClick={() => tirer()}>Célébrer</button>`,
   },
+  {
+    nom: "halftone",
+    titre: "Halftone",
+    accroche: "Une trame d'imprimeur : la taille du module dit la valeur.",
+    provenance: "EyeO et PixelClock — KaopyX",
+    apport:
+      "L'écran de trame des deux dessins d'origine, sorti de leur géométrie. La source peut être une image, un canvas déjà peint, ou une fonction de couverture — c'est ce dernier cas qui reproduit l'œil. Ce n'est pas un filtre de pixellisation : un pixel garde sa taille et change de couleur, un module de trame garde sa couleur et change de taille.",
+    options: [
+      { nom: "source", type: "string · HTMLImageElement · HTMLCanvasElement · (x,y) => number", defaut: "—", role: "Image, canvas, ou fonction de couverture. Obligatoire." },
+      { nom: "cols", type: "number", defaut: "48", role: "Colonnes. Les lignes suivent le rapport du canvas." },
+      { nom: "steps", type: "number", defaut: "4", role: "Paliers de valeur. Une trame est discrète, pas continue." },
+      { nom: "bleed", type: "number", defaut: "1", role: "Filet de blanc entre modules. Sans lui, les pleins se referment en aplat." },
+      { nom: "gamma", type: "number", defaut: "0.45", role: "Courbe taille/couverture. Garde les valeurs faibles visibles." },
+      { nom: "shape", type: "square · circle", defaut: "square", role: "Forme d'un module." },
+      { nom: "pointerBoost", type: "number", defaut: "0", role: "Agrandissement sous le curseur. 0 n'ouvre aucune boucle." },
+      { nom: "channel", type: "alpha · luminance", defaut: "déduit", role: "Canal lu dans une image. Détouré : alpha. Photo : luminance." },
+    ],
+    usage: `<Halftone alt="Portrait" source="/photo.jpg" cols={64} pointerBoost={0.4} />
+
+/* Une forme calculée — un disque : */
+<Halftone
+  alt=""
+  cols={32}
+  source={(x, y) => (Math.hypot(x - 0.5, y - 0.5) < 0.4 ? 1 : 0)}
+/>`,
+  },
+  {
+    nom: "graph",
+    titre: "Graph",
+    accroche: "Un graphe dont le visuel n'est qu'une couche de présentation.",
+    provenance: "KnowledgeGraph — KaopyX",
+    apport:
+      "La règle centrale est conservée et fait partie du contrat : le canvas ne porte aucune information qui n'existe pas déjà en HTML. La liste rendue à côté est le contenu réel — indexable, navigable au clavier, lisible sans JavaScript — et c'est elle qui pilote le visuel. La disposition est déterministe, la simulation est déroulée à froid avant la première image, et la boucle se gare une fois la topologie posée.",
+    options: [
+      { nom: "nodes", type: "{ id, label, group? }[]", defaut: "—", role: "Les nœuds. Obligatoire." },
+      { nom: "edges", type: "[string, string][]", defaut: "—", role: "Les arêtes, par identifiants. Obligatoire." },
+      { nom: "colors", type: "Record<string, string>", defaut: "—", role: "Couleur par famille." },
+      { nom: "seed", type: "number", defaut: "20260904", role: "Graine de la disposition. La garder, c'est garder la même image." },
+      { nom: "autoCycle", type: "number", defaut: "0", role: "Cadence du défilé automatique en ms. 0 le désactive." },
+      { nom: "settleCold", type: "number", defaut: "240", role: "Pas joués avant la première image." },
+      { nom: "settleVisible", type: "number", defaut: "90", role: "Pas joués à l'écran, après quoi la boucle se gare." },
+      { nom: "groupLabels", type: "Record<string, string>", defaut: "—", role: "Intertitres de la liste." },
+    ],
+    usage: `<Graph
+  nodes={[{ id: "a", label: "Alpha", group: "cyber" }]}
+  edges={[["a", "b"]]}
+  colors={{ cyber: "#4FD1C5", ia: "#8C79FF" }}
+  groupLabels={{ cyber: "Cybersécurité", ia: "Intelligence artificielle" }}
+  autoCycle={1700}
+/>`,
+  },
 ];
 
 export function trouverFiche(nom: string): Fiche | undefined {

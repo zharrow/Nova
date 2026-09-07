@@ -64,6 +64,11 @@ réécriture — c'est voulu, ne pas contourner le garde-fou.
   page. Toute boucle du type `while (copies < ceil(taille / mesure))` doit
   renoncer quand la mesure est nulle : sinon la division vaut l'infini et le
   navigateur se fige. Voir la garde dans `engines/scroll-marquee.ts`.
+- **La feuille de style de Nova est chargée APRÈS celle du projet.** À
+  spécificité égale, elle gagne. Ne jamais y poser de dimension, de marge ou de
+  couleur de fond sur un élément que l'appelant habille : `width: 100%` sur le
+  canvas de la trame écrasait silencieusement les classes utilitaires. Le socle
+  ne pose que ce qui est structurel — `display`, `overflow`, `position`.
 - **Le pool d'`IntersectionObserver` est global au module** et survit d'un test à
   l'autre. Les doublures de test ne remettent pas `instances` à zéro, c'est
   volontaire.

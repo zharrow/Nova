@@ -63,5 +63,20 @@ export type { SpotlightOptions } from "./engines/spotlight";
 export { createCursor } from "./engines/cursor";
 export type { CursorOptions } from "./engines/cursor";
 
+export { createHalftone } from "./engines/halftone";
+export type {
+  HalftoneOptions,
+  HalftoneSource,
+  CoverageFn,
+} from "./engines/halftone";
+
+export { createGraph } from "./engines/graph";
+export type {
+  GraphOptions,
+  GraphNode,
+  GraphEdge,
+  GraphInstance,
+} from "./engines/graph";
+
 export { confetti } from "./engines/confetti";
 export type { ConfettiOptions } from "./engines/confetti";

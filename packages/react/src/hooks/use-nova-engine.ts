@@ -21,12 +21,22 @@ import type { NovaInstance } from "@nova-ui/core";
  *     donc leur contenu, pas leur référence, et on n'appelle `update()` que
  *     lorsqu'une valeur a réellement bougé.
  */
-export function useNovaEngine<Element_ extends HTMLElement, Options extends object>(
-  factory: (element: Element_, options: Options) => NovaInstance<Options>,
+export function useNovaEngine<
+  Element_ extends HTMLElement,
+  Options extends object,
+  Instance extends NovaInstance<Options> = NovaInstance<Options>,
+>(
+  factory: (element: Element_, options: Options) => Instance,
   options: Options,
+  /**
+   * Ref optionnelle, remplie avec l'instance créée. Utile aux moteurs dont on
+   * pilote l'état depuis le rendu — le graphe, dont la liste HTML désigne le
+   * nœud actif. Elle vaut `null` hors montage.
+   */
+  instanceRef?: React.MutableRefObject<Instance | null>,
 ): React.RefObject<Element_ | null> {
   const ref = useRef<Element_>(null);
-  const instance = useRef<NovaInstance<Options> | null>(null);
+  const instance = useRef<Instance | null>(null);
   const callbacks = useRef<Record<string, (...args: unknown[]) => unknown>>({});
   const previous = useRef<Options | null>(null);
 
@@ -53,10 +63,12 @@ export function useNovaEngine<Element_ extends HTMLElement, Options extends obje
     if (!ref.current) return;
     const created = factory(ref.current, stabilize(options));
     instance.current = created;
+    if (instanceRef) instanceRef.current = created;
     previous.current = options;
     return () => {
       created.destroy();
       instance.current = null;
+      if (instanceRef) instanceRef.current = null;
       previous.current = null;
     };
     // Création unique : les changements d'options passent par `update()`.

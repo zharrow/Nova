@@ -277,6 +277,49 @@
 }
 
 /* --------------------------------------------------------------------------
+   Halftone et Graph — canvas
+
+   Les deux ne reçoivent qu'un socle : dimensions et rendu du texte. Tout le
+   dessin est fait par le moteur, en lisant `color` pour la trame et les
+   couleurs passées en options pour le graphe. Rien à surcharger ici.
+   -------------------------------------------------------------------------- */
+
+/* `display: block` seulement. Aucune dimension imposée : un canvas en ligne
+   traîne une marge sous la ligne de base, ce qu'il faut corriger, mais la
+   TAILLE appartient à l'appelant. Une largeur posée ici écraserait les classes
+   utilitaires du projet — même spécificité, et Nova est chargé après. */
+[data-nova-halftone],
+[data-nova-graph] {
+  display: block;
+}
+
+/* La liste du graphe est le CONTENU RÉEL — pas une légende décorative. Elle
+   ne reçoit ici qu'une remise à zéro : sa mise en forme appartient au projet,
+   qui doit pouvoir la traiter comme n'importe quelle liste de son site. */
+[data-nova-graph-legend] ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+[data-nova-graph-legend] button {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: none;
+  border: 0;
+  padding: 0.25rem 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+[data-nova-graph-legend] button[data-nova-graph-active="true"] {
+  color: var(--nova-accent);
+}
+
+/* --------------------------------------------------------------------------
    Confetti
    -------------------------------------------------------------------------- */
 

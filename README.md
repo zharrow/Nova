@@ -10,7 +10,7 @@ npx novaui add reveal scramble-text marquee
 
 ## Pourquoi celle-ci
 
-Dix composants tirés de projets en production — portfolio, Bât-et-Verre,
+Douze composants tirés de projets en production — portfolio, Bât-et-Verre,
 rent_app, KaopyX — et non d'une page blanche. `TextEffect` en porte dix-sept à
 lui seul. Chacun a été réécrit sur un socle commun,
 sans GSAP ni framer-motion.
@@ -35,7 +35,7 @@ ne fait que brancher ce contrat sur son cycle de vie.
 
 ```
 packages/
-  core/     @nova-ui/core   — moteurs TypeScript, zéro dépendance, 51 tests
+  core/     @nova-ui/core   — moteurs TypeScript, zéro dépendance, 65 tests
   react/    @nova-ui/react  — composants React, 14 tests
   cli/      novaui          — CLI de copie, zéro dépendance
 registry/                   — manifeste + sources réécrites pour la copie
@@ -61,6 +61,8 @@ projet par projet sans toucher au moteur.
 | `createRollText` | `RollText` — portfolio, puis KaopyX |
 | `createSpotlight` | `RegLight` — KaopyX |
 | `createCursor` | `Cursor` — portfolio |
+| `createHalftone` | `EyeO` et `PixelClock` — KaopyX |
+| `createGraph` | `KnowledgeGraph` — KaopyX |
 | `confetti` | `triggerConfetti` — portfolio |
 
 ### L'adaptateur React
@@ -93,7 +95,7 @@ registry distant le jour où il y en aura un.
 ```bash
 pnpm install
 pnpm build              # core, react, docs
-pnpm test               # 65 tests
+pnpm test               # 79 tests
 pnpm typecheck
 pnpm registry:build     # régénère registry/dist
 pnpm --filter novaui build

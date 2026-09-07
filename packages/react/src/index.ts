@@ -33,6 +33,12 @@ export type { RollTextProps } from "./components/roll-text";
 export { Spotlight } from "./components/spotlight";
 export type { SpotlightProps } from "./components/spotlight";
 
+export { Halftone } from "./components/halftone";
+export type { HalftoneProps } from "./components/halftone";
+
+export { Graph } from "./components/graph";
+export type { GraphProps } from "./components/graph";
+
 export { Cursor } from "./components/cursor";
 export type { CursorProps } from "./components/cursor";
 
@@ -53,6 +59,12 @@ export type {
   ScrollMarqueeOptions,
   RollTextOptions,
   SpotlightOptions,
+  HalftoneOptions,
+  HalftoneSource,
+  CoverageFn,
+  GraphOptions,
+  GraphNode,
+  GraphEdge,
   CursorOptions,
   ConfettiOptions,
   Easing,

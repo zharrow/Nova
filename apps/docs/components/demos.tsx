@@ -12,6 +12,8 @@ import {
   ScrollMarquee,
   RollText,
   Spotlight,
+  Halftone,
+  Graph,
 } from "@nova-ui/react";
 
 /**
@@ -370,6 +372,111 @@ export function DemoConfetti() {
   );
 }
 
+/**
+ * Une forme calculée plutôt qu'une image : la démo n'a alors aucune ressource
+ * à charger, et elle montre le cas qui reproduit l'œil de KaopyX.
+ */
+function couvertureNova(x: number, y: number): number {
+  // Un anneau, plus dense en bas — assez de valeurs intermédiaires pour que
+  // les paliers de la trame se lisent.
+  const dx = x - 0.5;
+  const dy = (y - 0.5) * 1.15;
+  const r = Math.hypot(dx, dy);
+  const anneau = 1 - Math.abs(r - 0.3) / 0.16;
+  return Math.max(0, Math.min(1, anneau));
+}
+
+export function DemoHalftone() {
+  const [forme, setForme] = useState<"square" | "circle">("square");
+  return (
+    <div>
+      <Scene>
+        <Halftone
+          alt=""
+          source={couvertureNova}
+          cols={40}
+          steps={4}
+          shape={forme}
+          pointerBoost={0.5}
+          className="h-44 w-44 text-encre"
+        />
+      </Scene>
+      <div className="mt-4 flex gap-1.5">
+        {(
+          [
+            ["square", "Carré"],
+            ["circle", "Rond"],
+          ] as const
+        ).map(([valeur, libelle]) => (
+          <button
+            key={valeur}
+            type="button"
+            onClick={() => setForme(valeur)}
+            aria-pressed={forme === valeur}
+            className={[
+              "rounded-nova border px-2.5 py-1 font-mono text-[11px] transition-colors",
+              forme === valeur
+                ? "border-signal text-signal"
+                : "border-filet text-sourdine hover:border-sourdine hover:text-encre",
+            ].join(" ")}
+          >
+            {libelle}
+          </button>
+        ))}
+      </div>
+      <p className="mt-3 text-[13px] text-sourdine">
+        Promenez le curseur : les modules grossissent sous lui, ils ne bougent
+        pas. Une trame dont les modules se déplacent n&apos;est plus une trame.
+      </p>
+    </div>
+  );
+}
+
+const NOEUDS = [
+  { id: "reveal", label: "Reveal", group: "scroll" },
+  { id: "text", label: "TextEffect", group: "texte" },
+  { id: "scramble", label: "Scramble", group: "texte" },
+  { id: "roll", label: "RollText", group: "texte" },
+  { id: "marquee", label: "Marquee", group: "scroll" },
+  { id: "scrollm", label: "ScrollMarquee", group: "scroll" },
+  { id: "spot", label: "Spotlight", group: "pointeur" },
+  { id: "cursor", label: "Cursor", group: "pointeur" },
+];
+
+const ARETES: [string, string][] = [
+  ["reveal", "marquee"],
+  ["marquee", "scrollm"],
+  ["text", "scramble"],
+  ["text", "roll"],
+  ["scramble", "roll"],
+  ["spot", "cursor"],
+  ["cursor", "scrollm"],
+  ["reveal", "text"],
+];
+
+export function DemoGraph() {
+  return (
+    <Graph
+      nodes={NOEUDS}
+      edges={ARETES}
+      colors={{ scroll: "#ff5b1f", texte: "#e9e7e2", pointeur: "#82868f" }}
+      groupLabels={{
+        scroll: "Défilement",
+        texte: "Texte",
+        pointeur: "Pointeur",
+      }}
+      groupOrder={["scroll", "texte", "pointeur"]}
+      edgeColor="#21252c"
+      labelColor="#82868f"
+      autoCycle={1900}
+      settleVisible={70}
+      padding={56}
+      canvasClassName="h-56 w-full rounded-nova border border-filet bg-surface"
+      className="[&_[data-nova-graph-legend]]:mt-5 [&_[data-nova-graph-legend]]:grid [&_[data-nova-graph-legend]]:grid-cols-3 [&_[data-nova-graph-legend]]:gap-5 [&_h4]:mb-2 [&_h4]:font-mono [&_h4]:text-[10px] [&_h4]:uppercase [&_h4]:tracking-[0.14em] [&_h4]:text-sourdine [&_button]:text-[13px] [&_button]:text-sourdine hover:[&_button]:text-encre [&_[data-nova-graph-degree]]:font-mono [&_[data-nova-graph-degree]]:text-[11px] [&_[data-nova-graph-degree]]:opacity-60"
+    />
+  );
+}
+
 const demos: Record<string, () => React.ReactElement> = {
   reveal: DemoReveal,
   "scramble-text": DemoScrambleText,
@@ -380,6 +487,8 @@ const demos: Record<string, () => React.ReactElement> = {
   "roll-text": DemoRollText,
   spotlight: DemoSpotlight,
   cursor: DemoCursor,
+  halftone: DemoHalftone,
+  graph: DemoGraph,
   confetti: DemoConfetti,
 };
 
