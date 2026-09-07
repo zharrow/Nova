@@ -41,8 +41,12 @@ export type {
   RevealVariant,
 } from "./engines/reveal";
 
-export { createSplitText } from "./engines/split-text";
-export type { SplitTextOptions } from "./engines/split-text";
+export { createTextEffect } from "./engines/text-effect";
+export type {
+  TextEffectOptions,
+  TextEffectName,
+  TextGrain,
+} from "./engines/text-effect";
 
 export { createMarquee } from "./engines/marquee";
 export type { MarqueeOptions } from "./engines/marquee";

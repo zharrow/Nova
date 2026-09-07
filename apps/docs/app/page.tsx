@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SplitText, ScrambleText, Marquee } from "@nova-ui/react";
+import { TextEffect, ScrambleText, Marquee } from "@nova-ui/react";
 import { catalogue } from "@/lib/catalogue";
 import { Demo } from "@/components/demos";
 
@@ -21,13 +21,13 @@ function Heros() {
         <p className="cote">Librairie de composants · TypeScript</p>
 
         <h1 className="mt-6 max-w-3xl text-5xl font-medium leading-[1.05] tracking-tight sm:text-7xl">
-          <SplitText as="span" text="Des composants" trigger="mount" />
+          <TextEffect as="span" text="Des composants" effect="line" trigger="mount" />
           <br />
-          <SplitText
+          <TextEffect
             as="span"
             text="extraits du réel."
+            effect="line"
             trigger="mount"
-            delay={220}
             className="text-sourdine"
           />
         </h1>

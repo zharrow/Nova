@@ -18,8 +18,8 @@ export type { ScrambleTextProps } from "./components/scramble-text";
 export { Counter } from "./components/counter";
 export type { CounterProps } from "./components/counter";
 
-export { SplitText } from "./components/split-text";
-export type { SplitTextProps } from "./components/split-text";
+export { TextEffect } from "./components/text-effect";
+export type { TextEffectProps } from "./components/text-effect";
 
 export { Marquee } from "./components/marquee";
 export type { MarqueeProps } from "./components/marquee";
@@ -36,7 +36,9 @@ export type {
   RevealOptions,
   ScrambleOptions,
   CounterOptions,
-  SplitTextOptions,
+  TextEffectOptions,
+  TextEffectName,
+  TextGrain,
   MarqueeOptions,
   CursorOptions,
   ConfettiOptions,

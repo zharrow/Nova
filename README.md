@@ -11,7 +11,8 @@ npx novaui add reveal scramble-text marquee
 ## Pourquoi celle-ci
 
 Sept composants tirés de projets en production — portfolio, Bât-et-Verre,
-rent_app — et non d'une page blanche. Chacun a été réécrit sur un socle commun,
+rent_app, KaopyX — et non d'une page blanche. `TextEffect` en porte dix-sept à
+lui seul. Chacun a été réécrit sur un socle commun,
 sans GSAP ni framer-motion.
 
 Trois choix structurent tout le reste :
@@ -54,7 +55,7 @@ projet par projet sans toucher au moteur.
 | `createReveal` / `createRevealGroup` | `useReveal` — Bât-et-Verre 3D |
 | `createScramble` | `ScrambleText` — portfolio |
 | `createCounter` | `AnimatedCounter` — portfolio + rent_app |
-| `createSplitText` | `SplitTitle` — Bât-et-Verre 3D |
+| `createTextEffect` | `Fragments` + banc `/lab/texte` — KaopyX |
 | `createMarquee` | `Marquee` — portfolio |
 | `createCursor` | `Cursor` — portfolio |
 | `confetti` | `triggerConfetti` — portfolio |

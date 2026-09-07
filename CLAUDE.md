@@ -47,10 +47,17 @@ réécriture — c'est voulu, ne pas contourner le garde-fou.
   directive quand il fusionne des modules ; l'option `banner` de tsup n'y change
   rien. `packages/react/scripts/add-use-client.mjs` la repose après le build.
   Sans elle, importer le paquet depuis un Server Component casse le build
-  consommateur.
+  consommateur. `test/bundle.test.ts` vérifie la directive dans le `dist` : ce
+  test existe parce que l'étape a déjà été contournée en silence par un `dist`
+  restauré du cache Turbo, et que l'erreur ne se voyait qu'au build du site.
 - **Un objet exporté d'un module `"use client"` ne traverse pas la frontière
   serveur.** L'indexer côté serveur renvoie `undefined`. Voir `apps/docs/components/demos.tsx` :
   la table nom → composant reste dans le module client, exposée via `<Demo nom />`.
+- **Un état de repos sous `animation-timeline` doit être sous `@supports`.**
+  `animation-timeline: view()` n'existe pas partout (Firefox notamment). Poser
+  `opacity: 0.17` en dehors de la garde laisse le texte illisible sur ces
+  navigateurs, puisque rien ne vient jamais lever l'état de repos. C'est le
+  défaut de l'implémentation d'origine des effets de lecture.
 - **Le pool d'`IntersectionObserver` est global au module** et survit d'un test à
   l'autre. Les doublures de test ne remettent pas `instances` à zéro, c'est
   volontaire.

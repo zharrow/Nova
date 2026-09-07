@@ -90,21 +90,25 @@ export const catalogue: Fiche[] = [
 <Counter to={99.4} decimals={1} suffix=" %" duration={2000} />`,
   },
   {
-    nom: "split-text",
-    titre: "Split Text",
-    accroche: "Un titre qui monte dans son masque, mot par mot.",
-    provenance: "SplitTitle — Bât-et-Verre 3D",
+    nom: "text-effect",
+    titre: "Text Effect",
+    accroche: "Dix-sept traitements de texte animé, sur un seul primitif.",
+    provenance: "Fragments + banc /lab/texte — KaopyX",
     apport:
-      "Le titre reste annoncé d'une seule traite aux lecteurs d'écran, et les blancs restent de vrais nœuds texte — la césure naturelle survit au découpage.",
+      "Le primitif mesure les VRAIES lignes après mise en page, et re-mesure au redimensionnement comme à l'arrivée des polices. Il expose six variables — mot, lettre continue, avancement, ligne, rang dans la ligne, éloignement du centre — qui suffisent à écrire les dix-sept effets en CSS pur. Deux corrections sur l'original : les fragments sont créés par le moteur et non par React, donc plus personne n'écrase les variables mesurées ; et les trois effets de défilement passent sous @supports, sans quoi ils laissaient le texte à 17 % d'opacité sur les navigateurs sans animation-timeline.",
     options: [
-      { nom: "text", type: "string", defaut: "—", role: "Texte à découper. Obligatoire." },
-      { nom: "by", type: "word · char", defaut: "word", role: "Granularité du découpage." },
-      { nom: "stagger", type: "number", defaut: "60", role: "Décalage entre deux unités, en ms." },
-      { nom: "duration", type: "number", defaut: "800", role: "Durée d'une unité, en ms." },
-      { nom: "trigger", type: "view · mount · manual", defaut: "view", role: "Ce qui déclenche la montée." },
+      { nom: "text", type: "string", defaut: "—", role: "Texte à traiter. Obligatoire." },
+      { nom: "effect", type: "17 valeurs — voir ci-dessous", defaut: "line", role: "Traitement appliqué." },
+      { nom: "grain", type: "word · letter", defaut: "déduit de l'effet", role: "Force la granularité du découpage." },
+      { nom: "trigger", type: "view · mount · manual", defaut: "view", role: "Sans objet pour les effets de défilement." },
+      { nom: "duration", type: "number", defaut: "900", role: "Durée d'une unité, en ms." },
+      { nom: "easing", type: "string", defaut: "courbe du catalogue", role: "Timing CSS." },
     ],
-    usage: `<SplitText as="h1" text="Bâtir en verre" className="text-6xl" />
-<SplitText text="NOVA" by="char" stagger={40} />`,
+    usage: `<TextEffect as="h1" text="Bâtir en verre" effect="line" />
+<TextEffect text="NOVA" effect="wave" />
+
+/* Au défilement — aucune durée, c'est la molette qui donne le temps : */
+<TextEffect as="p" text={manifeste} effect="reading" />`,
   },
   {
     nom: "marquee",

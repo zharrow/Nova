@@ -6,7 +6,7 @@ import {
   RevealGroup,
   ScrambleText,
   Counter,
-  SplitText,
+  TextEffect,
   Marquee,
   useConfetti,
 } from "@nova-ui/react";
@@ -114,19 +114,86 @@ export function DemoCounter() {
   );
 }
 
-export function DemoSplitText() {
+/**
+ * Les dix-sept traitements, avec leur famille et le mot d'ordre de chacun.
+ * Reprend le classement du banc d'origine : ce qui se déclenche d'un côté, ce
+ * qui se pilote au défilement de l'autre. Les deux ne se règlent pas pareil.
+ */
+const EFFETS = [
+  { id: "line", nom: "Ligne", note: "Le geste fondateur. Si vous n'en gardez qu'un." },
+  { id: "word", nom: "Mot", note: "Le même, décalé mot à mot. Décalage additif : ligne, puis rang." },
+  { id: "letter", nom: "Lettre", note: "Le grain le plus fin. À réserver aux titres courts." },
+  { id: "flip", nom: "Bascule", note: "La ligne arrive couchée et se redresse depuis son pied." },
+  { id: "curtain", nom: "Rideau", note: "Rien ne se déplace : le texte se découvre par le bas." },
+  { id: "blur", nom: "Flou", note: "Le texte se résout sur place, sans rien déplacer." },
+  { id: "focus", nom: "Mise au point", note: "Le flou plus l'échelle — un objectif qui se règle." },
+  { id: "center", nom: "Depuis le centre", note: "Le décalage suit la géométrie, pas l'ordre de lecture." },
+  { id: "shear", nom: "Cisaille", note: "Le mot monte penché et se redresse : ce qui va vite se déforme." },
+  { id: "wave", nom: "Vague", note: "Une course par lettre, décalée. L'onde naît du décalage." },
+  { id: "tracking", nom: "Chasse", note: "L'approche s'ouvre. Le seul qui anime la typographie elle-même." },
+  { id: "weight", nom: "Graisse", note: "Du trait fin au trait plein. Exige une police variable." },
+  { id: "roll", nom: "Rouleau", note: "Le compteur kilométrique : deux exemplaires par lettre." },
+  { id: "typewriter", nom: "Machine", note: "steps(), pas une courbe. Exige une chasse fixe." },
+] as const;
+
+const EFFETS_DEFILEMENT = [
+  { id: "reading", nom: "Lecture", note: "Les mots s'allument au fil du défilement." },
+  { id: "reading-blur", nom: "Lecture floue", note: "Le même, en netteté. Plus cher." },
+  { id: "highlight", nom: "Surlignage", note: "Un dégradé balaie le texte. Le plus économe." },
+] as const;
+
+export function DemoTextEffect() {
+  const [effet, setEffet] = useState<string>("line");
   const { cle, rejouer } = useRejeu();
+  const courant =
+    [...EFFETS, ...EFFETS_DEFILEMENT].find((e) => e.id === effet) ?? EFFETS[0];
+  const defilement = EFFETS_DEFILEMENT.some((e) => e.id === effet);
+
   return (
-    <Scene onRejouer={rejouer}>
-      <SplitText
-        key={cle}
-        as="p"
-        text="Bâtir en verre"
-        trigger="mount"
-        stagger={90}
-        className="text-center text-3xl font-medium tracking-tight sm:text-4xl"
-      />
-    </Scene>
+    <div>
+      <Scene onRejouer={defilement ? undefined : rejouer}>
+        <TextEffect
+          key={`${cle}-${effet}`}
+          as="p"
+          text={defilement ? "Le conseil que nous vendons, nous le pratiquons d'abord sur nous-mêmes." : "Bâtir en verre"}
+          effect={effet as never}
+          trigger={defilement ? undefined : "mount"}
+          className={
+            defilement
+              ? "max-w-[22ch] text-center text-xl leading-snug sm:text-2xl"
+              : "text-center text-3xl font-medium tracking-tight sm:text-4xl"
+          }
+        />
+      </Scene>
+
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {[...EFFETS, ...EFFETS_DEFILEMENT].map((e) => (
+          <button
+            key={e.id}
+            type="button"
+            onClick={() => setEffet(e.id)}
+            aria-pressed={effet === e.id}
+            className={[
+              "rounded-nova border px-2.5 py-1 font-mono text-[11px] transition-colors",
+              effet === e.id
+                ? "border-signal text-signal"
+                : "border-filet text-sourdine hover:border-sourdine hover:text-encre",
+            ].join(" ")}
+          >
+            {e.nom}
+          </button>
+        ))}
+      </div>
+
+      <p className="mt-3 text-[13px] leading-relaxed text-sourdine">
+        <span className="text-encre">{courant.nom}.</span> {courant.note}
+        {defilement ? (
+          <span className="cote mt-2 block">
+            effet de défilement — descendez la page pour le lire
+          </span>
+        ) : null}
+      </p>
+    </div>
   );
 }
 
@@ -191,7 +258,7 @@ const demos: Record<string, () => React.ReactElement> = {
   reveal: DemoReveal,
   "scramble-text": DemoScrambleText,
   counter: DemoCounter,
-  "split-text": DemoSplitText,
+  "text-effect": DemoTextEffect,
   marquee: DemoMarquee,
   cursor: DemoCursor,
   confetti: DemoConfetti,

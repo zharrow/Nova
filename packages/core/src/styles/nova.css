@@ -207,3 +207,480 @@
     transform: none !important;
   }
 }
+
+/* ==========================================================================
+   TextEffect — catalogue.
+
+   Dix-sept traitements, en deux familles qui ne se règlent pas pareil :
+
+     AU DÉCLENCHEMENT  le texte est caché, un événement le fait arriver. Le
+                       réglage porte sur le RYTHME : durée, décalage, courbe.
+                       Quatorze traitements.
+
+     AU DÉFILEMENT     le texte est là, sa lecture suit la molette. Le réglage
+                       porte sur la PLAGE, et il n'y a aucune durée nulle part.
+                       Trois traitements.
+
+   Confondre les deux est l'erreur courante : un effet d'arrivée branché sur
+   le défilement rejoue à chaque remontée, un effet de lecture déclenché une
+   fois ne sert à rien.
+
+   Tout repose sur la structure posée par le moteur — .nova-word qui rogne,
+   .nova-word-i qui bouge — et sur ses six variables. Aucun effet ne redéfinit
+   cette structure : ils ne font que l'animer autrement.
+
+   Porté du banc d'essai KaopyX. Rien ici ne dépend d'une bibliothèque : ce
+   sont les mêmes gestes que ceux qu'on écrirait avec GSAP, en CSS parce
+   qu'aucun ne demande de séquencement dynamique.
+   ========================================================================== */
+
+:root {
+  --nova-text-duration: 900ms;
+  --nova-text-easing: cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* Opacité de repos des effets de lecture. Pas zéro : un mot invisible ne se
+     devine pas, et le paragraphe deviendrait un bloc vide qui se remplit. */
+  --nova-text-dim: 0.17;
+}
+
+/* Le vrai texte, lu une fois par les technologies d'assistance. */
+.nova-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- socle commun de fragmentation ----
+   `vertical-align: bottom` et non `baseline` : avec l'alignement par défaut,
+   une boîte qu'on agrandit sous la ligne de base décale toute la ligne vers
+   le haut.
+
+   Le couple padding/margin compense le rognage des jambages et des accents :
+   la boîte est agrandie sous la ligne de base puis ramenée à sa place, donc
+   le « p » garde sa jambe et le « É » son accent, sans rien déplacer. */
+[data-nova-text] .nova-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+}
+[data-nova-text] .nova-word-i,
+[data-nova-text] .nova-letter {
+  display: inline-block;
+}
+
+/* ==========================================================================
+   FAMILLE 1 — AU DÉCLENCHEMENT
+   ========================================================================== */
+
+/* --- line — relevé par ligne ----------------------------------------------
+   Le geste fondateur, et de loin le plus utilisé : il ne déforme rien, ne
+   floute rien, et marche à toutes les tailles. Si vous n'en gardez qu'un.
+   115 % et non 100 % : à 100 % le haut des jambages affleure le bord du
+   masque pendant les premières images, et on voit une frange grise. */
+[data-nova-text="line"] .nova-word-i {
+  transform: translateY(115%);
+}
+[data-nova-text="line"][data-nova-play] .nova-word-i {
+  animation: nova-text-rise var(--nova-text-duration) var(--nova-text-easing) both;
+  animation-delay: calc(var(--nova-l, 0) * 105ms);
+}
+@keyframes nova-text-rise {
+  from { transform: translateY(115%); }
+  to   { transform: none; }
+}
+
+/* --- word — relevé par mot ------------------------------------------------
+   Le même geste, décalé mot à mot. Le décalage reste ADDITIF : un mot attend
+   sa ligne, PUIS son rang dans la ligne. Un décalage sur l'index global
+   ferait accélérer la fin d'un texte long sans raison. */
+[data-nova-text="word"] .nova-word-i {
+  transform: translateY(115%);
+}
+[data-nova-text="word"][data-nova-play] .nova-word-i {
+  animation: nova-text-rise var(--nova-text-duration) var(--nova-text-easing) both;
+  animation-delay: calc(var(--nova-l, 0) * 70ms + var(--nova-w, 0) * 42ms);
+}
+
+/* --- letter — relevé par lettre -------------------------------------------
+   Le grain le plus fin, à réserver aux titres courts : sur un paragraphe,
+   deux cents nœuds animés pour un effet que l'œil lit de toute façon comme
+   une vague.
+   Le masque reste sur le MOT — sinon chaque lettre aurait le sien et les
+   jambages se rogneraient entre eux. */
+[data-nova-text="letter"] .nova-letter {
+  transform: translateY(115%);
+}
+[data-nova-text="letter"][data-nova-play] .nova-letter {
+  animation: nova-text-rise 720ms var(--nova-text-easing) both;
+  animation-delay: calc(var(--nova-n, 0) * 22ms);
+}
+
+/* --- flip — bascule -------------------------------------------------------
+   La ligne arrive couchée en arrière et se redresse depuis son pied.
+   La perspective est posée sur le MASQUE et non sur la boîte qui tourne :
+   une perspective portée par l'élément transformé lui-même n'a aucun effet.
+   C'est le piège classique, et l'effet reste plat quand on se trompe. */
+[data-nova-text="flip"] .nova-word {
+  perspective: 460px;
+}
+[data-nova-text="flip"] .nova-word-i {
+  transform-origin: 50% 100%;
+  transform: translateY(60%) rotateX(-78deg);
+  opacity: 0;
+}
+[data-nova-text="flip"][data-nova-play] .nova-word-i {
+  animation: nova-text-flip 1s var(--nova-text-easing) both;
+  animation-delay: calc(var(--nova-l, 0) * 110ms);
+}
+@keyframes nova-text-flip {
+  from { transform: translateY(60%) rotateX(-78deg); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* --- curtain — rideau -----------------------------------------------------
+   Rien ne se déplace : le texte est à sa place et se découvre par le bas.
+   Le seul qui n'a besoin d'aucune boîte intérieure, donc le plus léger.
+   -12 % en fin de course et non 0 : à zéro exact, le bord du rognage tombe
+   sur les jambages et les tranche d'un pixel. */
+[data-nova-text="curtain"] .nova-word {
+  clip-path: inset(0 0 100% 0);
+}
+[data-nova-text="curtain"][data-nova-play] .nova-word {
+  animation: nova-text-curtain 820ms var(--nova-text-easing) both;
+  animation-delay: calc(var(--nova-l, 0) * 80ms + var(--nova-w, 0) * 38ms);
+}
+@keyframes nova-text-curtain {
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 -12% 0); }
+}
+
+/* --- blur — flou ----------------------------------------------------------
+   Le texte ne vient pas d'ailleurs : il se résout sur place. Il ne déplace
+   rien, donc il ne demande aucun espace autour du bloc.
+   Le flou est cher — il repeint à chaque image, sur chaque mot. Acceptable
+   sur un titre au chargement, à proscrire sur un paragraphe entier lié au
+   défilement. */
+[data-nova-text="blur"] .nova-word-i {
+  filter: blur(13px);
+  opacity: 0;
+}
+[data-nova-text="blur"][data-nova-play] .nova-word-i {
+  animation: nova-text-blur 950ms ease-out both;
+  animation-delay: calc(var(--nova-l, 0) * 80ms + var(--nova-w, 0) * 55ms);
+}
+@keyframes nova-text-blur {
+  from { filter: blur(13px); opacity: 0; }
+  to   { filter: blur(0);    opacity: 1; }
+}
+
+/* --- focus — mise au point ------------------------------------------------
+   Le flou plus l'échelle : le texte arrive trop grand et pas net, comme un
+   objectif qui se règle. Au-delà de 1,1 d'agrandissement on ne lit plus une
+   mise au point, on lit un zoom.
+   L'échelle est prise sur le mot : c'est ce qui donne l'impression que chaque
+   mot se règle pour lui-même. */
+[data-nova-text="focus"] .nova-word-i {
+  filter: blur(15px);
+  opacity: 0;
+  transform: scale(1.07);
+}
+[data-nova-text="focus"][data-nova-play] .nova-word-i {
+  animation: nova-text-focus 1s var(--nova-text-easing) both;
+  animation-delay: calc(var(--nova-m, 0) * 48ms);
+}
+@keyframes nova-text-focus {
+  from { filter: blur(15px); opacity: 0; transform: scale(1.07); }
+  to   { filter: blur(0);    opacity: 1; transform: none; }
+}
+
+/* --- center — depuis le centre --------------------------------------------
+   Le décalage suit la GÉOMÉTRIE et non l'ordre de lecture : l'effet s'ouvre
+   en anneau depuis le centre du bloc. Le seul qui exige une mesure après mise
+   en page — --nova-dist est renormalisé à chaque changement de largeur pour
+   que la durée totale ne dépende pas de la fenêtre. */
+[data-nova-text="center"] .nova-word-i {
+  opacity: 0;
+  filter: blur(9px);
+  transform: translateY(14px);
+}
+[data-nova-text="center"][data-nova-play] .nova-word-i {
+  animation: nova-text-center 800ms var(--nova-text-easing) both;
+  animation-delay: calc(var(--nova-dist, 0) * 620ms);
+}
+@keyframes nova-text-center {
+  from { opacity: 0; filter: blur(9px); transform: translateY(14px); }
+  to   { opacity: 1; filter: blur(0);   transform: none; }
+}
+
+/* --- shear — cisaille -----------------------------------------------------
+   Le mot monte penché et se redresse en arrivant : ce qui va vite se déforme.
+   Le redressement doit finir AVANT la course, sinon on lit deux gestes au
+   lieu d'un — d'où l'étape à 62 %. */
+[data-nova-text="shear"] .nova-word-i {
+  transform: translateY(105%) skewY(7deg);
+  opacity: 0;
+}
+[data-nova-text="shear"][data-nova-play] .nova-word-i {
+  animation: nova-text-shear 880ms var(--nova-text-easing) both;
+  animation-delay: calc(var(--nova-l, 0) * 70ms + var(--nova-w, 0) * 40ms);
+}
+@keyframes nova-text-shear {
+  from { transform: translateY(105%) skewY(7deg); opacity: 0; }
+  62%  { transform: translateY(16%) skewY(0.8deg); opacity: 1; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* --- wave — vague ---------------------------------------------------------
+   Une seule course par lettre, décalée dans le temps : l'onde naît du
+   décalage, pas d'un calcul de sinus. La course dépasse sa cible et revient,
+   sans quoi la vague monte et s'arrête — ce qui ne ressemble à rien. */
+[data-nova-text="wave"] .nova-letter {
+  transform: translateY(100%);
+  opacity: 0;
+}
+[data-nova-text="wave"][data-nova-play] .nova-letter {
+  animation: nova-text-wave 900ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(var(--nova-n, 0) * 34ms);
+}
+@keyframes nova-text-wave {
+  from { transform: translateY(100%); opacity: 0; }
+  55%  { transform: translateY(-16%); opacity: 1; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* --- tracking — chasse ----------------------------------------------------
+   L'approche s'ouvre : les lettres arrivent serrées et se desserrent. Le seul
+   qui anime la typographie elle-même, et le plus cher du catalogue —
+   letter-spacing recalcule la mise en page à chaque image.
+   Il porte sur la ligne entière : une approche qui s'ouvrirait mot par mot
+   déchirerait la ligne au lieu de la détendre. */
+[data-nova-text="tracking"] .nova-text {
+  display: inline-block;
+  letter-spacing: 0.42em;
+  opacity: 0;
+  filter: blur(5px);
+}
+[data-nova-text="tracking"][data-nova-play] .nova-text {
+  animation: nova-text-tracking 1.1s var(--nova-text-easing) both;
+}
+@keyframes nova-text-tracking {
+  from { letter-spacing: 0.42em;  opacity: 0; filter: blur(5px); }
+  to   { letter-spacing: inherit; opacity: 1; filter: blur(0); }
+}
+
+/* --- weight — graisse -----------------------------------------------------
+   La lettre passe du trait fin au trait plein. EXIGE UNE POLICE VARIABLE :
+   avec une police statique le navigateur saute d'une graisse à l'autre et
+   l'effet devient un clignotement.
+   font-variation-settings et non font-weight : font-weight s'interpole aussi,
+   mais il est écrasé par toute règle de graisse héritée, ce qui rend l'effet
+   silencieusement inopérant selon l'endroit où on le pose. */
+[data-nova-text="weight"] .nova-letter {
+  font-variation-settings: "wght" 100;
+  opacity: 0;
+}
+[data-nova-text="weight"][data-nova-play] .nova-letter {
+  animation: nova-text-weight 780ms var(--nova-text-easing) both;
+  animation-delay: calc(var(--nova-n, 0) * 28ms);
+}
+@keyframes nova-text-weight {
+  from { font-variation-settings: "wght" 100; opacity: 0; }
+  to   { font-variation-settings: "wght" 420; opacity: 1; }
+}
+
+/* --- roll — rouleau -------------------------------------------------------
+   Chaque lettre est une colonne de deux exemplaires qui monte d'exactement
+   une hauteur : le second arrive pile où le premier était. Le compteur
+   kilométrique.
+   La hauteur du saut est en em et non en pixels — une valeur en pixels se
+   décalerait au premier changement de corps. */
+[data-nova-text="roll"] .nova-roll {
+  display: inline-block;
+  overflow: hidden;
+  height: 1.06em;
+  vertical-align: bottom;
+  --nova-roll-jump: -1.06em;
+}
+[data-nova-text="roll"] .nova-roll i {
+  display: block;
+  font-style: normal;
+  height: 1.06em;
+  line-height: 1.06em;
+}
+[data-nova-text="roll"] .nova-roll i:first-child {
+  visibility: hidden;
+}
+[data-nova-text="roll"][data-nova-play] .nova-roll i:first-child {
+  visibility: visible;
+}
+[data-nova-text="roll"][data-nova-play] .nova-roll {
+  animation: nova-text-roll 700ms var(--nova-text-easing) both;
+  animation-delay: calc(var(--nova-n, 0) * 40ms);
+}
+@keyframes nova-text-roll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(var(--nova-roll-jump)); }
+}
+
+/* --- typewriter — machine à écrire ----------------------------------------
+   La ligne se découvre caractère par caractère, curseur au bout.
+   steps() et non une courbe continue : c'est la fonction de temps qui fait la
+   machine, une interpolation lisse donnerait un rideau.
+   EXIGE UNE CHASSE FIXE. Sur une police proportionnelle, la largeur d'un
+   caractère varie, les paliers ne tombent pas sur les lettres, et le curseur
+   passe son temps au milieu des glyphes. */
+[data-nova-text="typewriter"] .nova-text {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  font-family: var(--nova-text-mono, ui-monospace, monospace);
+  border-right: 2px solid var(--nova-accent);
+  width: 0;
+}
+[data-nova-text="typewriter"][data-nova-play] .nova-text {
+  animation:
+    nova-text-type 2.2s steps(var(--nova-ch, 30), end) both,
+    nova-text-caret 620ms steps(2, jump-none) infinite;
+}
+@keyframes nova-text-type {
+  from { width: 0; }
+  to   { width: var(--nova-width-end, 100%); }
+}
+@keyframes nova-text-caret {
+  from { border-color: var(--nova-accent); }
+  to   { border-color: transparent; }
+}
+
+/* ==========================================================================
+   FAMILLE 2 — AU DÉFILEMENT
+
+   Aucune durée : c'est la molette qui fournit le temps. Le réglage porte sur
+   `animation-range`, c'est-à-dire sur la portion de la traversée du bloc
+   pendant laquelle l'effet se joue.
+
+   `cover 14%` à `cover 68%` plutôt que `0%` à `100%` : un effet qui commence
+   quand le bloc entre par le bas est déjà fini quand on le regarde, et un
+   effet qui finit quand il sort par le haut ne se termine jamais à l'écran.
+   La lecture se fait au milieu de l'écran, l'effet doit s'y jouer.
+
+   L'échelonnement passe par la PLAGE et non par un délai : --nova-p vaut 0
+   pour le premier mot et 1 pour le dernier, donc chaque mot décale sa propre
+   fenêtre. Un délai n'aurait aucun sens ici — il n'y a pas de temps.
+
+   TOUT EST SOUS @supports. `animation-timeline` n'existe pas encore partout
+   (Firefox notamment). Sans cette garde, l'état de repos — un texte à 17 %
+   d'opacité, ou entièrement transparent pour le surlignage — resterait posé
+   sans que rien ne vienne jamais le lever. Le texte serait illisible sur ces
+   navigateurs. C'est le défaut de l'implémentation d'origine, corrigé ici.
+   ========================================================================== */
+
+@supports (animation-timeline: view()) {
+  /* --- reading — lecture --------------------------------------------------
+     Les mots s'allument un à un au fil du défilement. Le seul effet de
+     paragraphe qui serve à quelque chose : il impose un rythme de lecture au
+     lieu de décorer. */
+  [data-nova-text="reading"] .nova-word-i {
+    opacity: var(--nova-text-dim);
+    animation: nova-text-lighten linear both;
+    animation-timeline: view();
+    animation-range:
+      cover calc(14% + var(--nova-p, 0) * 42%)
+      cover calc(26% + var(--nova-p, 0) * 42%);
+  }
+  @keyframes nova-text-lighten {
+    to { opacity: 1; }
+  }
+
+  /* --- reading-blur — lecture floue ---------------------------------------
+     Le même échelonnement, en netteté plutôt qu'en opacité. Plus
+     spectaculaire et nettement plus cher : un flou par mot repeint en continu
+     pendant tout le défilement, là où l'opacité reste sur le compositeur.
+     À réserver à un bloc court. */
+  [data-nova-text="reading-blur"] .nova-word-i {
+    animation: nova-text-sharpen linear both;
+    animation-timeline: view();
+    animation-range:
+      cover calc(14% + var(--nova-p, 0) * 42%)
+      cover calc(28% + var(--nova-p, 0) * 42%);
+  }
+  @keyframes nova-text-sharpen {
+    from { filter: blur(6px); opacity: 0.25; }
+    to   { filter: blur(0);   opacity: 1; }
+  }
+
+  /* --- highlight — surlignage ---------------------------------------------
+     Un dégradé balaie le texte, découpé à la forme des lettres. Une seule
+     couche pour tout le bloc : aucun coût par mot, et aucune fragmentation
+     nécessaire. Le plus économe des trois.
+     La bande claire doit être LARGE et le dégradé étalé sur trois fois la
+     largeur : sur une bande étroite on voit un reflet qui passe, pas une
+     phrase qui s'écrit. */
+  [data-nova-text="highlight"] {
+    background-image: linear-gradient(
+      100deg,
+      currentColor 0 30%,
+      var(--nova-accent) 42% 46%,
+      color-mix(in srgb, currentColor 22%, transparent) 62% 100%
+    );
+    background-size: 320% 100%;
+    background-position: 100% 0;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: nova-text-sweep linear both;
+    animation-timeline: view();
+    animation-range: cover 16% cover 68%;
+  }
+  @keyframes nova-text-sweep {
+    to { background-position: 0 0; }
+  }
+}
+
+/* ==========================================================================
+   Mouvement réduit — filet de sécurité.
+
+   Le moteur ne fragmente déjà rien dans ce mode : le texte reste brut, sans
+   attribut, donc aucune règle ci-dessus ne s'applique. Ce bloc ne couvre que
+   le cas d'un markup rendu côté serveur avant l'hydratation.
+
+   Il ne suffit PAS de couper les animations : les états de repos cachent le
+   texte, c'est leur rôle. Coupées sans plus, elles laisseraient la page vide
+   pour qui a demandé moins de mouvement — une préférence de confort
+   transformée en page illisible. C'est le défaut le plus fréquent des
+   bibliothèques d'animation de texte.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-nova-text] .nova-word,
+  [data-nova-text] .nova-word-i,
+  [data-nova-text] .nova-letter,
+  [data-nova-text] .nova-roll,
+  [data-nova-text] .nova-text {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    clip-path: none !important;
+    letter-spacing: inherit !important;
+    font-variation-settings: normal !important;
+    width: auto !important;
+    border-right: 0 !important;
+  }
+  [data-nova-text="highlight"] {
+    background-image: none;
+    color: inherit;
+    -webkit-text-fill-color: currentColor;
+  }
+  [data-nova-text="roll"] .nova-roll i:first-child {
+    display: none;
+  }
+}

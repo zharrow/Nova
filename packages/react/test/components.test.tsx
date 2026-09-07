@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
-import { Reveal, ScrambleText, Counter, SplitText, Marquee } from "../src/index";
+import { Reveal, ScrambleText, Counter, TextEffect, Marquee } from "../src/index";
 import { MockIntersectionObserver } from "./setup";
 
 describe("composants React", () => {
@@ -34,11 +34,19 @@ describe("composants React", () => {
     expect(element.textContent).toBe("42");
   });
 
-  it("SplitText découpe un titre en gardant sa sémantique", () => {
-    const { container } = render(<SplitText as="h1" text="Bâtir en verre" />);
+  it("TextEffect découpe un titre en gardant sa sémantique", () => {
+    const { container } = render(<TextEffect as="h1" text="Bâtir en verre" />);
     const heading = container.querySelector("h1")!;
-    expect(heading.querySelectorAll(".nova-split__unit")).toHaveLength(3);
-    expect(heading.getAttribute("aria-label")).toBe("Bâtir en verre");
+    expect(heading.querySelectorAll(".nova-word")).toHaveLength(3);
+    // Le titre reste annoncé d'une seule traite.
+    expect(heading.querySelector(".nova-sr")?.textContent).toBe("Bâtir en verre");
+  });
+
+  it("TextEffect change de grain quand l'effet l'exige", () => {
+    const { container, rerender } = render(<TextEffect text="Nova" effect="line" />);
+    expect(container.querySelectorAll(".nova-letter")).toHaveLength(0);
+    rerender(<TextEffect text="Nova" effect="wave" />);
+    expect(container.querySelectorAll(".nova-letter")).toHaveLength(4);
   });
 
   it("Marquee duplique son contenu", () => {
