@@ -6,9 +6,18 @@
  *   import "@nova-ui/core/styles.css";
  */
 
+/* La fusion de classes de shadcn, réexportée : les composants copiés s'en
+   servent, et un projet qui a déjà `@/lib/utils` peut pointer dessus. */
+export { cn } from "./cn";
+
 export { useNovaEngine } from "./hooks/use-nova-engine";
 export { useConfetti } from "./hooks/use-confetti";
 export { useFlight } from "./hooks/use-flight";
+/* Ces deux-là tirent une librairie — GSAP pour l'un, Lenis pour l'autre. Ils
+   passent par les entrées séparées du cœur, pour qu'un projet qui ne les prend
+   pas n'embarque rien. Voir DEPENDANCES.md. */
+export { useExpand } from "./hooks/use-expand";
+export type { UseExpandResult } from "./hooks/use-expand";
 
 export { Reveal, RevealGroup } from "./components/reveal";
 export type { RevealProps, RevealGroupProps } from "./components/reveal";
@@ -39,6 +48,9 @@ export type { HalftoneProps } from "./components/halftone";
 
 export { Graph } from "./components/graph";
 export type { GraphProps } from "./components/graph";
+
+export { SmoothScroll } from "./components/smooth-scroll";
+export type { SmoothScrollProps } from "./components/smooth-scroll";
 
 export { Cursor } from "./components/cursor";
 export type { CursorProps } from "./components/cursor";

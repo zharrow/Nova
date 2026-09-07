@@ -10,9 +10,16 @@ en `prefers-reduced-motion`, en SSR, et pour un élément déjà à l'écran au 
 (`isAlreadyInView`), aucune animation d'entrée ne s'arme. Toute modification qui
 casse cette règle rend possible une section invisible en production.
 
-**Un moteur ne connaît aucun framework.** `packages/core` n'importe rien d'autre
-que lui-même. Pas de React, pas de GSAP, pas de framer-motion. Si une logique
-d'animation arrive dans `packages/react`, elle est au mauvais endroit.
+**Un moteur ne connaît aucun framework.** `packages/core` n'importe pas React.
+GSAP y a sa place — il anime des `HTMLElement` — mais seulement par une entrée
+séparée, pour qu'un projet qui ne prend pas le composant concerné ne l'embarque
+pas. `motion` et Radix sont React-only : ils vivent dans `packages/react`, et
+les composants qui en dépendent sont déclarés comme tels.
+
+**On ne réinvente rien.** Radix apporte la sémantique — ARIA, clavier, focus —
+et Tailwind la mise en forme, via `cn()`. Nova n'apporte que le mouvement.
+Avant d'écrire un composant, lire [DEPENDANCES.md](DEPENDANCES.md) : l'arbre de
+décision y dit quand prendre une librairie, et laquelle.
 
 **Fusionner les options avec `mergeOptions`, jamais avec un spread.**
 `{ ...defaults, ...options }` écrase une valeur par défaut avec `undefined` quand

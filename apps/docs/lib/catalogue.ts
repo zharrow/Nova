@@ -663,6 +663,53 @@ export const catalogue: Fiche[] = [
 const { flew } = await voler(source, marge);
 if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
+  {
+    nom: "expand",
+    titre: "Expand",
+    categorie: "effets",
+    nouveau: true,
+    accroche: "Une ligne qui devient un panneau, sans que la substitution se voie.",
+    provenance: "useExpandTransition — CRM Closer",
+    apport:
+      "React remplace un arbre par l'autre en une image : la ligne disparaît pendant que l'en-tête apparaît, et c'est cette substitution qu'on lit comme un à-coup. Le geste tient en deux temps — la boîte s'étire et les pièces communes glissent (GSAP Flip), puis un voile se retire et TOUT LE RESTE SE DÉDUIT DE SON BORD. Un fondu du clair vers le sombre passerait par le gris : à mi-chemin le fond et le texte se retrouvent à la même valeur, et le texte disparaît. Un bord ne mélange rien. C'est aussi ce qui donne son calendrier au geste : on ne règle pas dix retards à la main, on les lit sur une règle. Un seul geste est décrit, et le repli le rejoue à l'envers — tant que les deux divergeaient, le repli ramenait un à un les défauts retirés de l'ouverture.",
+    options: [
+      { nom: "minDuration", type: "number", defaut: "0.13", role: "Durée minimale, en s." },
+      { nom: "maxDuration", type: "number", defaut: "0.18", role: "Durée maximale. Elle s'étire avec la distance parcourue." },
+      { nom: "veilStart", type: "number", defaut: "0.2", role: "Où le voile part dans le geste, en fraction." },
+      { nom: "veilDuration", type: "number", defaut: "0.1", role: "Durée de la descente du voile, en s." },
+      { nom: "reverseSpeed", type: "number", defaut: "1.6", role: "Accélération du repli. Ce qui s'en va n'a pas à se faire attendre." },
+    ],
+    usage: `const { ref, capture, shown } = useExpand(ouvert);
+
+<div ref={ref}>
+  <header onClick={() => { capture(); setOuvert((v) => !v); }}>
+    {shown ? <span data-nova-veil /> : null}
+    <span data-nova-flip-id="titre">{titre}</span>
+    {shown ? <p data-nova-reveal>{detail}</p> : null}
+    <span data-nova-spin><Chevron /></span>
+  </header>
+</div>`,
+  },
+  {
+    nom: "smooth-scroll",
+    titre: "Smooth Scroll",
+    categorie: "defilement",
+    nouveau: true,
+    accroche: "Le défilement lissé, branché sur la boucle de Nova.",
+    provenance: "SmoothScroll — quatre projets sur huit, toujours avec Lenis",
+    apport:
+      "Trois différences avec un montage direct de Lenis. La boucle est celle de Nova : Lenis ouvre sa propre requestAnimationFrame par défaut, ici il partage le ticker de la librairie — une seule boucle pour le défilement, les compteurs, le curseur et les bandeaux. Le tactile reste natif : lisser un défilement au doigt lui retire l'inertie du système, celle que l'utilisateur connaît, pour la remplacer par une autre. Et rien n'est monté en mouvement réduit — pas « moins lissé », absent : le défilement natif est ce que le réglage demande.",
+    options: [
+      { nom: "lerp", type: "number", defaut: "0.1", role: "Rattrapage par image. Plus bas, plus glissant." },
+      { nom: "wheelMultiplier", type: "number", defaut: "1", role: "Multiplicateur de la molette." },
+      { nom: "smoothTouch", type: "boolean", defaut: "false", role: "Lisser aussi le tactile. L'inertie du système est meilleure." },
+      { nom: "orientation", type: "vertical · horizontal", defaut: "vertical", role: "Sens du défilement." },
+    ],
+    usage: `/* Une seule fois, dans le layout racine : */
+<SmoothScroll lerp={0.1}>
+  {children}
+</SmoothScroll>`,
+  },
 ];
 
 export function trouverFiche(nom: string): Fiche | undefined {

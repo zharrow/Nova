@@ -27,6 +27,8 @@ const HELP = `
     --force          init : réinstalle le socle et réécrit nova.json
                             (c'est aussi la façon de mettre le socle à jour)
     --overwrite      add  : écrase sans demander les fichiers déjà présents
+    --no-install     add  : n'installe rien, affiche seulement la commande
+    --yes            add  : installe les dépendances sans demander
     --cwd <chemin>   Travaille dans un autre dossier que le dossier courant
     -h, --help       Affiche cette aide
     -v, --version    Affiche la version

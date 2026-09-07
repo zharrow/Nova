@@ -3,6 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export interface EntreeNav {
   nom: string;
@@ -62,13 +65,13 @@ export function BarreLaterale({
         <label className="sr-only" htmlFor="filtre-nav">
           Filtrer les composants
         </label>
-        <input
+        <Input
           id="filtre-nav"
           type="search"
           value={filtre}
           onChange={(event) => setFiltre(event.target.value)}
           placeholder={`Filtrer ${total} composants…`}
-          className="w-full rounded-nova border border-filet bg-surface px-3 py-2 text-[13px] text-encre placeholder:text-sourdine focus:border-sourdine focus:outline-none"
+          className="h-9 text-[13px]"
         />
       </div>
 
@@ -104,9 +107,12 @@ export function BarreLaterale({
                   </span>
                 ) : null}
                 {entree.nouveau ? (
-                  <span className="ml-1.5 rounded-[2px] bg-signal/15 px-1.5 py-px font-mono text-[9px] uppercase tracking-wider text-signal">
+                  <Badge
+                    variant="secondary"
+                    className="ml-1.5 bg-signal/12 px-1.5 py-0 font-mono text-[9px] uppercase tracking-wider text-signal"
+                  >
                     New
-                  </span>
+                  </Badge>
                 ) : null}
               </LienNav>
             ))}
@@ -137,12 +143,12 @@ function LienNav({
       <Link
         href={href}
         aria-current={actif ? "page" : undefined}
-        className={[
+        className={cn(
           "flex items-center gap-1 rounded-nova px-2 py-1.5 text-[13.5px] transition-colors",
           actif
-            ? "bg-surface text-encre"
-            : "text-sourdine hover:bg-surface/60 hover:text-encre",
-        ].join(" ")}
+            ? "bg-accent text-accent-foreground"
+            : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+        )}
       >
         {children}
       </Link>

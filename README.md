@@ -41,13 +41,14 @@ ne fait que brancher ce contrat sur son cycle de vie.
 
 ```
 packages/
-  core/     @nova-ui/core   — moteurs TypeScript, zéro dépendance, 90 tests
+  core/     @nova-ui/core   — moteurs TypeScript, 98 tests
   react/    @nova-ui/react  — composants React, 14 tests
-  cli/      novaui          — CLI de copie, zéro dépendance
+  cli/      novaui          — CLI de copie et d'installation
 registry/                   — manifeste + sources réécrites pour la copie
 apps/
   docs/                     — site vitrine (Next.js)
 VARIANTES.md                — pourquoi une entrée du catalogue est une famille
+DEPENDANCES.md              — quand prendre une librairie, et laquelle
 ```
 
 ### Familles, pas pièces

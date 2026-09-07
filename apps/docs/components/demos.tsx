@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Reveal,
   RevealGroup,
@@ -19,6 +21,7 @@ import {
   Blinds,
   Loader,
   useFlight,
+  useExpand,
 } from "@nova-ui/react";
 
 /**
@@ -671,6 +674,101 @@ export function DemoFlight({ compact }: PropsDemo) {
   );
 }
 
+/**
+ * Le geste d'Expand, sur la vraie structure attendue par le moteur : un voile,
+ * des pièces appariées par `data-nova-flip-id`, des lignes qui n'existent que
+ * dépliées, un chevron qui se retourne.
+ */
+export function DemoExpand({ compact }: PropsDemo) {
+  const [ouvert, setOuvert] = useState(false);
+  const { ref, capture, shown } = useExpand<HTMLDivElement>(ouvert);
+
+  function basculer() {
+    // Relevé AVANT la bascule : c'est le seul moment où l'état de départ est
+    // encore rendu, donc mesurable.
+    capture();
+    setOuvert((v) => !v);
+  }
+
+  return (
+    <Scene compact={compact}>
+      <div className="w-full max-w-sm">
+        <div
+          ref={ref}
+          className={cn(
+            "relative overflow-hidden rounded-nova border",
+            shown ? "bg-foreground text-background" : "bg-card text-foreground",
+          )}
+        >
+          <header className="relative">
+            {shown ? (
+              <span data-nova-veil className="bg-card" aria-hidden />
+            ) : null}
+            <button
+              type="button"
+              onClick={basculer}
+              aria-expanded={ouvert}
+              className="relative flex w-full items-center gap-3 px-4 py-3 text-left"
+            >
+              <span
+                data-nova-flip-id="titre"
+                className="text-sm font-medium tracking-tight"
+              >
+                Relancer Dupont
+              </span>
+              <span
+                data-nova-spin
+                className="ml-auto inline-flex"
+                aria-hidden
+              >
+                <ChevronDown className="size-4" />
+              </span>
+            </button>
+            {shown ? (
+              <p
+                data-nova-reveal
+                className="relative px-4 pb-3 text-xs opacity-80"
+              >
+                Dernier échange il y a douze jours.
+              </p>
+            ) : null}
+          </header>
+
+          {shown ? (
+            <div data-nova-reveal className="border-t border-white/15 p-4 text-xs">
+              Le panneau. Le voile s&apos;est retiré, et chaque pièce a changé
+              d&apos;encre au moment où son bord l&apos;a dépassée.
+            </div>
+          ) : null}
+        </div>
+        <span className="cote mt-4 block text-center">
+          cliquez la ligne — GSAP Flip
+        </span>
+      </div>
+    </Scene>
+  );
+}
+
+/**
+ * Le défilement lissé n'a rien à montrer dans un encadré : il agit sur la
+ * page. La démonstration dit donc ce qu'il fait et ce qu'il ne fait pas,
+ * plutôt que de simuler un effet dans une boîte de deux cents pixels.
+ */
+export function DemoSmoothScroll({ compact }: PropsDemo) {
+  return (
+    <Scene compact={compact}>
+      <div className="text-center">
+        <p className="text-sm text-muted-foreground">
+          Il agit sur la page entière, pas dans un encadré.
+        </p>
+        <span className="cote mt-4 block">
+          boucle partagée · tactile natif · absent en mouvement réduit
+        </span>
+      </div>
+    </Scene>
+  );
+}
+
 const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   reveal: DemoReveal,
   blinds: DemoBlinds,
@@ -688,6 +786,8 @@ const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   confetti: DemoConfetti,
   loader: DemoLoader,
   flight: DemoFlight,
+  expand: DemoExpand,
+  "smooth-scroll": DemoSmoothScroll,
 };
 
 /**

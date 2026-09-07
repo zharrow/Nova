@@ -171,10 +171,8 @@ sont `scroll-marquee` avec une inclinaison.
 - `phrase-highlight` (générateur de CV) — surligner un passage de texte
   quelconque dans du contenu déjà rendu, une bande par ligne visuelle, via
   l'API `Range`. Primitif rare et utile ; il n'existe nulle part ailleurs.
-- `useExpandTransition` (CRM Closer) — la substitution de deux arbres DOM sous
-  un voile dont le bord cadence tout le reste. Remarquable, mais adossé à GSAP
-  et à son plugin Flip, donc à réécrire entièrement pour tenir la règle du
-  zéro dépendance.
+- `useExpandTransition` (CRM Closer) — **pris**. C'est cette pièce qui a fait
+  lever la règle du zéro dépendance : voir [DEPENDANCES.md](DEPENDANCES.md).
 
 ## Conséquences pratiques
 

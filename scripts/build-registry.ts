@@ -34,13 +34,15 @@ interface RegistryItem {
   description: string;
   exports: string[];
   files: RegistryFile[];
+  /** Paquets npm exigés par ce composant. Voir DEPENDANCES.md. */
+  dependencies?: string[];
 }
 
 interface Manifest {
   name: string;
   homepage: string;
   framework: string;
-  base: { files: RegistryFile[]; css: string };
+  base: { files: RegistryFile[]; css: string; dependencies?: string[] };
   items: RegistryItem[];
 }
 
@@ -134,7 +136,17 @@ function rewriteSource(
       rewriteCoreImport(specifiers, Boolean(typeKeyword), symbols, file.path),
   );
 
-  // 2. Chemins internes au paquet React → racine de la lib copiée.
+  // 2. Sous-chemins du cœur — `@nova-ui/core/expand`. Ces entrées existent
+  //    précisément pour que GSAP et Lenis n'entrent pas dans le graphe de
+  //    modules d'un projet qui ne prend pas les composants qui en dépendent.
+  //    Dans un projet consommateur, le fichier est simplement copié sous
+  //    `engines/`, et l'import y pointe directement.
+  output = output.replace(
+    /from\s+"@nova-ui\/core\/([a-z0-9-]+)"/g,
+    `from "${LIB_TOKEN}/engines/$1"`,
+  );
+
+  // 3. Chemins internes au paquet React → racine de la lib copiée.
   output = output.replace(
     /from\s+"\.\.\/hooks\/([^"]+)"/g,
     `from "${LIB_TOKEN}/$1"`,
@@ -187,6 +199,7 @@ async function main(): Promise<void> {
   const base = {
     files: await resolveFiles(manifest.base.files),
     css: await readFile(join(ROOT, manifest.base.css), "utf8"),
+    dependencies: manifest.base.dependencies ?? [],
   };
   await writeFile(
     join(outputDirectory, "base.json"),
@@ -200,6 +213,7 @@ async function main(): Promise<void> {
       title: item.title,
       description: item.description,
       exports: item.exports,
+      dependencies: item.dependencies ?? [],
       files: await resolveFiles(item.files),
     };
     await writeFile(
@@ -219,6 +233,7 @@ async function main(): Promise<void> {
       title: item.title,
       description: item.description,
       exports: item.exports,
+      dependencies: item.dependencies ?? [],
     })),
   };
   await writeFile(

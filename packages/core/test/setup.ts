@@ -89,6 +89,11 @@ vi.stubGlobal(
     }) as unknown as MediaQueryList,
 );
 
+/* jsdom n'implémente pas le défilement : il écrit un « Not implemented » sur
+   la sortie d'erreur à chaque appel. Le comportement testé est ailleurs — que
+   le repli natif ne lève pas d'erreur — et ce bruit masque les vrais échecs. */
+vi.stubGlobal("scrollTo", () => {});
+
 if (!Element.prototype.animate) {
   Element.prototype.animate = function animate() {
     return {

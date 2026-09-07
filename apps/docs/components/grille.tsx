@@ -3,6 +3,15 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Demo } from "./demos";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface CarteCatalogue {
   nom: string;
@@ -55,32 +64,31 @@ export function Grille({
           <label className="sr-only" htmlFor="recherche">
             Rechercher un composant
           </label>
-          <input
+          <Input
             id="recherche"
             type="search"
             value={requete}
             onChange={(event) => setRequete(event.target.value)}
             placeholder="Rechercher…"
-            className="w-full rounded-nova border border-filet bg-surface px-3.5 py-2.5 text-sm text-encre placeholder:text-sourdine focus:border-sourdine focus:outline-none"
           />
         </div>
 
-        <label className="sr-only" htmlFor="categorie">
-          Filtrer par catégorie
-        </label>
-        <select
-          id="categorie"
-          value={categorie}
-          onChange={(event) => setCategorie(event.target.value)}
-          className="rounded-nova border border-filet bg-surface px-3.5 py-2.5 text-sm text-encre focus:border-sourdine focus:outline-none"
-        >
-          <option value="toutes">Toutes les catégories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+        {/* Radix plutôt qu'un `<select>` natif : le natif ne se met pas en
+            forme, et son chevron doit être redessiné à la main dès qu'on lui
+            retire son apparence système. */}
+        <Select value={categorie} onValueChange={setCategorie}>
+          <SelectTrigger className="w-[220px]" aria-label="Filtrer par catégorie">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="toutes">Toutes les catégories</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <p className="cote mt-4">
@@ -93,9 +101,9 @@ export function Grille({
             <div className="relative">
               <Demo nom={carte.nom} compact />
               {carte.nouveau ? (
-                <span className="absolute left-3 top-3 rounded-[2px] bg-signal px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-fond">
+                <Badge className="absolute left-3 top-3 bg-signal px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white hover:bg-signal">
                   New
-                </span>
+                </Badge>
               ) : null}
             </div>
 

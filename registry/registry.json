@@ -8,7 +8,11 @@
     "réécrit les imports pour un projet consommateur, et produit registry/dist.",
     "",
     "`base` est ce que `novaui init` installe une fois : le socle partagé par",
-    "tous les composants. Les `items` sont ce que `novaui add` copie ensuite."
+    "tous les composants. Les `items` sont ce que `novaui add` copie ensuite.",
+    "",
+    "`dependencies` liste les paquets npm qu'un composant exige. La CLI",
+    "n'installe que ce qui manque, et seulement pour les composants demandés :",
+    "la facture est par composant, jamais par librairie. Voir DEPENDANCES.md."
   ],
   "base": {
     "files": [
@@ -51,9 +55,17 @@
       {
         "path": "packages/react/src/polymorphic.ts",
         "target": "polymorphic.ts"
+      },
+      {
+        "path": "packages/react/src/cn.ts",
+        "target": "cn.ts"
       }
     ],
-    "css": "packages/core/src/styles/nova.css"
+    "css": "packages/core/src/styles/nova.css",
+    "dependencies": [
+      "clsx",
+      "tailwind-merge"
+    ]
   },
   "items": [
     {
@@ -75,7 +87,8 @@
           "target": "reveal.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "blinds",
@@ -95,7 +108,8 @@
           "target": "blinds.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "scramble-text",
@@ -115,7 +129,8 @@
           "target": "scramble-text.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "counter",
@@ -135,7 +150,8 @@
           "target": "counter.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "text-effect",
@@ -155,7 +171,8 @@
           "target": "text-effect.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "marquee",
@@ -175,7 +192,8 @@
           "target": "marquee.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "scroll-marquee",
@@ -195,7 +213,8 @@
           "target": "scroll-marquee.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "roll-text",
@@ -215,7 +234,8 @@
           "target": "roll-text.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "brush-underline",
@@ -235,7 +255,8 @@
           "target": "brush-underline.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "spotlight",
@@ -255,7 +276,8 @@
           "target": "spotlight.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "cursor",
@@ -275,7 +297,8 @@
           "target": "cursor.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "confetti",
@@ -296,7 +319,8 @@
           "target": "use-confetti.ts",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "halftone",
@@ -316,7 +340,8 @@
           "target": "halftone.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "graph",
@@ -336,7 +361,8 @@
           "target": "graph.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "loader",
@@ -356,7 +382,8 @@
           "target": "loader.tsx",
           "kind": "component"
         }
-      ]
+      ],
+      "dependencies": []
     },
     {
       "name": "flight",
@@ -375,6 +402,53 @@
         {
           "path": "packages/react/src/hooks/use-flight.ts",
           "target": "use-flight.ts",
+          "kind": "component"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "expand",
+      "title": "Expand",
+      "description": "La substitution de deux arbres DOM sous un voile dont le bord cadence tout le reste.",
+      "exports": [
+        "useExpand"
+      ],
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/expand.ts",
+          "target": "engines/expand.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/hooks/use-expand.ts",
+          "target": "use-expand.ts",
+          "kind": "component"
+        }
+      ]
+    },
+    {
+      "name": "smooth-scroll",
+      "title": "Smooth Scroll",
+      "description": "Défilement lissé sur Lenis, branché sur la boucle de Nova. Tactile natif, absent en mouvement réduit.",
+      "exports": [
+        "SmoothScroll"
+      ],
+      "dependencies": [
+        "lenis"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/smooth-scroll.ts",
+          "target": "engines/smooth-scroll.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/smooth-scroll.tsx",
+          "target": "smooth-scroll.tsx",
           "kind": "component"
         }
       ]

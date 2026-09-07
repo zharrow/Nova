@@ -9,6 +9,8 @@ import {
 import { Apercu } from "@/components/apercu";
 import { BlocCode } from "@/components/bloc-code";
 import { CommandeInstall } from "@/components/commande-install";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 export function generateStaticParams() {
   return catalogue.map((fiche) => ({ nom: fiche.nom }));
@@ -53,9 +55,9 @@ export default async function PageComposant({
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-4xl font-medium tracking-tight">{fiche.titre}</h1>
           {fiche.nouveau ? (
-            <span className="rounded-[2px] bg-signal px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-fond">
+            <Badge className="bg-signal px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white hover:bg-signal">
               New
-            </span>
+            </Badge>
           ) : null}
           {formes > 1 ? (
             <span className="cote text-signal">{formes} formes</span>
@@ -130,7 +132,8 @@ export default async function PageComposant({
         </div>
       </Section>
 
-      <nav className="mt-16 flex justify-between gap-6 border-t border-filet pt-6 text-sm">
+      <Separator className="mt-16" />
+      <nav className="flex justify-between gap-6 pt-6 text-sm">
         <Link
           href={`/composants/${precedente.nom}`}
           className="lien text-sourdine hover:text-encre"

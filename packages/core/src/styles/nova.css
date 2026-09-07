@@ -521,6 +521,40 @@
 }
 
 /* --------------------------------------------------------------------------
+   SmoothScroll — le strict minimum exigé par Lenis
+
+   Trois règles, reprises de `lenis/dist/lenis.css`. Elles sont inlinées ici
+   pour qu'un projet n'ait qu'une feuille à importer.
+   -------------------------------------------------------------------------- */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+/* Un bloc qui défile pour son compte — une modale, une liste — ne doit pas
+   propager son défilement à la page derrière lui. */
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+/* --------------------------------------------------------------------------
+   Expand — l'aplat qui se retire
+
+   Le voile est posé par le markup de l'appelant ; Nova ne fait que garantir
+   qu'il couvre son en-tête et se retire vers le bas.
+   -------------------------------------------------------------------------- */
+
+[data-nova-veil] {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
    Confetti
    -------------------------------------------------------------------------- */
 

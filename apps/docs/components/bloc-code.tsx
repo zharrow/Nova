@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Check, Copy, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /**
  * Bloc de code avec bouton de copie.
@@ -29,16 +31,25 @@ export function BlocCode({
   }
 
   return (
-    <div className="group relative overflow-hidden rounded-nova border border-filet bg-surface">
+    <div className="group relative overflow-hidden rounded-nova border bg-card">
       <div className="flex items-center justify-between border-b border-filet px-4 py-2">
         <span className="cote">{langue}</span>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={copier}
-          className="cote transition-colors hover:text-encre"
+          className="cote h-6 gap-1.5 px-2 hover:text-foreground"
         >
+          {etat === "copie" ? (
+            <Check className="size-3" aria-hidden />
+          ) : etat === "echec" ? (
+            <X className="size-3" aria-hidden />
+          ) : (
+            <Copy className="size-3" aria-hidden />
+          )}
           {etat === "copie" ? "copié" : etat === "echec" ? "échec" : "copier"}
-        </button>
+        </Button>
       </div>
       <pre className="overflow-x-auto p-4 text-[13px] leading-relaxed">
         <code className="font-mono text-encre/90">{code}</code>

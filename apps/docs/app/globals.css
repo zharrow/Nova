@@ -13,6 +13,67 @@
    chaque page : un site de documentation se lit, il ne se met pas en scène.
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   Les jetons shadcn, adossés à la palette de Nova.
+
+   shadcn n'a pas pu les écrire lui-même : en Tailwind 4 il n'y a plus de
+   fichier de configuration à patcher. On les pose donc à la main, et surtout
+   on ne les invente pas — chacun pointe vers une couleur du site. Il n'y a
+   qu'une palette, et les composants shadcn s'y conforment au lieu d'en
+   apporter une seconde.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --background: #ffffff;
+  --foreground: #101013;
+  --card: #f7f7f8;
+  --card-foreground: #101013;
+  --popover: #ffffff;
+  --popover-foreground: #101013;
+  /* Le bouton plein est noir, comme le « Parcourir le catalogue » de l'accueil. */
+  --primary: #101013;
+  --primary-foreground: #ffffff;
+  --secondary: #f7f7f8;
+  --secondary-foreground: #101013;
+  --muted: #f7f7f8;
+  --muted-foreground: #62626c;
+  --accent: #eeeef1;
+  --accent-foreground: #101013;
+  --destructive: #b3261e;
+  --border: #e3e3e7;
+  --input: #e3e3e7;
+  /* L'anneau de focus prend la couleur signal : c'est le seul endroit du site
+     où elle sert à autre chose qu'un accent décoratif. */
+  --ring: #c93c08;
+  --radius: 2px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 2);
+}
+
 @theme {
   --color-fond: #ffffff;
   --color-surface: #f7f7f8;
@@ -84,25 +145,6 @@ body {
 .lien:hover::after,
 .lien[aria-current="page"]::after {
   transform: scaleX(1);
-}
-
-/* Champs de formulaire. `appearance: none` retire aussi le chevron natif du
-   select : on le redessine, sinon rien n'indique que la liste s'ouvre. */
-input[type="search"],
-select {
-  appearance: none;
-  -webkit-appearance: none;
-}
-select {
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position:
-    calc(100% - 15px) calc(50% + 1px),
-    calc(100% - 11px) calc(50% + 1px);
-  background-size: 4px 4px;
-  background-repeat: no-repeat;
-  padding-right: 2.25rem;
-  color: var(--color-sourdine);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -18,6 +18,7 @@ import {
   type NovaConfig,
 } from "../config";
 import { log, style, ask, confirm } from "../ui";
+import { installerDependances } from "../deps";
 
 const CSS_IMPORT_MARKER = "nova.css";
 
@@ -65,6 +66,11 @@ export async function init(cwd: string, flags: Set<string>): Promise<void> {
   await linkStylesheet(cwd, config);
   await writeConfig(cwd, config);
   log.added(CONFIG_FILE);
+
+  // Le socle a lui aussi ses dépendances : `clsx` et `tailwind-merge`, la
+  // fusion de classes de shadcn. Un projet shadcn les a déjà — rien ne sera
+  // installé dans ce cas.
+  await installerDependances(cwd, base.dependencies ?? [], flags);
 
   log.info("");
   log.success("Socle installé.");

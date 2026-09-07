@@ -60,9 +60,16 @@ export default function Page() {
             Tous les moteurs partagent un unique <code>requestAnimationFrame</code>,
             qui s&apos;arrête dès qu&apos;il n&apos;a plus d&apos;abonné.
           </Garantie>
-          <Garantie titre="Zéro dépendance">
-            Ni GSAP, ni framer-motion. Le code copié n&apos;ajoute rien à votre
-            <code> package.json</code>.
+          <Garantie titre="La facture est par composant">
+            Une entrée déclare ses dépendances, et la CLI n&apos;installe que ce
+            qui manque. <code>Expand</code> apporte GSAP,{" "}
+            <code>SmoothScroll</code> apporte Lenis — les autres n&apos;ajoutent
+            rien à votre <code>package.json</code>.
+          </Garantie>
+          <Garantie titre="Rien n'est réinventé">
+            Les composants se branchent sur shadcn et Radix pour la sémantique,
+            et sur Tailwind pour la mise en forme. Nova n&apos;apporte que le
+            mouvement — c&apos;est la seule chose qui n&apos;existe pas déjà.
           </Garantie>
           <Garantie titre="Compatible App Router">
             Les composants portent <code>&quot;use client&quot;</code> et rendent

@@ -1,11 +1,15 @@
 {
   "name": "@nova-ui/core",
   "version": "0.1.0",
-  "description": "Moteurs d'animation framework-agnostiques de Nova. TypeScript pur, zéro dépendance.",
+  "description": "Moteurs d'animation framework-agnostiques de Nova. TypeScript, sans d\u00e9pendance sauf l\u00e0 o\u00f9 une librairie ach\u00e8te vraiment quelque chose.",
   "license": "MIT",
   "type": "module",
-  "sideEffects": ["**/*.css"],
-  "files": ["dist"],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -14,6 +18,16 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./expand": {
+      "types": "./dist/engines/expand.d.ts",
+      "import": "./dist/engines/expand.js",
+      "require": "./dist/engines/expand.cjs"
+    },
+    "./smooth-scroll": {
+      "types": "./dist/engines/smooth-scroll.d.ts",
+      "import": "./dist/engines/smooth-scroll.js",
+      "require": "./dist/engines/smooth-scroll.cjs"
     },
     "./styles.css": "./dist/nova.css"
   },
@@ -27,6 +41,20 @@
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
-    "jsdom": "^25.0.1"
+    "jsdom": "^25.0.1",
+    "gsap": "^3.15.0",
+    "lenis": "^1.3.26"
+  },
+  "peerDependencies": {
+    "gsap": ">=3.13",
+    "lenis": ">=1.3"
+  },
+  "peerDependenciesMeta": {
+    "gsap": {
+      "optional": true
+    },
+    "lenis": {
+      "optional": true
+    }
   }
 }

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Demo } from "./demos";
 import type { Forme } from "@/lib/catalogue";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const VOIES: Record<string, { titre: string; explication: string }> = {
   option: {
@@ -62,20 +64,21 @@ export function Apercu({
 
           <div className="flex flex-wrap gap-1.5">
             {formes.map((forme) => (
-              <button
+              <Button
                 key={forme.id}
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => setActive(forme.id)}
                 aria-pressed={active === forme.id}
-                className={[
-                  "rounded-nova border px-2.5 py-1 font-mono text-[11px] transition-colors",
-                  active === forme.id
-                    ? "border-signal text-signal"
-                    : "border-filet text-sourdine hover:border-sourdine hover:text-encre",
-                ].join(" ")}
+                className={cn(
+                  "h-7 rounded-nova px-2.5 font-mono text-[11px] font-normal",
+                  active === forme.id &&
+                    "border-signal text-signal hover:text-signal",
+                )}
               >
                 {forme.nom}
-              </button>
+              </Button>
             ))}
           </div>
 

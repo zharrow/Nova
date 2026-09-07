@@ -11,6 +11,7 @@ import { join, dirname } from "node:path";
 import { registry } from "../registry";
 import { readConfig, exists, CONFIG_FILE, type NovaConfig } from "../config";
 import { log, style, confirm } from "../ui";
+import { installerDependances } from "../deps";
 import { applyAlias } from "./init";
 
 export async function add(
@@ -38,31 +39,40 @@ export async function add(
   }
 
   log.info("");
+  const dependances: string[] = [];
   for (const name of names) {
-    await addOne(cwd, config, name, flags);
+    const requises = await addOne(cwd, config, name, flags);
+    dependances.push(...requises);
   }
+
+  // Les dépendances sont installées EN UNE FOIS, après toutes les copies :
+  // trois `add` successifs ne doivent pas relancer trois installations.
+  const ajoutees = await installerDependances(cwd, dependances, flags);
+
   log.info("");
   log.success(
-    names.length === 1
+    (names.length === 1
       ? "Composant ajouté."
-      : `${names.length} composants ajoutés.`,
+      : `${names.length} composants ajoutés.`) +
+      (ajoutees.length ? ` ${ajoutees.length} dépendance(s) installée(s).` : ""),
   );
   log.info("");
 }
 
+/** Copie un composant. Renvoie les dépendances qu'il exige. */
 async function addOne(
   cwd: string,
   config: NovaConfig,
   name: string,
   flags: Set<string>,
-): Promise<void> {
+): Promise<string[]> {
   let item;
   try {
     item = await registry.item(name);
   } catch (error) {
     log.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
-    return;
+    return [];
   }
 
   log.step(`${style.bold(item.title)} — ${item.description}`);
@@ -103,4 +113,6 @@ async function addOne(
   log.info(
     `    ${style.dim(`import { ${item.exports.join(", ")} } from "${importPath}";`)}`,
   );
+
+  return item.dependencies ?? [];
 }

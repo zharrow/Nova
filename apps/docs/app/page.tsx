@@ -2,6 +2,7 @@ import Link from "next/link";
 import { TextEffect, Marquee } from "@nova-ui/react";
 import { catalogue, TOTAL_FORMES, libelleCategorie } from "@/lib/catalogue";
 import { Demo } from "@/components/demos";
+import { Button } from "@/components/ui/button";
 
 /** Les trois qu'on montre en premier : les plus démonstratives. */
 const EN_TETE = ["text-effect", "halftone", "scroll-marquee"];
@@ -38,23 +39,17 @@ function Heros() {
 
         <p className="mt-8 max-w-xl text-lg leading-relaxed text-sourdine">
           {catalogue.length} familles, {TOTAL_FORMES} formes, tirées de projets
-          en production et réécrites sur un moteur sans dépendance. Vous copiez
+          en production, bâties sur shadcn et Tailwind, animées par Nova. Vous copiez
           la source dans votre projet — elle vous appartient.
         </p>
 
         <div className="mt-10 flex flex-wrap items-center gap-4">
-          <Link
-            href="/composants"
-            className="rounded-nova bg-encre px-6 py-3 text-sm font-medium text-fond transition-opacity hover:opacity-90"
-          >
-            Parcourir le catalogue
-          </Link>
-          <Link
-            href="/installation"
-            className="rounded-nova border border-filet px-6 py-3 text-sm text-sourdine transition-colors hover:border-encre hover:text-encre"
-          >
-            Installer
-          </Link>
+          <Button asChild size="lg" className="rounded-nova">
+            <Link href="/composants">Parcourir le catalogue</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="rounded-nova">
+            <Link href="/installation">Installer</Link>
+          </Button>
         </div>
       </div>
     </section>
@@ -63,7 +58,7 @@ function Heros() {
 
 function BandeauSignature() {
   const mots = [
-    "SANS DÉPENDANCE",
+    "SHADCN + TAILWIND",
     "SSR",
     "MOUVEMENT RÉDUIT RESPECTÉ",
     "UN SEUL RAF",

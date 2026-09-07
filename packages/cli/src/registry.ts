@@ -22,6 +22,8 @@ export interface RegistryItem {
   title: string;
   description: string;
   exports: string[];
+  /** Paquets npm exigés par ce composant. Voir DEPENDANCES.md. */
+  dependencies: string[];
   files: RegistryFileEntry[];
 }
 
@@ -36,6 +38,8 @@ export interface RegistryIndex {
 export interface RegistryBase {
   files: RegistryFileEntry[];
   css: string;
+  /** Paquets exigés par le socle lui-même — la fusion de classes de shadcn. */
+  dependencies?: string[];
 }
 
 const BUNDLED = join(dirname(fileURLToPath(import.meta.url)), "../registry");
