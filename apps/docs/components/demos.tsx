@@ -8,33 +8,70 @@ import {
   Counter,
   TextEffect,
   Marquee,
-  useConfetti,
   ScrollMarquee,
   RollText,
   Spotlight,
+  Cursor,
   Halftone,
   Graph,
+  useConfetti,
 } from "@nova-ui/react";
 
 /**
  * Démonstrations vivantes.
  *
  * Chaque démo utilise le vrai composant, avec les vraies options — rien n'est
- * simulé. Les démos qui s'animent à l'entrée en vue sont montées avec
- * `repeat`, sinon le garde-fou de Nova les laisserait affichées d'emblée :
- * dans un encadré déjà à l'écran, c'est le comportement correct en production,
- * mais on ne verrait jamais l'effet.
+ * simulé. Elles reçoivent toutes une `forme` : c'est le sélecteur de la fiche
+ * qui la pilote, parce qu'une entrée du catalogue est une famille et non une
+ * pièce unique (voir VARIANTES.md).
+ *
+ * REJEU. Tout ce qui s'anime tout seul porte un bouton « rejouer ». Le rejeu
+ * passe par un remontage : retirer puis reposer une classe ne suffit pas —
+ * React regroupe les deux mises à jour et l'animation ne repart jamais.
+ *
+ * Trois composants n'en ont pas, et c'est volontaire : RollText, Spotlight et
+ * Cursor n'ont pas d'animation propre. Leur effet EST le geste du visiteur.
+ * Un bouton « rejouer » y serait une commande morte.
+ *
+ * Les démos qui s'animent à l'entrée en vue sont montées avec `repeat` ou
+ * `trigger="mount"` : sinon le garde-fou de Nova les laisserait affichées
+ * d'emblée. Dans un encadré déjà à l'écran c'est le comportement correct en
+ * production, mais on ne verrait jamais l'effet.
  */
+
+export interface PropsDemo {
+  forme?: string;
+  /**
+   * Vignette de grille : hauteur fixe et typographie réduite.
+   *
+   * Les démonstrations restent VIVANTES en grille — c'est ce qui distingue un
+   * catalogue de composants d'une liste de liens — mais elles doivent tenir
+   * dans une carte de largeur imposée.
+   */
+  compact?: boolean;
+}
 
 function Scene({
   children,
   onRejouer,
+  compact,
+  className,
 }: {
   children: React.ReactNode;
   onRejouer?: () => void;
+  compact?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="relative flex min-h-52 items-center justify-center overflow-hidden rounded-nova border border-filet bg-surface p-8">
+    <div
+      className={[
+        "relative flex items-center justify-center overflow-hidden rounded-nova border border-filet bg-surface",
+        // Hauteur FIXE en grille : sans elle, les rangées deviennent
+        // dentelées et l'œil ne peut plus balayer le catalogue.
+        compact ? "h-52 p-5" : "min-h-52 p-8",
+        className ?? "",
+      ].join(" ")}
+    >
       {children}
       {onRejouer ? (
         <button
@@ -49,21 +86,29 @@ function Scene({
   );
 }
 
-/** Remonte ses enfants à chaque appel de `rejouer`. */
-function useRejeu() {
-  const [cle, setCle] = useState(0);
-  return { cle, rejouer: () => setCle((n) => n + 1) };
+/**
+ * Remonte ses enfants à chaque appel de `rejouer`.
+ *
+ * La clé inclut la forme courante : changer de forme depuis le sélecteur
+ * remonte donc aussi, et l'effet se joue au lieu d'apparaître déjà fini.
+ */
+function useRejeu(cleExterne?: string) {
+  const [tour, setTour] = useState(0);
+  return {
+    cle: `${cleExterne ?? ""}-${tour}`,
+    rejouer: () => setTour((n) => n + 1),
+  };
 }
 
-export function DemoReveal() {
-  const { cle, rejouer } = useRejeu();
+export function DemoReveal({ forme = "slide-up", compact }: PropsDemo) {
+  const { cle, rejouer } = useRejeu(forme);
   return (
-    <Scene onRejouer={rejouer}>
+    <Scene onRejouer={rejouer} compact={compact}>
       <RevealGroup
         key={cle}
         repeat
         stagger={110}
-        variant="slide-up"
+        variant={forme as never}
         className="grid w-full max-w-sm grid-cols-3 gap-3"
       >
         {[0, 1, 2, 3, 4, 5].map((index) => (
@@ -77,44 +122,108 @@ export function DemoReveal() {
   );
 }
 
-export function DemoScrambleText() {
+export function DemoScrambleText({ forme = "interval", compact }: PropsDemo) {
+  const boucle = forme === "interval";
+  const { cle, rejouer } = useRejeu(forme);
   return (
-    <Scene>
+    <Scene onRejouer={rejouer} compact={compact}>
       <p className="text-center">
         <ScrambleText
+          key={cle}
           text="INCANDESCENCE"
-          trigger="view"
-          interval={5000}
+          trigger={boucle ? "view" : "hover"}
+          interval={boucle ? 5000 : 0}
           replayOnHover
-          className="font-mono text-2xl tracking-[0.12em] sm:text-3xl"
+          className={
+            compact
+              ? "font-mono text-base tracking-[0.1em]"
+              : "font-mono text-2xl tracking-[0.12em] sm:text-3xl"
+          }
         />
         <span className="cote mt-4 block">
-          il se rejoue seul — et le survol le relance
+          {boucle
+            ? "il se rejoue seul — et le survol le relance"
+            : "survolez le mot"}
         </span>
       </p>
     </Scene>
   );
 }
 
-export function DemoCounter() {
-  const { cle, rejouer } = useRejeu();
+export function DemoCounter({ forme = "localise", compact }: PropsDemo) {
+  const { cle, rejouer } = useRejeu(forme);
+
+  /* Type explicite : sans lui, TypeScript infère trois formes de cellules
+     différentes selon la branche, et l'union n'a plus aucune propriété en
+     commun à lire. */
+  type Cellule = {
+    valeur: number;
+    legende: string;
+    decimales?: number;
+    suffixe?: string;
+    locale?: string;
+    devise?: string;
+  };
+
+  const cellules: Cellule[] =
+    forme === "brut"
+      ? [
+          { valeur: 12480, legende: "identifiants" },
+          { valeur: 994, legende: "requêtes" },
+          { valeur: 37, legende: "projets" },
+        ]
+      : forme === "monetaire"
+        ? [
+            { valeur: 12480, devise: "EUR", legende: "chiffre d'affaires" },
+            { valeur: 990, devise: "EUR", legende: "panier moyen" },
+            { valeur: 37, devise: "EUR", legende: "abonnement" },
+          ]
+        : [
+            { valeur: 12480, locale: "fr-FR", legende: "visiteurs" },
+            {
+              valeur: 99.4,
+              decimales: 1,
+              suffixe: " %",
+              locale: "fr-FR",
+              legende: "disponibilité",
+            },
+            { valeur: 37, locale: "fr-FR", legende: "projets" },
+          ];
+
+  const visibles = compact ? cellules.slice(0, 1) : cellules;
+
   return (
-    <Scene onRejouer={rejouer}>
-      <div key={cle} className="grid w-full grid-cols-3 gap-6 text-center">
-        {[
-          { valeur: 12480, suffixe: " €", legende: "chiffre d'affaires" },
-          { valeur: 99.4, decimales: 1, suffixe: " %", legende: "disponibilité" },
-          { valeur: 37, suffixe: "", legende: "projets" },
-        ].map((cellule) => (
+    <Scene onRejouer={rejouer} compact={compact}>
+      <div
+        key={cle}
+        className={[
+          "grid w-full text-center",
+          compact ? "grid-cols-1" : "grid-cols-3 gap-6",
+        ].join(" ")}
+      >
+        {visibles.map((cellule) => (
           <div key={cellule.legende}>
             <Counter
               to={cellule.valeur}
               decimals={cellule.decimales}
               suffix={cellule.suffixe}
-              locale="fr-FR"
+              locale={cellule.locale ?? (cellule.devise ? "fr-FR" : undefined)}
+              format={
+                cellule.devise
+                  ? {
+                      style: "currency",
+                      currency: cellule.devise,
+                      maximumFractionDigits: 0,
+                    }
+                  : undefined
+              }
               duration={1800}
               trigger="mount"
-              className="block font-mono text-xl tabular-nums sm:text-2xl"
+              className={
+                compact
+                  ? "block font-mono text-2xl tabular-nums"
+                  : "block font-mono text-xl tabular-nums sm:text-2xl"
+              }
             />
             <span className="cote mt-2 block">{cellule.legende}</span>
           </div>
@@ -124,190 +233,138 @@ export function DemoCounter() {
   );
 }
 
-/**
- * Les dix-sept traitements, avec leur famille et le mot d'ordre de chacun.
- * Reprend le classement du banc d'origine : ce qui se déclenche d'un côté, ce
- * qui se pilote au défilement de l'autre. Les deux ne se règlent pas pareil.
- */
-const EFFETS = [
-  { id: "line", nom: "Ligne", note: "Le geste fondateur. Si vous n'en gardez qu'un." },
-  { id: "word", nom: "Mot", note: "Le même, décalé mot à mot. Décalage additif : ligne, puis rang." },
-  { id: "letter", nom: "Lettre", note: "Le grain le plus fin. À réserver aux titres courts." },
-  { id: "flip", nom: "Bascule", note: "La ligne arrive couchée et se redresse depuis son pied." },
-  { id: "curtain", nom: "Rideau", note: "Rien ne se déplace : le texte se découvre par le bas." },
-  { id: "blur", nom: "Flou", note: "Le texte se résout sur place, sans rien déplacer." },
-  { id: "focus", nom: "Mise au point", note: "Le flou plus l'échelle — un objectif qui se règle." },
-  { id: "center", nom: "Depuis le centre", note: "Le décalage suit la géométrie, pas l'ordre de lecture." },
-  { id: "shear", nom: "Cisaille", note: "Le mot monte penché et se redresse : ce qui va vite se déforme." },
-  { id: "wave", nom: "Vague", note: "Une course par lettre, décalée. L'onde naît du décalage." },
-  { id: "tracking", nom: "Chasse", note: "L'approche s'ouvre. Le seul qui anime la typographie elle-même." },
-  { id: "weight", nom: "Graisse", note: "Du trait fin au trait plein. Exige une police variable." },
-  { id: "roll", nom: "Rouleau", note: "Le compteur kilométrique : deux exemplaires par lettre." },
-  { id: "typewriter", nom: "Machine", note: "steps(), pas une courbe. Exige une chasse fixe." },
-] as const;
+const DEFILEMENT = new Set(["reading", "reading-blur", "highlight"]);
 
-const EFFETS_DEFILEMENT = [
-  { id: "reading", nom: "Lecture", note: "Les mots s'allument au fil du défilement." },
-  { id: "reading-blur", nom: "Lecture floue", note: "Le même, en netteté. Plus cher." },
-  { id: "highlight", nom: "Surlignage", note: "Un dégradé balaie le texte. Le plus économe." },
-] as const;
-
-export function DemoTextEffect() {
-  const [effet, setEffet] = useState<string>("line");
-  const { cle, rejouer } = useRejeu();
-  const courant =
-    [...EFFETS, ...EFFETS_DEFILEMENT].find((e) => e.id === effet) ?? EFFETS[0];
-  const defilement = EFFETS_DEFILEMENT.some((e) => e.id === effet);
+export function DemoTextEffect({ forme = "line", compact }: PropsDemo) {
+  const { cle, rejouer } = useRejeu(forme);
+  const defilement = DEFILEMENT.has(forme);
 
   return (
-    <div>
-      <Scene onRejouer={defilement ? undefined : rejouer}>
+    <Scene onRejouer={defilement ? undefined : rejouer} compact={compact}>
+      <div className="w-full text-center">
         <TextEffect
-          key={`${cle}-${effet}`}
+          key={cle}
           as="p"
-          text={defilement ? "Le conseil que nous vendons, nous le pratiquons d'abord sur nous-mêmes." : "Bâtir en verre"}
-          effect={effet as never}
+          text={
+            defilement
+              ? "Le conseil que nous vendons, nous le pratiquons d'abord sur nous-mêmes."
+              : "Bâtir en verre"
+          }
+          effect={forme as never}
           trigger={defilement ? undefined : "mount"}
           className={
             defilement
-              ? "max-w-[22ch] text-center text-xl leading-snug sm:text-2xl"
-              : "text-center text-3xl font-medium tracking-tight sm:text-4xl"
+              ? compact
+                ? "mx-auto max-w-[22ch] text-sm leading-snug"
+                : "mx-auto max-w-[24ch] text-lg leading-snug sm:text-xl"
+              : compact
+                ? "text-xl font-medium tracking-tight"
+                : "text-3xl font-medium tracking-tight sm:text-4xl"
           }
         />
-      </Scene>
-
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        {[...EFFETS, ...EFFETS_DEFILEMENT].map((e) => (
-          <button
-            key={e.id}
-            type="button"
-            onClick={() => setEffet(e.id)}
-            aria-pressed={effet === e.id}
-            className={[
-              "rounded-nova border px-2.5 py-1 font-mono text-[11px] transition-colors",
-              effet === e.id
-                ? "border-signal text-signal"
-                : "border-filet text-sourdine hover:border-sourdine hover:text-encre",
-            ].join(" ")}
-          >
-            {e.nom}
-          </button>
-        ))}
-      </div>
-
-      <p className="mt-3 text-[13px] leading-relaxed text-sourdine">
-        <span className="text-encre">{courant.nom}.</span> {courant.note}
         {defilement ? (
-          <span className="cote mt-2 block">
+          <span className="cote mt-4 block">
             effet de défilement — descendez la page pour le lire
           </span>
         ) : null}
-      </p>
-    </div>
+      </div>
+    </Scene>
   );
 }
 
-export function DemoMarquee() {
-  const [axe, setAxe] = useState<"left" | "up">("left");
+export function DemoMarquee({ forme = "left", compact }: PropsDemo) {
+  const vertical = forme === "up" || forme === "down";
+  const { cle, rejouer } = useRejeu(forme);
+
   return (
-    <div>
-      <Scene>
-        {axe === "left" ? (
-          <div className="w-full">
-            <Marquee speed={70} gap="2.5rem" pauseOnHover className="py-2">
-              {["ATELIER", "VERRE", "MÉTAL", "LUMIÈRE", "TRAME"].map((mot) => (
-                <span
-                  key={mot}
-                  className="mr-10 font-mono text-lg tracking-[0.18em] text-sourdine"
-                >
-                  {mot}
-                </span>
-              ))}
-            </Marquee>
-            <span className="cote mt-5 block text-center">
-              survolez pour suspendre
+    <Scene onRejouer={rejouer} compact={compact}>
+      {vertical ? (
+        <Marquee
+          key={cle}
+          direction={forme as never}
+          speed={38}
+          className={[
+            compact ? "h-32" : "h-40",
+            "w-full max-w-xs [mask-image:linear-gradient(transparent,#000_22%,#000_78%,transparent)]",
+          ].join(" ")}
+        >
+          {[
+            "ISO 27001",
+            "NIS 2",
+            "DORA",
+            "RGPD",
+            "SOC 2",
+            "PCI DSS",
+            "HDS",
+            "SecNumCloud",
+          ].map((référentiel) => (
+            <span
+              key={référentiel}
+              className="block py-2 text-center font-mono text-sm text-sourdine"
+            >
+              {référentiel}
             </span>
-          </div>
-        ) : (
+          ))}
+        </Marquee>
+      ) : (
+        <div className="w-full">
           <Marquee
-            direction="up"
-            speed={38}
-            className="h-40 w-full max-w-xs [mask-image:linear-gradient(transparent,#000_22%,#000_78%,transparent)]"
+            key={cle}
+            direction={forme as never}
+            speed={70}
+            gap="2.5rem"
+            pauseOnHover
+            className="py-2"
           >
-            {[
-              "ISO 27001", "NIS 2", "DORA", "RGPD", "SOC 2",
-              "PCI DSS", "HDS", "SecNumCloud",
-            ].map((r) => (
+            {["ATELIER", "VERRE", "MÉTAL", "LUMIÈRE", "TRAME"].map((mot) => (
               <span
-                key={r}
-                className="block py-2 text-center font-mono text-sm text-sourdine"
+                key={mot}
+                className="mr-10 font-mono text-lg tracking-[0.18em] text-sourdine"
               >
-                {r}
+                {mot}
               </span>
             ))}
           </Marquee>
-        )}
-      </Scene>
-      <div className="mt-4 flex gap-1.5">
-        {(
-          [
-            ["left", "Horizontal"],
-            ["up", "Vertical"],
-          ] as const
-        ).map(([valeur, libelle]) => (
-          <button
-            key={valeur}
-            type="button"
-            onClick={() => setAxe(valeur)}
-            aria-pressed={axe === valeur}
-            className={[
-              "rounded-nova border px-2.5 py-1 font-mono text-[11px] transition-colors",
-              axe === valeur
-                ? "border-signal text-signal"
-                : "border-filet text-sourdine hover:border-sourdine hover:text-encre",
-            ].join(" ")}
-          >
-            {libelle}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function DemoScrollMarquee() {
-  return (
-    <div>
-      <Scene>
-        <div className="w-full">
-          <ScrollMarquee drift={40} gap="1.5rem" className="py-2">
-            {["PRÉVOIR", "SÉCURISER", "LIBÉRER"].map((mot) => (
-              <span
-                key={mot}
-                className="mr-6 inline-flex items-center gap-6 font-mono text-lg tracking-[0.16em] text-sourdine"
-              >
-                {mot}
-                <i
-                  data-nova-marquee-arrow
-                  className="not-italic text-signal transition-transform"
-                >
-                  →
-                </i>
-              </span>
-            ))}
-          </ScrollMarquee>
           <span className="cote mt-5 block text-center">
-            faites défiler la page — la bande suit, et recule si vous remontez
+            survolez pour suspendre
           </span>
         </div>
-      </Scene>
-    </div>
+      )}
+    </Scene>
   );
 }
 
-export function DemoRollText() {
+export function DemoScrollMarquee({ compact }: PropsDemo) {
+  const { cle, rejouer } = useRejeu();
   return (
-    <Scene>
+    <Scene onRejouer={rejouer} compact={compact}>
+      <div className="w-full">
+        <ScrollMarquee key={cle} drift={40} gap="1.5rem" className="py-2">
+          {["PRÉVOIR", "SÉCURISER", "LIBÉRER"].map((mot) => (
+            <span
+              key={mot}
+              className="mr-6 inline-flex items-center gap-6 font-mono text-lg tracking-[0.16em] text-sourdine"
+            >
+              {mot}
+              <i data-nova-marquee-arrow className="not-italic text-signal">
+                →
+              </i>
+            </span>
+          ))}
+        </ScrollMarquee>
+        <span className="cote mt-5 block text-center">
+          faites défiler — la bande suit, et recule si vous remontez
+        </span>
+      </div>
+    </Scene>
+  );
+}
+
+/* --- Sans rejeu : l'effet EST le geste du visiteur ----------------------- */
+
+export function DemoRollText({ compact }: PropsDemo) {
+  return (
+    <Scene compact={compact}>
       <div className="flex flex-col items-center gap-5">
         <button
           type="button"
@@ -321,14 +378,17 @@ export function DemoRollText() {
   );
 }
 
-export function DemoSpotlight() {
+export function DemoSpotlight({ compact }: PropsDemo) {
   return (
-    <div className="relative flex min-h-52 items-center justify-center overflow-hidden rounded-nova border border-filet bg-surface p-8">
+    <div
+      className={[
+        "relative flex items-center justify-center overflow-hidden rounded-nova border border-filet bg-surface",
+        compact ? "h-52 p-5" : "min-h-52 p-8",
+      ].join(" ")}
+    >
       <Spotlight radius="13rem" />
       <div className="relative text-center">
-        <p className="text-sourdine">
-          Promenez le curseur dans ce panneau.
-        </p>
+        <p className="text-sourdine">Promenez le curseur dans ce panneau.</p>
         <span className="cote mt-4 block">
           inactif au tactile et en mouvement réduit
         </span>
@@ -337,37 +397,36 @@ export function DemoSpotlight() {
   );
 }
 
-export function DemoCursor() {
+/**
+ * Le curseur n'est pas monté sur le site : c'est un composant de la
+ * librairie, pas une signature imposée à toutes les pages. La démonstration
+ * le met donc en marche à la demande, et le retire quand on la quitte.
+ */
+export function DemoCursor({ compact }: PropsDemo) {
+  const [actif, setActif] = useState(false);
   return (
-    <Scene>
+    <Scene compact={compact}>
       <div className="text-center">
-        <p className="text-sourdine">
-          Le curseur est actif sur tout le site.
-          <br />
-          <span className="text-encre">Survolez un lien</span> — il grossit.
+        {actif ? <Cursor /> : null}
+        <button
+          type="button"
+          onClick={() => setActif((v) => !v)}
+          aria-pressed={actif}
+          className={[
+            "rounded-nova border px-5 py-2 font-mono text-sm tracking-wider transition-colors",
+            actif
+              ? "border-signal bg-signal text-fond"
+              : "border-filet text-sourdine hover:border-encre hover:text-encre",
+          ].join(" ")}
+        >
+          {actif ? "Désactiver" : "Activer sur cette page"}
+        </button>
+        <p className="cote mt-4">
+          {actif
+            ? "survolez un lien — le disque grossit"
+            : "il n'est pas monté par défaut sur ce site"}
         </p>
-        <span className="cote mt-5 block">
-          inactif au tactile et en mouvement réduit
-        </span>
       </div>
-    </Scene>
-  );
-}
-
-export function DemoConfetti() {
-  const tirer = useConfetti({
-    colors: ["#ff5b1f", "#e9e7e2", "#82868f"],
-    count: 70,
-  });
-  return (
-    <Scene>
-      <button
-        type="button"
-        onClick={() => tirer()}
-        className="rounded-nova border border-signal px-6 py-2.5 font-mono text-sm tracking-wider text-signal transition-colors hover:bg-signal hover:text-fond"
-      >
-        TIRER
-      </button>
     </Scene>
   );
 }
@@ -376,59 +435,34 @@ export function DemoConfetti() {
  * Une forme calculée plutôt qu'une image : la démo n'a alors aucune ressource
  * à charger, et elle montre le cas qui reproduit l'œil de KaopyX.
  */
-function couvertureNova(x: number, y: number): number {
-  // Un anneau, plus dense en bas — assez de valeurs intermédiaires pour que
-  // les paliers de la trame se lisent.
+function couvertureAnneau(x: number, y: number): number {
   const dx = x - 0.5;
   const dy = (y - 0.5) * 1.15;
-  const r = Math.hypot(dx, dy);
-  const anneau = 1 - Math.abs(r - 0.3) / 0.16;
+  const anneau = 1 - Math.abs(Math.hypot(dx, dy) - 0.3) / 0.16;
   return Math.max(0, Math.min(1, anneau));
 }
 
-export function DemoHalftone() {
-  const [forme, setForme] = useState<"square" | "circle">("square");
+export function DemoHalftone({ forme = "square", compact }: PropsDemo) {
   return (
-    <div>
-      <Scene>
+    <Scene compact={compact}>
+      <div className="text-center">
         <Halftone
           alt=""
-          source={couvertureNova}
+          source={couvertureAnneau}
           cols={40}
           steps={4}
-          shape={forme}
+          shape={forme as never}
           pointerBoost={0.5}
-          className="h-44 w-44 text-encre"
+          className={[
+            compact ? "h-28 w-28" : "h-44 w-44",
+            "mx-auto text-encre",
+          ].join(" ")}
         />
-      </Scene>
-      <div className="mt-4 flex gap-1.5">
-        {(
-          [
-            ["square", "Carré"],
-            ["circle", "Rond"],
-          ] as const
-        ).map(([valeur, libelle]) => (
-          <button
-            key={valeur}
-            type="button"
-            onClick={() => setForme(valeur)}
-            aria-pressed={forme === valeur}
-            className={[
-              "rounded-nova border px-2.5 py-1 font-mono text-[11px] transition-colors",
-              forme === valeur
-                ? "border-signal text-signal"
-                : "border-filet text-sourdine hover:border-sourdine hover:text-encre",
-            ].join(" ")}
-          >
-            {libelle}
-          </button>
-        ))}
+        <span className="cote mt-4 block">
+          les modules grossissent sous le curseur — ils ne bougent pas
+        </span>
       </div>
-      <p className="mt-3 text-[13px] text-sourdine">
-        Promenez le curseur : les modules grossissent sous lui, ils ne bougent
-        pas. Une trame dont les modules se déplacent n&apos;est plus une trame.
-      </p>
-    </div>
+    </Scene>
   );
 }
 
@@ -454,30 +488,72 @@ const ARETES: [string, string][] = [
   ["reveal", "text"],
 ];
 
-export function DemoGraph() {
+export function DemoGraph({ compact }: PropsDemo) {
+  const { cle, rejouer } = useRejeu();
   return (
-    <Graph
-      nodes={NOEUDS}
-      edges={ARETES}
-      colors={{ scroll: "#ff5b1f", texte: "#e9e7e2", pointeur: "#82868f" }}
-      groupLabels={{
-        scroll: "Défilement",
-        texte: "Texte",
-        pointeur: "Pointeur",
-      }}
-      groupOrder={["scroll", "texte", "pointeur"]}
-      edgeColor="#21252c"
-      labelColor="#82868f"
-      autoCycle={1900}
-      settleVisible={70}
-      padding={56}
-      canvasClassName="h-56 w-full rounded-nova border border-filet bg-surface"
-      className="[&_[data-nova-graph-legend]]:mt-5 [&_[data-nova-graph-legend]]:grid [&_[data-nova-graph-legend]]:grid-cols-3 [&_[data-nova-graph-legend]]:gap-5 [&_h4]:mb-2 [&_h4]:font-mono [&_h4]:text-[10px] [&_h4]:uppercase [&_h4]:tracking-[0.14em] [&_h4]:text-sourdine [&_button]:text-[13px] [&_button]:text-sourdine hover:[&_button]:text-encre [&_[data-nova-graph-degree]]:font-mono [&_[data-nova-graph-degree]]:text-[11px] [&_[data-nova-graph-degree]]:opacity-60"
-    />
+    <div className="relative">
+      <Graph
+        key={cle}
+        nodes={NOEUDS}
+        edges={ARETES}
+        colors={{ scroll: "#c93c08", texte: "#101013", pointeur: "#8b8b95" }}
+        groupLabels={{
+          scroll: "Défilement",
+          texte: "Texte",
+          pointeur: "Pointeur",
+        }}
+        /* En aperçu, aucun groupe n'est demandé : la liste ne rend rien. La
+           masquer en CSS l'aurait retirée aux lecteurs d'écran tout en
+           laissant ses boutons dans l'ordre de tabulation — des cibles
+           clavier invisibles. Ici il n'y a simplement rien à masquer. */
+        groupOrder={compact ? [] : ["scroll", "texte", "pointeur"]}
+        canvasLabel={
+          compact
+            ? "Aperçu d'un graphe de huit entrées. Le détail complet et navigable est sur la fiche du composant."
+            : undefined
+        }
+        edgeColor="#d4d4da"
+        labelColor="#62626c"
+        autoCycle={1900}
+        settleVisible={70}
+        padding={56}
+        canvasClassName={[
+          compact ? "h-52" : "h-56",
+          "w-full rounded-nova border border-filet bg-surface",
+        ].join(" ")}
+        className="[&_[data-nova-graph-legend]]:mt-5 [&_[data-nova-graph-legend]]:grid [&_[data-nova-graph-legend]]:grid-cols-3 [&_[data-nova-graph-legend]]:gap-5 [&_h4]:mb-2 [&_h4]:font-mono [&_h4]:text-[10px] [&_h4]:uppercase [&_h4]:tracking-[0.14em] [&_h4]:text-sourdine [&_button]:text-[13px] [&_button]:text-sourdine hover:[&_button]:text-encre [&_[data-nova-graph-degree]]:font-mono [&_[data-nova-graph-degree]]:text-[11px] [&_[data-nova-graph-degree]]:opacity-60"
+      />
+      <button
+        type="button"
+        onClick={rejouer}
+        className="cote absolute right-4 top-3 transition-colors hover:text-encre"
+      >
+        rejouer
+      </button>
+    </div>
   );
 }
 
-const demos: Record<string, () => React.ReactElement> = {
+export function DemoConfetti({ forme = "mixed", compact }: PropsDemo) {
+  const tirer = useConfetti({
+    // Sur fond blanc, une palette claire disparaît : on assombrit.
+    colors: ["#c93c08", "#101013", "#8b8b95"],
+    count: 70,
+  });
+  return (
+    <Scene compact={compact}>
+      <button
+        type="button"
+        onClick={() => tirer({ shape: forme as never })}
+        className="rounded-nova border border-signal px-6 py-2.5 font-mono text-sm tracking-wider text-signal transition-colors hover:bg-signal hover:text-fond"
+      >
+        TIRER
+      </button>
+    </Scene>
+  );
+}
+
+const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   reveal: DemoReveal,
   "scramble-text": DemoScrambleText,
   counter: DemoCounter,
@@ -500,8 +576,16 @@ const demos: Record<string, () => React.ReactElement> = {
  * arrive côté serveur sous forme de référence opaque, et l'indexer renvoie
  * `undefined`. C'est donc ici, côté client, que le nom se résout en composant.
  */
-export function Demo({ nom }: { nom: string }) {
+export function Demo({
+  nom,
+  forme,
+  compact,
+}: {
+  nom: string;
+  forme?: string;
+  compact?: boolean;
+}) {
   const Composant = demos[nom];
   if (!Composant) return null;
-  return <Composant />;
+  return <Composant forme={forme} compact={compact} />;
 }

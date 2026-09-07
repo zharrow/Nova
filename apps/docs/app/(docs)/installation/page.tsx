@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { BlocCode } from "@/components/bloc-code";
 
 export const metadata = {
@@ -8,12 +7,8 @@ export const metadata = {
 
 export default function Installation() {
   return (
-    <article className="mx-auto max-w-3xl px-6 py-16">
-      <Link href="/" className="cote lien">
-        ← Composants
-      </Link>
-
-      <h1 className="mt-8 text-4xl font-medium tracking-tight">Installation</h1>
+    <article className="max-w-3xl">
+      <h1 className=" text-4xl font-medium tracking-tight">Installation</h1>
       <p className="mt-3 text-lg text-sourdine">
         Nova ne s&apos;installe pas comme une dépendance : la CLI copie la source
         dans votre projet.

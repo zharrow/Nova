@@ -13,9 +13,39 @@ export interface OptionRow {
   role: string;
 }
 
+/**
+ * Familles du catalogue. L'ordre déclaré ici est celui de la barre latérale.
+ */
+export const CATEGORIES = [
+  { id: "texte", label: "Animations de texte" },
+  { id: "defilement", label: "Défilement" },
+  { id: "pointeur", label: "Pointeur" },
+  { id: "donnees", label: "Données" },
+  { id: "rendu", label: "Rendu" },
+  { id: "effets", label: "Effets" },
+] as const;
+
+export type CategorieId = (typeof CATEGORIES)[number]["id"];
+
+/**
+ * Une forme d'un composant.
+ *
+ * Voir VARIANTES.md : une entrée du catalogue est une FAMILLE, pas une pièce.
+ * La voie dit comment on obtient la forme —
+ *   `option` une prop bascule,
+ *   `usage`  le même code servi avec une autre intention,
+ *   `frere`  un composant distinct, parce que le mécanisme diffère.
+ */
+export interface Forme {
+  id: string;
+  nom: string;
+  note: string;
+}
+
 export interface Fiche {
   nom: string;
   titre: string;
+  categorie: CategorieId;
   accroche: string;
   /** D'où vient le composant dans les projets d'origine. */
   provenance: string;
@@ -23,11 +53,18 @@ export interface Fiche {
   apport: string;
   options: OptionRow[];
   usage: string;
+  /** Par quelle voie la famille se décline. */
+  voie?: "option" | "usage" | "frere";
+  /** Les formes de la famille. Absent quand il n'y en a qu'une. */
+  formes?: Forme[];
+  /** Signalé comme récent dans la grille. */
+  nouveau?: boolean;
 }
 
 export const catalogue: Fiche[] = [
   {
     nom: "reveal",
+    categorie: "defilement",
     titre: "Reveal",
     accroche: "Apparition au scroll, sans jamais rien laisser masqué.",
     provenance: "useReveal — Bât-et-Verre 3D",
@@ -50,9 +87,48 @@ export const catalogue: Fiche[] = [
   <article>Deuxième</article>
   <article>Troisième</article>
 </RevealGroup>`,
+    voie: "option",
+    formes: [
+      {
+        id: "slide-up",
+        nom: "Montée",
+        note: "Le contenu monte de sous sa place. Le plus discret, et le plus employé.",
+      },
+      {
+        id: "slide-down",
+        nom: "Descente",
+        note: "L'inverse : le contenu descend. Utile pour ce qui vient d'en haut, un menu par exemple.",
+      },
+      {
+        id: "slide-left",
+        nom: "Depuis la droite",
+        note: "Entrée latérale. À réserver aux blocs qui ne tiennent pas toute la largeur.",
+      },
+      {
+        id: "slide-right",
+        nom: "Depuis la gauche",
+        note: "Le symétrique. Ne pas mélanger les deux sens dans une même colonne : la page se met à osciller.",
+      },
+      {
+        id: "fade",
+        nom: "Fondu",
+        note: "Aucun déplacement. Le seul qui ne demande aucun espace autour du bloc.",
+      },
+      {
+        id: "mask",
+        nom: "Joint",
+        note: "Un dévoilement par masque, sans fondu : l'image n'est jamais translucide, seulement partiellement révélée.",
+      },
+      {
+        id: "scale",
+        nom: "Échelle",
+        note: "Le bloc arrive légèrement réduit. Au-delà de 0,94 on lit un zoom, pas une apparition.",
+      },
+    ],
   },
   {
     nom: "scramble-text",
+    categorie: "texte",
     titre: "Scramble Text",
     accroche: "Le texte se brouille, puis se décode lettre par lettre.",
     provenance: "ScrambleText — portfolio (survol) · KaopyX (boucle)",
@@ -75,9 +151,23 @@ export const catalogue: Fiche[] = [
 
 /* Les caractères brouillés prennent --nova-accent : */
 :root { --nova-accent: #ff5b1f; }`,
+    voie: "usage",
+    formes: [
+      {
+        id: "hover",
+        nom: "Au survol",
+        note: "Le décodage répond à un geste : le texte est stable, c'est le lecteur qui le provoque. C'est l'usage du portfolio.",
+      },
+      {
+        id: "interval",
+        nom: "À intervalle",
+        note: "Le décodage se rejoue seul tant que le texte est à l'écran. Il n'attend rien de personne : une étiquette qui se redéchiffre, un signal de fond. C'est l'usage de KaopyX.",
+      },
+    ],
   },
   {
     nom: "counter",
+    categorie: "donnees",
     titre: "Counter",
     accroche: "Un nombre qui compte jusqu'à sa valeur, sans rien bousculer.",
     provenance: "AnimatedCounter — portfolio et rent_app",
@@ -94,9 +184,29 @@ export const catalogue: Fiche[] = [
     ],
     usage: `<Counter to={12480} locale="fr-FR" suffix=" €" />
 <Counter to={99.4} decimals={1} suffix=" %" duration={2000} />`,
+    voie: "usage",
+    formes: [
+      {
+        id: "brut",
+        nom: "Brut",
+        note: "Le nombre nu. Aucun séparateur, aucune locale — pour un identifiant ou un compte technique.",
+      },
+      {
+        id: "localise",
+        nom: "Localisé",
+        note: "Séparateurs de milliers et décimales selon la locale. Pour tout chiffre qu'un lecteur doit pouvoir lire d'un coup.",
+      },
+      {
+        id: "monetaire",
+        nom: "Monétaire",
+        note: "Devise, via les options Intl. La place est réservée dès le premier rendu, symbole compris.",
+      },
+    ],
   },
   {
     nom: "text-effect",
+    categorie: "texte",
+    nouveau: true,
     titre: "Text Effect",
     accroche: "Dix-sept traitements de texte animé, sur un seul primitif.",
     provenance: "Fragments + banc /lab/texte — KaopyX",
@@ -115,9 +225,98 @@ export const catalogue: Fiche[] = [
 
 /* Au défilement — aucune durée, c'est la molette qui donne le temps : */
 <TextEffect as="p" text={manifeste} effect="reading" />`,
+    voie: "option",
+    formes: [
+      {
+        id: "line",
+        nom: "Ligne",
+        note: "Le geste fondateur, et de loin le plus utilisé : il ne déforme rien, ne floute rien, et marche à toutes les tailles. Si vous n'en gardez qu'un.",
+      },
+      {
+        id: "word",
+        nom: "Mot",
+        note: "Le même, décalé mot à mot. Le décalage reste additif — ligne, puis rang dans la ligne — sinon la fin d'un texte long accélère sans raison.",
+      },
+      {
+        id: "letter",
+        nom: "Lettre",
+        note: "Le grain le plus fin, à réserver aux titres courts. Sur un paragraphe, deux cents nœuds animés pour un effet que l'œil lit de toute façon comme une vague.",
+      },
+      {
+        id: "flip",
+        nom: "Bascule",
+        note: "La ligne arrive couchée en arrière et se redresse depuis son pied. La perspective va sur le masque, pas sur la boîte qui tourne.",
+      },
+      {
+        id: "curtain",
+        nom: "Rideau",
+        note: "Rien ne se déplace : le texte est à sa place et se découvre par le bas. Le plus léger en nœuds.",
+      },
+      {
+        id: "blur",
+        nom: "Flou",
+        note: "Le texte se résout sur place. Il ne déplace rien, donc ne demande aucun espace autour du bloc.",
+      },
+      {
+        id: "focus",
+        nom: "Mise au point",
+        note: "Le flou plus l'échelle, comme un objectif qui se règle. Au-delà de 1,1 d'agrandissement, on lit un zoom.",
+      },
+      {
+        id: "center",
+        nom: "Depuis le centre",
+        note: "Le décalage suit la géométrie et non l'ordre de lecture : l'effet s'ouvre en anneau. Le seul qui exige une mesure après mise en page.",
+      },
+      {
+        id: "shear",
+        nom: "Cisaille",
+        note: "Le mot monte penché et se redresse en arrivant : ce qui va vite se déforme.",
+      },
+      {
+        id: "wave",
+        nom: "Vague",
+        note: "Une seule course par lettre, décalée dans le temps. L'onde naît du décalage, pas d'un calcul.",
+      },
+      {
+        id: "tracking",
+        nom: "Chasse",
+        note: "L'approche s'ouvre. Le seul qui anime la typographie elle-même, et le plus coûteux — letter-spacing recalcule la mise en page à chaque image.",
+      },
+      {
+        id: "weight",
+        nom: "Graisse",
+        note: "Du trait fin au trait plein. Exige une police variable, sinon le navigateur saute d'une graisse à l'autre.",
+      },
+      {
+        id: "roll",
+        nom: "Rouleau",
+        note: "Le compteur kilométrique : deux exemplaires par lettre, qui montent d'exactement une hauteur.",
+      },
+      {
+        id: "typewriter",
+        nom: "Machine à écrire",
+        note: "steps() et non une courbe : c'est la fonction de temps qui fait la machine. Exige une chasse fixe.",
+      },
+      {
+        id: "reading",
+        nom: "Lecture",
+        note: "Au défilement. Les mots s'allument un à un : il impose un rythme de lecture au lieu de décorer.",
+      },
+      {
+        id: "reading-blur",
+        nom: "Lecture floue",
+        note: "Au défilement. Le même échelonnement en netteté. Nettement plus cher — à réserver à un bloc court.",
+      },
+      {
+        id: "highlight",
+        nom: "Surlignage",
+        note: "Au défilement. Un dégradé balaie le texte, découpé à la forme des lettres. Une seule couche, aucun coût par mot.",
+      },
+    ],
   },
   {
     nom: "marquee",
+    categorie: "defilement",
     titre: "Marquee",
     accroche: "Un bandeau qui défile sans fin, à vitesse constante. Horizontal ou vertical.",
     provenance: "Marquee — portfolio · ScrollList — KaopyX",
@@ -139,9 +338,34 @@ export const catalogue: Fiche[] = [
 <Marquee direction="up" speed={42} className="h-80">
   {referentiels.map((r) => <span key={r}>{r}</span>)}
 </Marquee>`,
+    voie: "option",
+    formes: [
+      {
+        id: "left",
+        nom: "Vers la gauche",
+        note: "Le sens de lecture. Le défaut.",
+      },
+      {
+        id: "right",
+        nom: "Vers la droite",
+        note: "La même course jouée à l'envers. Se lit comme un retour en arrière — à réserver au second bandeau d'une paire.",
+      },
+      {
+        id: "up",
+        nom: "Vers le haut",
+        note: "Bascule l'axe. C'est la colonne de texture, celle des listes de référentiels.",
+      },
+      {
+        id: "down",
+        nom: "Vers le bas",
+        note: "L'axe vertical, à l'envers.",
+      },
+    ],
   },
   {
     nom: "scroll-marquee",
+    categorie: "defilement",
+    nouveau: true,
     titre: "Scroll Marquee",
     accroche: "Un bandeau que la molette entraîne.",
     provenance: "TriadMarquee — KaopyX",
@@ -167,6 +391,8 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "roll-text",
+    categorie: "texte",
+    nouveau: true,
     titre: "Roll Text",
     accroche: "Un label qui pivote sur lui-même au survol.",
     provenance: "RollText — portfolio, puis KaopyX",
@@ -185,6 +411,8 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "spotlight",
+    categorie: "pointeur",
+    nouveau: true,
     titre: "Spotlight",
     accroche: "Un halo de repérage qui suit le curseur dans un panneau.",
     provenance: "RegLight — KaopyX",
@@ -204,6 +432,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "cursor",
+    categorie: "pointeur",
     titre: "Cursor",
     accroche: "Un disque qui suit le pointeur et grossit sur ce qui se clique.",
     provenance: "Cursor — portfolio",
@@ -221,6 +450,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "confetti",
+    categorie: "effets",
     titre: "Confetti",
     accroche: "Une salve de particules, qui se nettoie derrière elle.",
     provenance: "triggerConfetti — portfolio",
@@ -236,9 +466,29 @@ export const catalogue: Fiche[] = [
     usage: `const tirer = useConfetti({ colors: ["#ff5b1f", "#e9e7e2"] });
 
 <button onClick={() => tirer()}>Célébrer</button>`,
+    voie: "option",
+    formes: [
+      {
+        id: "mixed",
+        nom: "Mélangé",
+        note: "Ronds et carrés en proportions égales. Le défaut.",
+      },
+      {
+        id: "circle",
+        nom: "Ronds",
+        note: "Des pastilles. Plus festif, moins graphique.",
+      },
+      {
+        id: "square",
+        nom: "Carrés",
+        note: "Des confettis de papier. Tient mieux avec une direction artistique anguleuse.",
+      },
+    ],
   },
   {
     nom: "halftone",
+    categorie: "rendu",
+    nouveau: true,
     titre: "Halftone",
     accroche: "Une trame d'imprimeur : la taille du module dit la valeur.",
     provenance: "EyeO et PixelClock — KaopyX",
@@ -262,9 +512,24 @@ export const catalogue: Fiche[] = [
   cols={32}
   source={(x, y) => (Math.hypot(x - 0.5, y - 0.5) < 0.4 ? 1 : 0)}
 />`,
+    voie: "option",
+    formes: [
+      {
+        id: "square",
+        nom: "Module carré",
+        note: "La trame d'imprimeur classique. Les pleins se referment en damier.",
+      },
+      {
+        id: "circle",
+        nom: "Module rond",
+        note: "Le point de trame. Plus doux, et plus lisible sur les valeurs faibles.",
+      },
+    ],
   },
   {
     nom: "graph",
+    categorie: "donnees",
+    nouveau: true,
     titre: "Graph",
     accroche: "Un graphe dont le visuel n'est qu'une couche de présentation.",
     provenance: "KnowledgeGraph — KaopyX",
@@ -293,3 +558,35 @@ export const catalogue: Fiche[] = [
 export function trouverFiche(nom: string): Fiche | undefined {
   return catalogue.find((fiche) => fiche.nom === nom);
 }
+
+/** Libellé lisible d'une catégorie. */
+export function libelleCategorie(id: CategorieId): string {
+  return CATEGORIES.find((c) => c.id === id)?.label ?? id;
+}
+
+/** Le catalogue regroupé, dans l'ordre déclaré des catégories. */
+export function parCategorie(): Array<{
+  id: CategorieId;
+  label: string;
+  fiches: Fiche[];
+}> {
+  return CATEGORIES.map((categorie) => ({
+    id: categorie.id,
+    label: categorie.label,
+    fiches: catalogue.filter((fiche) => fiche.categorie === categorie.id),
+  })).filter((groupe) => groupe.fiches.length > 0);
+}
+
+/**
+ * Nombre de formes d'une famille. Une famille sans formes déclarées en a une :
+ * elle-même. Voir VARIANTES.md.
+ */
+export function nombreDeFormes(fiche: Fiche): number {
+  return fiche.formes?.length ?? 1;
+}
+
+/** Total des formes du catalogue — ce que la vitrine annonce vraiment. */
+export const TOTAL_FORMES = catalogue.reduce(
+  (total, fiche) => total + nombreDeFormes(fiche),
+  0,
+);

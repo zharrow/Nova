@@ -10,9 +10,9 @@ npx novaui add reveal scramble-text marquee
 
 ## Pourquoi celle-ci
 
-Douze composants tirés de projets en production — portfolio, Bât-et-Verre,
-rent_app, KaopyX — et non d'une page blanche. `TextEffect` en porte dix-sept à
-lui seul. Chacun a été réécrit sur un socle commun,
+Douze **familles** tirées de projets en production — portfolio, Bât-et-Verre,
+rent_app, KaopyX — et non d'une page blanche. Quarante-trois formes en tout :
+une entrée du catalogue n'est pas une pièce unique. Voir [VARIANTES.md](VARIANTES.md). Chacun a été réécrit sur un socle commun,
 sans GSAP ni framer-motion.
 
 Trois choix structurent tout le reste :
@@ -41,7 +41,17 @@ packages/
 registry/                   — manifeste + sources réécrites pour la copie
 apps/
   docs/                     — site vitrine (Next.js)
+VARIANTES.md                — pourquoi une entrée du catalogue est une famille
 ```
+
+### Familles, pas pièces
+
+Le même composant existe souvent en plusieurs exemplaires, et ces exemplaires
+ne sont pas des doublons : `ScrambleText` s'utilise au survol *ou* en boucle,
+et ces deux usages ne disent pas la même chose. Trois voies servent à décliner
+une famille — une **option**, un **usage**, un **frère** — et le choix de la
+voie est une décision d'architecture. [VARIANTES.md](VARIANTES.md) donne la
+règle et l'état de chaque famille.
 
 ### Le cœur
 

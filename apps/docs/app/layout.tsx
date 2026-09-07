@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Cursor } from "@nova-ui/react";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,8 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
+      {/* Le curseur additif de Nova n'est volontairement pas monté ici : il
+          reste un composant de la librairie, essayable sur sa fiche, pas une
+          signature imposée à toutes les pages. */}
       <body className="min-h-dvh antialiased">
-        <Cursor />
         <Entete />
         <main>{children}</main>
         <PiedDePage />
@@ -30,15 +31,20 @@ function Entete() {
   return (
     <header className="sticky top-0 z-50 border-b border-filet bg-fond/85 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="flex items-baseline gap-2.5">
+        <Link href="/" className="flex shrink-0 items-baseline gap-2.5">
           <span className="font-mono text-sm font-semibold tracking-[0.2em]">
             NOVA
           </span>
-          <span className="cote">v0.1.0</span>
+          {/* La version disparaît sous 640 px : sur un téléphone elle pousse
+              la navigation contre le nom de marque. */}
+          <span className="cote hidden sm:inline">v0.1.0</span>
         </Link>
 
-        <nav className="flex items-center gap-7 text-sm">
-          <Link href="/" className="lien text-sourdine hover:text-encre">
+        <nav className="flex items-center gap-4 text-sm sm:gap-7">
+          <Link
+            href="/composants"
+            className="lien text-sourdine hover:text-encre"
+          >
             Composants
           </Link>
           <Link href="/installation" className="lien text-sourdine hover:text-encre">

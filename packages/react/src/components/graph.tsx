@@ -14,6 +14,13 @@ export interface GraphProps
   groupOrder?: readonly string[];
   /** Classe appliquée au canvas. */
   canvasClassName?: string;
+  /**
+   * Description du canvas pour les technologies d'assistance. Par défaut, elle
+   * renvoie vers la liste rendue en dessous. À remplacer lorsque le graphe est
+   * affiché en aperçu, sans sa liste : la description ne doit pas promettre un
+   * contenu qui n'est pas là.
+   */
+  canvasLabel?: string;
 }
 
 /**
@@ -44,6 +51,7 @@ export function Graph({
   groupLabels,
   groupOrder,
   canvasClassName,
+  canvasLabel,
   ...rest
 }: GraphProps) {
   const instance = useRef<GraphInstance | null>(null);
@@ -115,7 +123,10 @@ export function Graph({
       <canvas
         className={canvasClassName}
         role="img"
-        aria-label={`Graphe de ${nodes.length} entrées reliées par ${edges.length} liens. La liste complète et navigable se trouve immédiatement sous ce visuel.`}
+        aria-label={
+          canvasLabel ??
+          `Graphe de ${nodes.length} entrées reliées par ${edges.length} liens. La liste complète et navigable se trouve immédiatement sous ce visuel.`
+        }
       />
 
       {/* Le contenu réel : indexable, navigable au clavier, lisible sans JS. */}

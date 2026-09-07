@@ -27,6 +27,13 @@ transitions. Cela garde l'apparence surchargeable sans forker le moteur.
 départ : listeners retirés, observers détachés, ticker désabonné, DOM injecté
 retiré, attributs et variables CSS supprimés. Il existe un test par moteur pour ça.
 
+## Ajouter un composant
+
+Avant tout, lire [VARIANTES.md](VARIANTES.md). La première question n'est pas
+« comment l'appeler » mais **« de quelle famille est-ce une forme ? »** — une
+option, un usage, ou un frère. Se tromper de voie fait embarquer du code
+inutile chez ceux qui ne s'en servent pas, ou efface une distinction de sens.
+
 ## Après modification
 
 Un changement dans `packages/core` ou `packages/react` ne suffit pas : le

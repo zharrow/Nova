@@ -3,19 +3,27 @@
 
 /* ==========================================================================
    Nova — site vitrine.
-   Direction : instrument de mesure. Noir profond, filets d'un pixel, libellés
-   en chasse fixe, une seule couleur incandescente. Le composant démontré doit
-   être la seule chose colorée à l'écran.
+
+   Direction : instrument de mesure, sur papier. Blanc franc, filets d'un
+   pixel, libellés en chasse fixe, une seule couleur incandescente. Le
+   composant démontré doit rester la seule chose colorée à l'écran.
+
+   Le curseur additif de Nova n'est PAS monté sur ce site. C'est un composant
+   de la librairie, démontrable sur sa fiche, pas une signature imposée à
+   chaque page : un site de documentation se lit, il ne se met pas en scène.
    ========================================================================== */
 
 @theme {
-  --color-fond: #08090b;
-  --color-surface: #0e1013;
-  --color-surface-haute: #14171c;
-  --color-filet: #21252c;
-  --color-encre: #e9e7e2;
-  --color-sourdine: #82868f;
-  --color-signal: #ff5b1f;
+  --color-fond: #ffffff;
+  --color-surface: #f7f7f8;
+  --color-surface-haute: #eeeef1;
+  --color-filet: #e3e3e7;
+  --color-encre: #101013;
+  --color-sourdine: #62626c;
+  /* Orange assombri jusqu'à passer le contraste AA sur blanc (≈ 5:1). Le
+     #ff5b1f d'origine n'y arrivait pas — 3,2:1 — et il sert ici à du texte
+     de 11 px, pas seulement à des aplats. */
+  --color-signal: #c93c08;
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
@@ -24,9 +32,11 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   /* Les caractères encore brouillés du Scramble prennent la couleur signal. */
   --nova-accent: var(--color-signal);
+  /* Le curseur n'est pas monté ici, mais sa fiche le fait essayer : en mode
+     `difference`, du blanc s'inverse en noir sur un fond clair. */
   --nova-cursor-color: #ffffff;
 }
 
@@ -74,6 +84,25 @@ body {
 .lien:hover::after,
 .lien[aria-current="page"]::after {
   transform: scaleX(1);
+}
+
+/* Champs de formulaire. `appearance: none` retire aussi le chevron natif du
+   select : on le redessine, sinon rien n'indique que la liste s'ouvre. */
+input[type="search"],
+select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+select {
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) calc(50% + 1px),
+    calc(100% - 11px) calc(50% + 1px);
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  padding-right: 2.25rem;
+  color: var(--color-sourdine);
 }
 
 @media (prefers-reduced-motion: reduce) {
