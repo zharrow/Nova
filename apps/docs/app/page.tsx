@@ -33,7 +33,7 @@ function Heros() {
         </h1>
 
         <p className="mt-8 max-w-xl text-lg leading-relaxed text-sourdine">
-          Sept composants animés, tirés de projets en production et réécrits
+          Dix composants animés, tirés de projets en production et réécrits
           sur un moteur sans dépendance. Vous copiez la source dans votre
           projet — elle vous appartient.
         </p>

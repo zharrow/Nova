@@ -107,18 +107,23 @@
 }
 
 /* --------------------------------------------------------------------------
-   Marquee
+   Marquee — horizontal et vertical
    -------------------------------------------------------------------------- */
 
-[data-nova-marquee] {
+[data-nova-marquee],
+[data-nova-scroll-marquee] {
   overflow: hidden;
+}
+/* `nowrap` n'a de sens que sur l'axe horizontal : sur l'axe vertical il
+   empêcherait les lignes de se former. */
+[data-nova-marquee][data-nova-marquee-axis="x"],
+[data-nova-scroll-marquee] {
   white-space: nowrap;
 }
 
 .nova-marquee__track {
   display: inline-flex;
   will-change: transform;
-  animation: nova-marquee var(--nova-marquee-duration, 20s) linear infinite;
 }
 
 .nova-marquee__group {
@@ -129,22 +134,121 @@
   padding-right: var(--nova-marquee-gap, 0px);
 }
 
-[data-nova-marquee-direction="right"] .nova-marquee__track {
+/* L'animation CSS n'appartient qu'au marquee autonome. Le marquee entraîné
+   par le défilement écrit lui-même sa transform, image par image. */
+[data-nova-marquee] .nova-marquee__track {
+  animation: nova-marquee-x var(--nova-marquee-duration, 20s) linear infinite;
+}
+
+[data-nova-marquee-axis="y"] {
+  display: flex;
+}
+[data-nova-marquee-axis="y"] .nova-marquee__track {
+  flex-direction: column;
+  width: 100%;
+  animation-name: nova-marquee-y;
+}
+[data-nova-marquee-axis="y"] .nova-marquee__group {
+  flex-direction: column;
+  width: 100%;
+  padding-right: 0;
+  padding-bottom: var(--nova-marquee-gap, 0px);
+}
+
+/* `right` et `down` sont les mêmes courses jouées à l'envers. */
+[data-nova-marquee-direction="right"] .nova-marquee__track,
+[data-nova-marquee-direction="down"] .nova-marquee__track {
   animation-direction: reverse;
 }
 
+/* Suspendue, jamais coupée : `animation: none` ferait repartir la boucle du
+   début à chaque retour à l'écran. */
 [data-nova-marquee-state="paused"] .nova-marquee__track,
 [data-nova-marquee-pause="hover"]:hover .nova-marquee__track {
   animation-play-state: paused;
 }
 
-@keyframes nova-marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(var(--nova-marquee-shift, -50%));
-  }
+@keyframes nova-marquee-x {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--nova-marquee-shift, -50%)); }
+}
+@keyframes nova-marquee-y {
+  from { transform: translateY(0); }
+  to   { transform: translateY(var(--nova-marquee-shift, -50%)); }
+}
+
+/* --------------------------------------------------------------------------
+   ScrollMarquee — entraîné par le défilement
+   -------------------------------------------------------------------------- */
+
+[data-nova-scroll-marquee] .nova-marquee__track {
+  /* Aucune animation : la transform est écrite par le moteur. */
+  animation: none;
+}
+
+/* Le sens de marche, publié pour que le contenu puisse s'y conformer — une
+   flèche qui pointe devant alors que le bandeau repart en arrière se lit
+   comme un défaut. */
+[data-nova-scroll-direction="backward"] [data-nova-marquee-arrow] {
+  transform: scaleX(-1);
+}
+
+/* --------------------------------------------------------------------------
+   RollText — le label qui pivote au survol
+   -------------------------------------------------------------------------- */
+
+[data-nova-roll] {
+  display: inline-block;
+  /* La fenêtre fait exactement une hauteur de ligne : le second exemplaire
+     arrive donc pile où le premier se trouvait. */
+  overflow: hidden;
+  height: 1em;
+  vertical-align: bottom;
+}
+
+.nova-roll-text {
+  display: block;
+  transition: transform var(--nova-roll-duration, 420ms)
+    var(--nova-roll-easing, var(--nova-ease-expo));
+}
+.nova-roll-text > span {
+  display: block;
+  height: 1em;
+  line-height: 1em;
+}
+
+/* Le survol est lu sur l'ANCÊTRE : le label d'un bouton doit pivoter quand on
+   survole le bouton, pas seulement les quelques pixels du texte. */
+[data-nova-roll-trigger]:hover .nova-roll-text,
+[data-nova-roll-trigger]:focus-visible .nova-roll-text {
+  transform: translateY(-1em);
+}
+
+/* --------------------------------------------------------------------------
+   Spotlight — halo de repérage
+   -------------------------------------------------------------------------- */
+
+[data-nova-spotlight] {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 260ms ease-out;
+  /* Le dessin par défaut : un dégradé radial centré sur le curseur. Un projet
+     qui veut autre chose — une trame qui se relève, un liseré — n'a qu'à
+     redéfinir `background`. Les coordonnées restent les mêmes. */
+  background: radial-gradient(
+    var(--nova-spot-radius, 18rem) circle at
+      var(--nova-spot-x, 50%) var(--nova-spot-y, 50%),
+    color-mix(in srgb, var(--nova-accent) 14%, transparent),
+    transparent 70%
+  );
+}
+[data-nova-spotlight-state="on"] {
+  opacity: 1;
+}
+[data-nova-spotlight-state="off"] {
+  display: none;
 }
 
 /* --------------------------------------------------------------------------

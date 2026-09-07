@@ -55,17 +55,23 @@ export const catalogue: Fiche[] = [
     nom: "scramble-text",
     titre: "Scramble Text",
     accroche: "Le texte se brouille, puis se décode lettre par lettre.",
-    provenance: "ScrambleText — portfolio, section Labo",
+    provenance: "ScrambleText — portfolio (survol) · KaopyX (boucle)",
     apport:
-      "Les nœuds sont créés une fois et réutilisés : là où la version React reconstruisait quarante éléments tous les 52 ms, la boucle se contente d'écrire du texte.",
+      "Deux usages, et ils ne disent pas la même chose. Au survol, le décodage répond à un geste : c'est le lecteur qui le provoque. À intervalle, il se rejoue seul tant que le texte est à l'écran — une étiquette qui se redéchiffre, un signal de fond. Les deux se combinent, mais se demandent séparément. Côté rendu, les nœuds sont créés une fois et réutilisés, là où la version React reconstruisait quarante éléments tous les 52 ms.",
     options: [
       { nom: "text", type: "string", defaut: "—", role: "Texte final. Obligatoire." },
-      { nom: "trigger", type: "hover · view · mount · manual", defaut: "hover", role: "Ce qui déclenche le décodage." },
+      { nom: "trigger", type: "hover · view · mount · manual", defaut: "hover", role: "Ce qui arme le décodage." },
+      { nom: "interval", type: "number", defaut: "0", role: "Rejeu automatique en ms. 0 désactive la boucle. Le minuteur s'arrête hors écran." },
+      { nom: "replayOnHover", type: "boolean", defaut: "trigger === hover", role: "Autoriser le survol à relancer, même en mode boucle." },
       { nom: "stepMs", type: "number", defaut: "52", role: "Durée d'un pas. Plus haut = plus lent." },
       { nom: "scrambleSteps", type: "number", defaut: "6", role: "Pas pendant lesquels une lettre reste brouillée." },
       { nom: "chars", type: "string", defaut: "A-Z 0-9 #%&/<>*+=", role: "Jeu de caractères de brouillage." },
     ],
-    usage: `<ScrambleText text="DÉCODER" trigger="view" />
+    usage: `/* Au survol — le décodage répond à un geste : */
+<ScrambleText text="DÉCODER" trigger="hover" />
+
+/* À intervalle — le décodage est un signal de fond : */
+<ScrambleText text="RÉFÉRENTIELS" trigger="view" interval={6000} />
 
 /* Les caractères brouillés prennent --nova-accent : */
 :root { --nova-accent: #ff5b1f; }`,
@@ -113,21 +119,88 @@ export const catalogue: Fiche[] = [
   {
     nom: "marquee",
     titre: "Marquee",
-    accroche: "Un bandeau qui défile sans fin, à vitesse constante.",
-    provenance: "Marquee — portfolio et Bât-et-Verre",
+    accroche: "Un bandeau qui défile sans fin, à vitesse constante. Horizontal ou vertical.",
+    provenance: "Marquee — portfolio · ScrollList — KaopyX",
     apport:
-      "La vitesse est en pixels par seconde, pas en durée fixe. Deux bandeaux réglés pareil défilent au même rythme, quelle que soit la longueur de leur contenu — ce que la version d'origine ne garantissait pas.",
+      "La vitesse est en pixels par seconde, pas en durée fixe : deux bandeaux réglés pareil défilent au même rythme, quelle que soit la longueur de leur contenu. Le contenu est répété jusqu'à dépasser le conteneur — sans quoi la boucle laisse un trou, le défaut que ScrollList documentait sur l'axe vertical. Et hors écran l'animation est SUSPENDUE, pas coupée : elle reprend où elle s'était arrêtée au lieu de repartir du début.",
     options: [
       { nom: "speed", type: "number", defaut: "60", role: "Vitesse en px/s." },
-      { nom: "direction", type: "left · right", defaut: "left", role: "Sens de défilement." },
+      { nom: "direction", type: "left · right · up · down", defaut: "left", role: "Sens. up et down basculent l'axe." },
       { nom: "pauseOnHover", type: "boolean", defaut: "false", role: "Suspendre au survol." },
+      { nom: "pauseOffscreen", type: "boolean", defaut: "true", role: "Suspendre quand le bandeau sort de l'écran." },
       { nom: "gap", type: "string", defaut: "0px", role: "Écart entre deux copies." },
     ],
     usage: `<Marquee speed={80} gap="3rem" pauseOnHover>
   <span>ATELIER</span>
   <span>VERRE</span>
-  <span>MÉTAL</span>
+</Marquee>
+
+/* Colonne de texture, à la verticale : */
+<Marquee direction="up" speed={42} className="h-80">
+  {referentiels.map((r) => <span key={r}>{r}</span>)}
 </Marquee>`,
+  },
+  {
+    nom: "scroll-marquee",
+    titre: "Scroll Marquee",
+    accroche: "Un bandeau que la molette entraîne.",
+    provenance: "TriadMarquee — KaopyX",
+    apport:
+      "Le bandeau n'a pas de vitesse propre : il a une dérive, et le défilement le pousse. Remonter le fait repartir en arrière. C'est ce qui le sort du bandeau décoratif — il ne tourne pas à côté de la page, il est entraîné par elle. Moteur distinct du Marquee parce qu'une @keyframes ne peut pas être poussée : elle a une durée, pas une vitesse.",
+    options: [
+      { nom: "drift", type: "number", defaut: "44", role: "Dérive au repos, en px/s." },
+      { nom: "push", type: "number", defaut: "0.9", role: "Ce que vaut un pixel de défilement. Au-delà de 1, la main se sent démultipliée." },
+      { nom: "maxSpeed", type: "number", defaut: "2400", role: "Plafond. Sans lui, un coup de molette fait une barre grise." },
+      { nom: "smoothing", type: "number", defaut: "0.1", role: "Constante de lissage, en s. Sans elle, le bandeau tremble." },
+      { nom: "skew", type: "number", defaut: "2.6", role: "Inclinaison en degrés par millier de px/s." },
+      { nom: "hoverFactor", type: "number", defaut: "0.12", role: "Part de vitesse gardée au survol." },
+    ],
+    usage: `<ScrollMarquee drift={44} gap="2rem">
+  {mots.map((m) => (
+    <span key={m}>
+      {m}
+      {/* se retourne avec le sens de marche */}
+      <i data-nova-marquee-arrow>→</i>
+    </span>
+  ))}
+</ScrollMarquee>`,
+  },
+  {
+    nom: "roll-text",
+    titre: "Roll Text",
+    accroche: "Un label qui pivote sur lui-même au survol.",
+    provenance: "RollText — portfolio, puis KaopyX",
+    apport:
+      "Le survol est lu sur l'ANCÊTRE, pas sur le mot : le label d'un bouton doit pivoter quand on survole le bouton, pas seulement les quelques pixels du texte. Ce n'est pas le même geste que l'effet roll de TextEffect, qui joue une fois à l'entrée en vue et lettre par lettre.",
+    options: [
+      { nom: "text", type: "string", defaut: "—", role: "Texte du label. Obligatoire." },
+      { nom: "trigger", type: "string", defaut: "parent direct", role: "Sélecteur de l'ancêtre survolé. \"self\" pour n'écouter que le mot." },
+    ],
+    usage: `<button className="btn">
+  <RollText text="Nous écrire" />
+</button>
+
+/* Déclenché par la carte entière plutôt que par le bouton : */
+<RollText text="Voir le projet" trigger=".carte" />`,
+  },
+  {
+    nom: "spotlight",
+    titre: "Spotlight",
+    accroche: "Un halo de repérage qui suit le curseur dans un panneau.",
+    provenance: "RegLight — KaopyX",
+    apport:
+      "Le moteur ne dessine rien : il publie les coordonnées du curseur en --nova-spot-x / y, et le dessin appartient au CSS du projet. Le relevé du rectangle se fait dans l'image d'animation et non dans l'écouteur — pointermove tire des dizaines d'événements par image, chacun forcerait un calcul de mise en page. Et le halo s'allume au premier DÉPLACEMENT, pas à l'entrée : allumé à l'entrée, il apparaîtrait une image à sa position précédente.",
+    options: [
+      { nom: "panel", type: "string", defaut: "parent direct", role: "Sélecteur du panneau suivi." },
+      { nom: "radius", type: "string", defaut: "18rem", role: "Rayon, publié en --nova-spot-radius." },
+    ],
+    usage: `<article className="relative overflow-hidden">
+  <Spotlight radius="14rem" />
+  <h3>Panneau</h3>
+</article>
+
+/* Le dessin se surcharge entièrement : */
+[data-nova-spotlight] { background: /* votre trame */; }`,
   },
   {
     nom: "cursor",

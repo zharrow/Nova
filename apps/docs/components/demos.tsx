@@ -9,6 +9,9 @@ import {
   TextEffect,
   Marquee,
   useConfetti,
+  ScrollMarquee,
+  RollText,
+  Spotlight,
 } from "@nova-ui/react";
 
 /**
@@ -78,9 +81,14 @@ export function DemoScrambleText() {
       <p className="text-center">
         <ScrambleText
           text="INCANDESCENCE"
+          trigger="view"
+          interval={5000}
+          replayOnHover
           className="font-mono text-2xl tracking-[0.12em] sm:text-3xl"
         />
-        <span className="cote mt-4 block">survolez le mot</span>
+        <span className="cote mt-4 block">
+          il se rejoue seul — et le survol le relance
+        </span>
       </p>
     </Scene>
   );
@@ -198,24 +206,132 @@ export function DemoTextEffect() {
 }
 
 export function DemoMarquee() {
+  const [axe, setAxe] = useState<"left" | "up">("left");
+  return (
+    <div>
+      <Scene>
+        {axe === "left" ? (
+          <div className="w-full">
+            <Marquee speed={70} gap="2.5rem" pauseOnHover className="py-2">
+              {["ATELIER", "VERRE", "MÉTAL", "LUMIÈRE", "TRAME"].map((mot) => (
+                <span
+                  key={mot}
+                  className="mr-10 font-mono text-lg tracking-[0.18em] text-sourdine"
+                >
+                  {mot}
+                </span>
+              ))}
+            </Marquee>
+            <span className="cote mt-5 block text-center">
+              survolez pour suspendre
+            </span>
+          </div>
+        ) : (
+          <Marquee
+            direction="up"
+            speed={38}
+            className="h-40 w-full max-w-xs [mask-image:linear-gradient(transparent,#000_22%,#000_78%,transparent)]"
+          >
+            {[
+              "ISO 27001", "NIS 2", "DORA", "RGPD", "SOC 2",
+              "PCI DSS", "HDS", "SecNumCloud",
+            ].map((r) => (
+              <span
+                key={r}
+                className="block py-2 text-center font-mono text-sm text-sourdine"
+              >
+                {r}
+              </span>
+            ))}
+          </Marquee>
+        )}
+      </Scene>
+      <div className="mt-4 flex gap-1.5">
+        {(
+          [
+            ["left", "Horizontal"],
+            ["up", "Vertical"],
+          ] as const
+        ).map(([valeur, libelle]) => (
+          <button
+            key={valeur}
+            type="button"
+            onClick={() => setAxe(valeur)}
+            aria-pressed={axe === valeur}
+            className={[
+              "rounded-nova border px-2.5 py-1 font-mono text-[11px] transition-colors",
+              axe === valeur
+                ? "border-signal text-signal"
+                : "border-filet text-sourdine hover:border-sourdine hover:text-encre",
+            ].join(" ")}
+          >
+            {libelle}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function DemoScrollMarquee() {
+  return (
+    <div>
+      <Scene>
+        <div className="w-full">
+          <ScrollMarquee drift={40} gap="1.5rem" className="py-2">
+            {["PRÉVOIR", "SÉCURISER", "LIBÉRER"].map((mot) => (
+              <span
+                key={mot}
+                className="mr-6 inline-flex items-center gap-6 font-mono text-lg tracking-[0.16em] text-sourdine"
+              >
+                {mot}
+                <i
+                  data-nova-marquee-arrow
+                  className="not-italic text-signal transition-transform"
+                >
+                  →
+                </i>
+              </span>
+            ))}
+          </ScrollMarquee>
+          <span className="cote mt-5 block text-center">
+            faites défiler la page — la bande suit, et recule si vous remontez
+          </span>
+        </div>
+      </Scene>
+    </div>
+  );
+}
+
+export function DemoRollText() {
   return (
     <Scene>
-      <div className="w-full">
-        <Marquee speed={70} gap="2.5rem" pauseOnHover className="py-2">
-          {["ATELIER", "VERRE", "MÉTAL", "LUMIÈRE", "TRAME"].map((mot) => (
-            <span
-              key={mot}
-              className="mr-10 font-mono text-lg tracking-[0.18em] text-sourdine"
-            >
-              {mot}
-            </span>
-          ))}
-        </Marquee>
-        <span className="cote mt-5 block text-center">
-          survolez pour suspendre
-        </span>
+      <div className="flex flex-col items-center gap-5">
+        <button
+          type="button"
+          className="rounded-nova border border-filet px-6 py-2.5 font-mono text-sm tracking-wider text-sourdine transition-colors hover:border-encre hover:text-encre"
+        >
+          <RollText text="Nous écrire" />
+        </button>
+        <span className="cote">survolez le bouton, pas le mot</span>
       </div>
     </Scene>
+  );
+}
+
+export function DemoSpotlight() {
+  return (
+    <div className="relative flex min-h-52 items-center justify-center overflow-hidden rounded-nova border border-filet bg-surface p-8">
+      <Spotlight radius="13rem" />
+      <div className="relative text-center">
+        <p className="text-sourdine">
+          Promenez le curseur dans ce panneau.
+        </p>
+        <span className="cote mt-4 block">
+          inactif au tactile et en mouvement réduit
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -260,6 +376,9 @@ const demos: Record<string, () => React.ReactElement> = {
   counter: DemoCounter,
   "text-effect": DemoTextEffect,
   marquee: DemoMarquee,
+  "scroll-marquee": DemoScrollMarquee,
+  "roll-text": DemoRollText,
+  spotlight: DemoSpotlight,
   cursor: DemoCursor,
   confetti: DemoConfetti,
 };

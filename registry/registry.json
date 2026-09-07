@@ -76,7 +76,7 @@
     {
       "name": "scramble-text",
       "title": "Scramble Text",
-      "description": "Texte qui se brouille puis se décode, lettre par lettre.",
+      "description": "Texte qui se brouille puis se décode — au survol, ou en boucle tant qu'il est à l'écran.",
       "exports": [
         "ScrambleText"
       ],
@@ -136,7 +136,7 @@
     {
       "name": "marquee",
       "title": "Marquee",
-      "description": "Bandeau défilant infini, réglé en pixels par seconde pour que deux bandeaux s'accordent.",
+      "description": "Bandeau défilant infini, horizontal ou vertical, réglé en pixels par seconde. Suspendu hors écran plutôt que coupé.",
       "exports": [
         "Marquee"
       ],
@@ -149,6 +149,66 @@
         {
           "path": "packages/react/src/components/marquee.tsx",
           "target": "marquee.tsx",
+          "kind": "component"
+        }
+      ]
+    },
+    {
+      "name": "scroll-marquee",
+      "title": "Scroll Marquee",
+      "description": "Bandeau entraîné par le défilement de la page : il dérive au repos, la molette le pousse, remonter le fait reculer.",
+      "exports": [
+        "ScrollMarquee"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/scroll-marquee.ts",
+          "target": "engines/scroll-marquee.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/scroll-marquee.tsx",
+          "target": "scroll-marquee.tsx",
+          "kind": "component"
+        }
+      ]
+    },
+    {
+      "name": "roll-text",
+      "title": "Roll Text",
+      "description": "Label qui pivote sur lui-même au survol de son bouton — pas du texte, du bouton.",
+      "exports": [
+        "RollText"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/roll-text.ts",
+          "target": "engines/roll-text.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/roll-text.tsx",
+          "target": "roll-text.tsx",
+          "kind": "component"
+        }
+      ]
+    },
+    {
+      "name": "spotlight",
+      "title": "Spotlight",
+      "description": "Halo de repérage qui suit le curseur dans un panneau. Le moteur publie les coordonnées, le dessin reste au CSS.",
+      "exports": [
+        "Spotlight"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/spotlight.ts",
+          "target": "engines/spotlight.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/spotlight.tsx",
+          "target": "spotlight.tsx",
           "kind": "component"
         }
       ]

@@ -24,6 +24,15 @@ export type { TextEffectProps } from "./components/text-effect";
 export { Marquee } from "./components/marquee";
 export type { MarqueeProps } from "./components/marquee";
 
+export { ScrollMarquee } from "./components/scroll-marquee";
+export type { ScrollMarqueeProps } from "./components/scroll-marquee";
+
+export { RollText } from "./components/roll-text";
+export type { RollTextProps } from "./components/roll-text";
+
+export { Spotlight } from "./components/spotlight";
+export type { SpotlightProps } from "./components/spotlight";
+
 export { Cursor } from "./components/cursor";
 export type { CursorProps } from "./components/cursor";
 
@@ -40,6 +49,10 @@ export type {
   TextEffectName,
   TextGrain,
   MarqueeOptions,
+  MarqueeDirection,
+  ScrollMarqueeOptions,
+  RollTextOptions,
+  SpotlightOptions,
   CursorOptions,
   ConfettiOptions,
   Easing,

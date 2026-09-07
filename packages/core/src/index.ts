@@ -49,7 +49,16 @@ export type {
 } from "./engines/text-effect";
 
 export { createMarquee } from "./engines/marquee";
-export type { MarqueeOptions } from "./engines/marquee";
+export type { MarqueeOptions, MarqueeDirection } from "./engines/marquee";
+
+export { createScrollMarquee } from "./engines/scroll-marquee";
+export type { ScrollMarqueeOptions } from "./engines/scroll-marquee";
+
+export { createRollText } from "./engines/roll-text";
+export type { RollTextOptions } from "./engines/roll-text";
+
+export { createSpotlight } from "./engines/spotlight";
+export type { SpotlightOptions } from "./engines/spotlight";
 
 export { createCursor } from "./engines/cursor";
 export type { CursorOptions } from "./engines/cursor";

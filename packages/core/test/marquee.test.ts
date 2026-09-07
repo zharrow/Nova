@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createMarquee } from "../src/engines/marquee";
+import { MockIntersectionObserver } from "./setup";
 
 function mount(): HTMLElement {
   const element = document.createElement("div");
@@ -42,5 +43,56 @@ describe("createMarquee", () => {
     createMarquee(element).destroy();
     expect(element.innerHTML).toBe("<span>NOVA</span>");
     expect(element.dataset.novaMarquee).toBeUndefined();
+  });
+});
+
+describe("marquee vertical", () => {
+  function mountVertical(): HTMLElement {
+    const element = document.createElement("div");
+    element.innerHTML = "<span>NOVA</span>";
+    document.body.appendChild(element);
+    element.getBoundingClientRect = () =>
+      ({ width: 240, height: 330 }) as DOMRect;
+    return element;
+  }
+
+  it("bascule d'axe et répète assez pour dépasser la fenêtre", () => {
+    // C'est le défaut que ScrollList documentait : six lignes dans un cadre de
+    // 330 px laissaient du vide, et la liste réapparaissait en bloc au lieu de
+    // couler ligne à ligne.
+    const element = mountVertical();
+    const instance = createMarquee(element, { direction: "up", speed: 42 });
+    expect(element.dataset.novaMarqueeAxis).toBe("y");
+
+    const group = element.querySelector(".nova-marquee__group") as HTMLElement;
+    group.getBoundingClientRect = () => ({ width: 240, height: 70 }) as DOMRect;
+    instance.update({});
+
+    // 330 / 70 = 5 (arrondi sup.), +1 de marge → 6 copies, aucun trou.
+    expect(element.querySelectorAll(".nova-marquee__group")).toHaveLength(6);
+    // La durée se déduit de la HAUTEUR d'une copie, pas de sa largeur.
+    expect(element.style.getPropertyValue("--nova-marquee-duration")).toBe(
+      `${70 / 42}s`,
+    );
+  });
+
+  it("suspend hors écran plutôt que de couper", () => {
+    // `animation: none` ferait repartir la boucle du début à chaque retour.
+    const element = mountVertical();
+    createMarquee(element, { direction: "up" });
+    expect(element.dataset.novaMarqueeState).toBe("running");
+
+    MockIntersectionObserver.fire(element, false);
+    expect(element.dataset.novaMarqueeState).toBe("paused");
+
+    MockIntersectionObserver.fire(element, true);
+    expect(element.dataset.novaMarqueeState).toBe("running");
+  });
+
+  it("ne surveille rien si pauseOffscreen est faux", () => {
+    const element = mountVertical();
+    createMarquee(element, { pauseOffscreen: false });
+    MockIntersectionObserver.fire(element, false);
+    expect(element.dataset.novaMarqueeState).toBe("running");
   });
 });

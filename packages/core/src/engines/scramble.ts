@@ -6,7 +6,20 @@
  * ce qui permet de les colorer en CSS (accent corail dans l'implémentation
  * d'origine) sans que le moteur ne connaisse la palette.
  *
- * Porté de `ScrambleText` (portfolio), avec trois différences :
+ * ── Deux usages, et ils ne disent pas la même chose ────────────────────────
+ *
+ * AU SURVOL — le décodage répond à un geste. Le texte est stable, c'est le
+ * lecteur qui le provoque. `trigger: "hover"`, sans `interval`.
+ *
+ * À INTERVALLE — le décodage se rejoue seul tant que le texte est à l'écran.
+ * Il n'attend rien de personne : c'est une étiquette qui se redéchiffre, un
+ * signal de fond. `trigger: "view"` avec un `interval`.
+ *
+ * Les deux se combinent — une étiquette qui pulse et que le survol relance —
+ * mais ils sont demandés séparément, jamais déduits l'un de l'autre.
+ *
+ * Porté de `ScrambleText` (portfolio pour le survol, KaopyX pour la boucle),
+ * avec trois différences :
  *  - les `<span>` sont créés une fois et réutilisés à chaque frame, au lieu
  *    d'être reconstruits (là où React re-rendait 40 nœuds tous les 52 ms) ;
  *  - la boucle passe par le ticker partagé ;
@@ -32,8 +45,21 @@ export interface ScrambleOptions {
   scrambleSteps?: number;
   /** Étalement aléatoire du départ de chaque lettre, en pas. Défaut : 6. */
   spread?: number;
-  /** Quand jouer. Défaut : `hover`. */
+  /** Ce qui arme le décodage. Défaut : `hover`. */
   trigger?: Trigger;
+  /**
+   * Période de rejeu automatique, en ms. `0` — le défaut — désactive la
+   * boucle et laisse un décodage unique.
+   *
+   * Le minuteur ne tourne QUE tant que l'élément est à l'écran : un décodage
+   * qu'on ne voit pas ne coûterait que du processeur.
+   */
+  interval?: number;
+  /**
+   * Autoriser le survol à relancer le décodage, même lorsque `trigger` n'est
+   * pas `hover`. Défaut : vrai si `trigger` vaut `hover`, faux sinon.
+   */
+  replayOnHover?: boolean;
   /** Réglages de l'observation quand `trigger: "view"`. */
   rootMargin?: string;
   threshold?: number;
@@ -49,6 +75,7 @@ const defaults = {
   scrambleSteps: 6,
   spread: 6,
   trigger: "hover" as Trigger,
+  interval: 0,
   threshold: 0.6,
 };
 
@@ -63,6 +90,8 @@ export function createScramble(
   let running = false;
   let unsubscribeTick: (() => void) | null = null;
   let detachTrigger: (() => void) | null = null;
+  let detachHover: (() => void) | null = null;
+  let loopTimer: ReturnType<typeof setInterval> | null = null;
 
   /** Reconstruit les `<span>` — une seule fois par texte, pas par frame. */
   function build(): void {
@@ -135,25 +164,61 @@ export function createScramble(
     settle();
   }
 
+  /** Le survol relance-t-il ? Vrai par défaut si c'est le mode d'armement. */
+  function hoverEnabled(): boolean {
+    return config.replayOnHover ?? config.trigger === "hover";
+  }
+
+  function startLoop(): void {
+    if (loopTimer !== null || config.interval <= 0) return;
+    loopTimer = setInterval(play, config.interval);
+  }
+
+  function stopLoop(): void {
+    if (loopTimer === null) return;
+    clearInterval(loopTimer);
+    loopTimer = null;
+  }
+
   function attachTrigger(): void {
     detachTrigger?.();
     detachTrigger = null;
+    detachHover?.();
+    detachHover = null;
+    stopLoop();
     if (!isBrowser) return;
 
-    if (config.trigger === "hover") {
+    if (hoverEnabled()) {
       const onEnter = () => play();
       element.addEventListener("mouseenter", onEnter);
       // Le clavier doit pouvoir déclencher ce que la souris déclenche.
       element.addEventListener("focus", onEnter);
-      detachTrigger = () => {
+      detachHover = () => {
         element.removeEventListener("mouseenter", onEnter);
         element.removeEventListener("focus", onEnter);
       };
-    } else if (config.trigger === "view") {
+    }
+
+    // Une boucle doit s'arrêter hors écran, donc l'observation ne peut pas
+    // être `once` : elle suit les entrées ET les sorties.
+    const looping = config.interval > 0;
+
+    if (config.trigger === "view" || looping) {
       detachTrigger = observeInView(
         element,
-        (visible) => visible && play(),
-        { threshold: config.threshold, rootMargin: config.rootMargin, once: true },
+        (visible) => {
+          if (visible) {
+            play();
+            startLoop();
+          } else {
+            stopLoop();
+          }
+        },
+        {
+          threshold: config.threshold,
+          rootMargin: config.rootMargin,
+          once: !looping,
+        },
       );
     } else if (config.trigger === "mount") {
       play();
@@ -169,7 +234,10 @@ export function createScramble(
     update(next) {
       const textChanged = next.text !== undefined && next.text !== text;
       const triggerChanged =
-        next.trigger !== undefined && next.trigger !== config.trigger;
+        (next.trigger !== undefined && next.trigger !== config.trigger) ||
+        (next.interval !== undefined && next.interval !== config.interval) ||
+        (next.replayOnHover !== undefined &&
+          next.replayOnHover !== config.replayOnHover);
 
       config = mergeOptions(config, next);
       if (textChanged) {
@@ -181,8 +249,11 @@ export function createScramble(
     },
     destroy() {
       stop();
+      stopLoop();
       detachTrigger?.();
       detachTrigger = null;
+      detachHover?.();
+      detachHover = null;
       // On rend l'élément à son état de départ : texte brut, sans nos spans.
       element.textContent = text;
       element.removeAttribute("aria-label");

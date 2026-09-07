@@ -33,7 +33,8 @@ Un changement dans `packages/core` ou `packages/react` ne suffit pas : le
 registry distribue des copies figées.
 
 ```bash
-pnpm test && pnpm typecheck
+pnpm test && pnpm typecheck   # `test` dépend du build du paquet lui-même,
+                              # sinon le test du bundle lit un dist périmé
 pnpm registry:build          # régénère registry/dist depuis les sources
 pnpm --filter novaui build   # ré-embarque le registry dans la CLI
 ```
@@ -58,6 +59,11 @@ réécriture — c'est voulu, ne pas contourner le garde-fou.
   `opacity: 0.17` en dehors de la garde laisse le texte illisible sur ces
   navigateurs, puisque rien ne vient jamais lever l'état de repos. C'est le
   défaut de l'implémentation d'origine des effets de lecture.
+- **Une mesure de mise en page peut valoir zéro, et c'est un cas réel.**
+  Conteneur en `display: none`, panneau replié, appel avant la première mise en
+  page. Toute boucle du type `while (copies < ceil(taille / mesure))` doit
+  renoncer quand la mesure est nulle : sinon la division vaut l'infini et le
+  navigateur se fige. Voir la garde dans `engines/scroll-marquee.ts`.
 - **Le pool d'`IntersectionObserver` est global au module** et survit d'un test à
   l'autre. Les doublures de test ne remettent pas `instances` à zéro, c'est
   volontaire.
