@@ -14,6 +14,15 @@ export default function DocsLayout({
 }: {
   children: React.ReactNode;
 }) {
+  /* Plafonné à quatre, comme dans la grille : un marqueur porté par plus d'un
+     tiers des entrées n'informe plus. Voir DESIGN.md. */
+  const recents = new Set(
+    catalogue
+      .filter((fiche) => fiche.nouveau)
+      .slice(-4)
+      .map((fiche) => fiche.nom),
+  );
+
   const groupes: GroupeNav[] = parCategorie().map((groupe) => ({
     id: groupe.id,
     label: groupe.label,
@@ -21,7 +30,7 @@ export default function DocsLayout({
       nom: fiche.nom,
       titre: fiche.titre,
       formes: nombreDeFormes(fiche),
-      nouveau: fiche.nouveau,
+      nouveau: recents.has(fiche.nom),
     })),
   }));
 

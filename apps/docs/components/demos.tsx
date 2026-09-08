@@ -23,6 +23,7 @@ import {
   useFlight,
   useExpand,
   ScrollScene,
+  SmoothScroll,
   TextHighlight,
   Lightbox,
 } from "@nova-ui/react";
@@ -56,43 +57,153 @@ export interface PropsDemo {
    *
    * Les démonstrations restent VIVANTES en grille — c'est ce qui distingue un
    * catalogue de composants d'une liste de liens — mais elles doivent tenir
-   * dans une carte de largeur imposée.
+   * dans une case de largeur imposée.
    */
   compact?: boolean;
+  /** Emprise de la case, déclarée par la famille dans `lib/catalogue.ts`. */
+  geometrie?: Geometrie;
+  /** Nom posé sur le plancher de la scène, sur les fiches. */
+  nomAffiche?: string;
+  /**
+   * Réglages manipulés en direct sous la scène, sur les fiches.
+   *
+   * Les clés sont les NOMS RÉELS des props du composant Nova : chaque démo se
+   * contente donc de les étaler après ses propres valeurs, et le réglage du
+   * visiteur gagne. En grille l'objet est absent, et rien ne change.
+   */
+  reglages?: Record<string, unknown>;
 }
 
+/**
+ * Géométrie d'une scène. Elle vient du MOUVEMENT, pas de l'importance de la
+ * famille : un marquee est une bande, un halftone est un carré. Enfermer les
+ * vingt-et-un dans le même rectangle de 208 px effaçait précisément ce qui
+ * les distingue. Voir DESIGN.md.
+ */
+export type Geometrie = "bande" | "bloc" | "carre" | "champ";
+
+const HAUTEURS: Record<Geometrie, string> = {
+  bande: "h-[180px]",
+  bloc: "h-[250px]",
+  carre: "h-[250px]",
+  champ: "min-h-[clamp(300px,52vh,560px)]",
+};
+
+/**
+ * Le banc : la mise en scène d'une démonstration.
+ *
+ * UN PLAN, PAS UNE BOÎTE. Filet haut, filet bas, aucun filet vertical, aucun
+ * rayon — les bords verticaux fabriquent une carte, les retirer fabrique une
+ * bande. C'est l'écart principal de la direction, et le seul geste qui retire
+ * l'apparence de carte à vingt-et-un éléments d'un coup.
+ *
+ * En mode `compact` (une case du catalogue), le banc est NU : la case fournit
+ * déjà le cadre et l'étiquette, un second cadre à l'intérieur ferait deux
+ * bordures concentriques.
+ */
 function Scene({
   children,
   onRejouer,
   compact,
+  geometrie = "bloc",
+  nom,
   className,
 }: {
   children: React.ReactNode;
   onRejouer?: () => void;
   compact?: boolean;
+  geometrie?: Geometrie;
+  /** Nom de la famille, posé sur le plancher de la scène. Fiches seulement. */
+  nom?: string;
   className?: string;
 }) {
-  return (
+  const aire = (
     <div
       className={[
-        "relative flex items-center justify-center overflow-hidden rounded-nova border border-filet bg-surface",
-        // Hauteur FIXE en grille : sans elle, les rangées deviennent
-        // dentelées et l'œil ne peut plus balayer le catalogue.
-        compact ? "h-52 p-5" : "min-h-52 p-8",
+        "relative flex items-center overflow-hidden",
+        // On centre ce qui rayonne, on aligne à gauche ce qui se lit — le
+        // choix est fait par chaque démo via `className`, le défaut est le
+        // centrage parce que la majorité des scènes sont des figures.
+        "justify-center",
+        compact ? `${HAUTEURS[geometrie]} p-5` : `${HAUTEURS.champ} px-6 sm:px-12`,
         className ?? "",
       ].join(" ")}
     >
       {children}
-      {onRejouer ? (
+      {/* En grille, le rejeu n'a pas de plancher où se poser : il flotte au
+          coin, mais reste un mot souligné et non un bouton encadré. */}
+      {compact && onRejouer ? (
         <button
           type="button"
           onClick={onRejouer}
-          className="cote absolute bottom-3 right-4 transition-colors hover:text-encre"
+          className="lien cote absolute bottom-2 right-3 bg-banc px-1.5 opacity-0 transition-opacity hover:text-encre focus-visible:opacity-100 group-hover:opacity-100"
         >
           rejouer
         </button>
       ) : null}
     </div>
+  );
+
+  if (compact) return aire;
+
+  return (
+    <div className="banc">
+      {aire}
+      {/* Le plancher : la légende est DANS la scène, sur son filet du bas. */}
+      <div className="flex items-baseline justify-between gap-4 border-t border-filet px-4 py-2.5 sm:px-6">
+        <span className="titre text-[1.05rem] text-second transition-colors">
+          {nom ?? ""}
+        </span>
+        {onRejouer ? (
+          <button
+            type="button"
+            onClick={onRejouer}
+            className="lien cote shrink-0 hover:text-encre"
+          >
+            rejouer
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Mire de démonstration — calculée, jamais chargée.
+ *
+ * Plusieurs démos ont besoin de « quelque chose à révéler » : un rideau qui se
+ * lève sur du vide ne démontre rien, une visionneuse qui agrandit un aplat gris
+ * non plus. Un dégradé neutre était le remplissage muet que DESIGN.md interdit
+ * — il ne dit ni ce qu'on regarde, ni que quelque chose a bougé.
+ *
+ * Un motif régulier, lui, rend le passage lisible : on voit la lame couper la
+ * rayure, on voit la bulle grandir parce que le pas de trame grandit avec elle.
+ */
+function Mire({
+  motif = "rayures",
+  className,
+}: {
+  motif?: "rayures" | "trame" | "grille";
+  className?: string;
+}) {
+  const fonds: Record<string, string> = {
+    rayures:
+      "repeating-linear-gradient(135deg, var(--encre) 0 8px, transparent 8px 18px)",
+    trame: "radial-gradient(var(--encre) 30%, transparent 32%)",
+    grille:
+      "linear-gradient(var(--encre) 1px, transparent 1px), linear-gradient(90deg, var(--encre) 1px, transparent 1px)",
+  };
+  const tailles: Record<string, string> = {
+    rayures: "auto",
+    trame: "10px 10px",
+    grille: "18px 18px",
+  };
+  return (
+    <div
+      aria-hidden
+      className={["opacity-[0.55]", className ?? ""].join(" ")}
+      style={{ backgroundImage: fonds[motif], backgroundSize: tailles[motif] }}
+    />
   );
 }
 
@@ -110,33 +221,44 @@ function useRejeu(cleExterne?: string) {
   };
 }
 
-export function DemoReveal({ forme = "slide-up", compact }: PropsDemo) {
+export function DemoReveal({ forme = "slide-up", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
   return (
-    <Scene onRejouer={rejouer} compact={compact}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <RevealGroup
         key={cle}
         repeat
         stagger={110}
         variant={forme as never}
+        {...reglages}
         className="grid w-full max-w-sm grid-cols-3 gap-3"
       >
-        {[0, 1, 2, 3, 4, 5].map((index) => (
+        {/* Numérotées, les pastilles montrent l'ordre d'arrivée. Mais un
+            aplat ne montre pas un MASQUE : sans texture, la variante `mask` se
+            confond avec un simple fondu. La mire donne au bord du masque de
+            quoi se voir passer, et aux variantes `slide-*` de quoi trahir leur
+            direction. */}
+        {[1, 2, 3, 4, 5, 6].map((index) => (
           <div
             key={index}
-            className="aspect-square rounded-nova border border-filet bg-surface-haute"
-          />
+            className="relative flex aspect-square items-center justify-center overflow-hidden rounded-presse border border-filet bg-banc-haut"
+          >
+            <Mire motif="grille" className="absolute inset-0" />
+            <span className="valeur relative text-[13px] text-encre">
+              {String(index).padStart(2, "0")}
+            </span>
+          </div>
         ))}
       </RevealGroup>
     </Scene>
   );
 }
 
-export function DemoScrambleText({ forme = "interval", compact }: PropsDemo) {
+export function DemoScrambleText({ forme = "interval", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const boucle = forme === "interval";
   const { cle, rejouer } = useRejeu(forme);
   return (
-    <Scene onRejouer={rejouer} compact={compact}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <p className="text-center">
         <ScrambleText
           key={cle}
@@ -144,6 +266,7 @@ export function DemoScrambleText({ forme = "interval", compact }: PropsDemo) {
           trigger={boucle ? "view" : "hover"}
           interval={boucle ? 5000 : 0}
           replayOnHover
+          {...reglages}
           className={
             compact
               ? "font-mono text-base tracking-[0.1em]"
@@ -160,7 +283,7 @@ export function DemoScrambleText({ forme = "interval", compact }: PropsDemo) {
   );
 }
 
-export function DemoCounter({ forme = "localise", compact }: PropsDemo) {
+export function DemoCounter({ forme = "localise", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
 
   /* Type explicite : sans lui, TypeScript infère trois formes de cellules
@@ -203,7 +326,7 @@ export function DemoCounter({ forme = "localise", compact }: PropsDemo) {
   const visibles = compact ? cellules.slice(0, 1) : cellules;
 
   return (
-    <Scene onRejouer={rejouer} compact={compact}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <div
         key={cle}
         className={[
@@ -228,6 +351,7 @@ export function DemoCounter({ forme = "localise", compact }: PropsDemo) {
                   : undefined
               }
               duration={1800}
+              {...reglages}
               trigger="mount"
               className={
                 compact
@@ -245,20 +369,31 @@ export function DemoCounter({ forme = "localise", compact }: PropsDemo) {
 
 const DEFILEMENT = new Set(["reading", "reading-blur", "highlight"]);
 
-export function DemoTextEffect({ forme = "line", compact }: PropsDemo) {
+/* Le grain que le moteur déduit de l'effet — voir `LETTER_GRAIN` dans
+   `engines/text-effect.ts`. Recopié ici plutôt qu'exporté : c'est un détail de
+   présentation de la fiche, pas un contrat public du moteur. */
+const GRAIN_LETTRE = new Set(["letter", "wave", "weight", "roll"]);
+
+export function DemoTextEffect({ forme = "line", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
   const defilement = DEFILEMENT.has(forme);
 
   return (
-    <Scene onRejouer={defilement ? undefined : rejouer} compact={compact}>
+    <Scene onRejouer={defilement ? undefined : rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <div className="w-full text-center">
         <TextEffect
           key={cle}
           as="p"
+          {...reglages}
+          /* « Bâtir en verre » faisait trois mots : sur un effet dont la
+             matière EST le décalage entre les grains, trois mots ne montrent
+             rien. Une phrase entière rend le `stagger` lisible, et la
+             différence entre un grain mot et un grain lettre devient visible
+             au lieu d'être une note de bas de page. */
           text={
             defilement
               ? "Le conseil que nous vendons, nous le pratiquons d'abord sur nous-mêmes."
-              : "Bâtir en verre"
+              : "Bâtir en verre, tenir la lumière"
           }
           effect={forme as never}
           trigger={defilement ? undefined : "mount"}
@@ -272,27 +407,30 @@ export function DemoTextEffect({ forme = "line", compact }: PropsDemo) {
                 : "text-3xl font-medium tracking-tight sm:text-4xl"
           }
         />
-        {defilement ? (
-          <span className="cote mt-4 block">
-            effet de défilement — descendez la page pour le lire
-          </span>
-        ) : null}
+        {/* Le grain est la seule chose qui distingue certaines des dix-sept
+            formes entre elles : le taire rendait la famille illisible. */}
+        <span className="cote mt-4 block">
+          {defilement
+            ? "effet de défilement — descendez la page pour le lire"
+            : `grain ${GRAIN_LETTRE.has(forme) ? "lettre" : "mot"} · ${forme}`}
+        </span>
       </div>
     </Scene>
   );
 }
 
-export function DemoMarquee({ forme = "left", compact }: PropsDemo) {
+export function DemoMarquee({ forme = "left", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const vertical = forme === "up" || forme === "down";
   const { cle, rejouer } = useRejeu(forme);
 
   return (
-    <Scene onRejouer={rejouer} compact={compact}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
       {vertical ? (
         <Marquee
           key={cle}
           direction={forme as never}
           speed={38}
+          {...reglages}
           className={[
             compact ? "h-32" : "h-40",
             "w-full max-w-xs [mask-image:linear-gradient(transparent,#000_22%,#000_78%,transparent)]",
@@ -322,6 +460,7 @@ export function DemoMarquee({ forme = "left", compact }: PropsDemo) {
             key={cle}
             direction={forme as never}
             speed={70}
+            {...reglages}
             gap="2.5rem"
             pauseOnHover
             className="py-2"
@@ -344,12 +483,12 @@ export function DemoMarquee({ forme = "left", compact }: PropsDemo) {
   );
 }
 
-export function DemoScrollMarquee({ compact }: PropsDemo) {
+export function DemoScrollMarquee({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const { cle, rejouer } = useRejeu();
   return (
-    <Scene onRejouer={rejouer} compact={compact}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <div className="w-full">
-        <ScrollMarquee key={cle} drift={40} gap="1.5rem" className="py-2">
+        <ScrollMarquee key={cle} drift={40} gap="1.5rem" className="py-2" {...reglages}>
           {["PRÉVOIR", "SÉCURISER", "LIBÉRER"].map((mot) => (
             <span
               key={mot}
@@ -372,13 +511,13 @@ export function DemoScrollMarquee({ compact }: PropsDemo) {
 
 /* --- Sans rejeu : l'effet EST le geste du visiteur ----------------------- */
 
-export function DemoRollText({ compact }: PropsDemo) {
+export function DemoRollText({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   return (
-    <Scene compact={compact}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <div className="flex flex-col items-center gap-5">
         <button
           type="button"
-          className="rounded-nova border border-filet px-6 py-2.5 font-mono text-sm tracking-wider text-sourdine transition-colors hover:border-encre hover:text-encre"
+          className="rounded-presse border border-filet px-6 py-2.5 font-mono text-sm tracking-wider text-sourdine transition-colors hover:border-encre hover:text-encre"
         >
           <RollText text="Nous écrire" />
         </button>
@@ -388,22 +527,31 @@ export function DemoRollText({ compact }: PropsDemo) {
   );
 }
 
-export function DemoSpotlight({ compact }: PropsDemo) {
+export function DemoSpotlight({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   return (
-    <div
-      className={[
-        "relative flex items-center justify-center overflow-hidden rounded-nova border border-filet bg-surface",
-        compact ? "h-52 p-5" : "min-h-52 p-8",
-      ].join(" ")}
-    >
-      <Spotlight radius="13rem" />
-      <div className="relative text-center">
-        <p className="text-sourdine">Promenez le curseur dans ce panneau.</p>
-        <span className="cote mt-4 block">
-          inactif au tactile et en mouvement réduit
-        </span>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+      <Spotlight radius="13rem" {...reglages} />
+      {/* Le halo doit avoir quelque chose à ÉCLAIRER. Avant, il balayait un
+          panneau vide avec une phrase au milieu : l'effet fonctionnait, mais
+          il n'y avait rien à repérer, donc rien à comprendre. Un champ
+          d'étiquettes presque éteintes fait du halo ce qu'il est — un outil de
+          repérage, pas une lueur décorative. */}
+      <div className="relative grid w-full grid-cols-3 gap-x-6 gap-y-2 sm:grid-cols-4">
+        {[
+          "ticker", "in-view", "reveal", "marquee",
+          "scramble", "halftone", "confetti", "blinds",
+          "loader", "flight", "expand", "lightbox",
+          "spotlight", "cursor", "counter", "graph",
+        ].map((mot) => (
+          <span key={mot} className="valeur text-[11px] text-encre/25">
+            {mot}
+          </span>
+        ))}
       </div>
-    </div>
+      <span className="cote absolute bottom-3 left-4">
+        promenez le curseur — inactif au tactile
+      </span>
+    </Scene>
   );
 }
 
@@ -412,18 +560,31 @@ export function DemoSpotlight({ compact }: PropsDemo) {
  * librairie, pas une signature imposée à toutes les pages. La démonstration
  * le met donc en marche à la demande, et le retire quand on la quitte.
  */
-export function DemoCursor({ forme = "blob", compact }: PropsDemo) {
+export function DemoCursor({ forme = "blob", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const [actif, setActif] = useState(false);
   return (
-    <Scene compact={compact}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <div className="text-center">
         {actif ? <Cursor key={forme} variant={forme as never} /> : null}
+        {/* La forme au repos, avant même d'activer : sans elle, la vignette du
+            catalogue ne montrait qu'un bouton, et on ne savait pas de quoi on
+            parlait. */}
+        <div className="mb-5 flex items-center justify-center gap-6" aria-hidden>
+          {forme === "dot-ring" ? (
+            <>
+              <span className="size-1.5 rounded-full bg-encre" />
+              <span className="-ml-[1.35rem] size-9 rounded-full border border-encre/50" />
+            </>
+          ) : (
+            <span className="size-9 rounded-full bg-encre/70" />
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setActif((v) => !v)}
           aria-pressed={actif}
           className={[
-            "rounded-nova border px-5 py-2 font-mono text-sm tracking-wider transition-colors",
+            "rounded-presse border px-5 py-2 font-mono text-sm tracking-wider transition-colors",
             actif
               ? "border-signal bg-signal text-fond"
               : "border-filet text-sourdine hover:border-encre hover:text-encre",
@@ -452,9 +613,9 @@ function couvertureAnneau(x: number, y: number): number {
   return Math.max(0, Math.min(1, anneau));
 }
 
-export function DemoHalftone({ forme = "square", compact }: PropsDemo) {
+export function DemoHalftone({ forme = "square", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   return (
-    <Scene compact={compact}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <div className="text-center">
         <Halftone
           alt=""
@@ -463,6 +624,7 @@ export function DemoHalftone({ forme = "square", compact }: PropsDemo) {
           steps={4}
           shape={forme as never}
           pointerBoost={0.5}
+          {...reglages}
           className={[
             compact ? "h-28 w-28" : "h-44 w-44",
             "mx-auto text-encre",
@@ -498,7 +660,7 @@ const ARETES: [string, string][] = [
   ["reveal", "text"],
 ];
 
-export function DemoGraph({ compact }: PropsDemo) {
+export function DemoGraph({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const { cle, rejouer } = useRejeu();
   return (
     <div className="relative">
@@ -506,7 +668,13 @@ export function DemoGraph({ compact }: PropsDemo) {
         key={cle}
         nodes={NOEUDS}
         edges={ARETES}
-        colors={{ scroll: "#c93c08", texte: "#101013", pointeur: "#8b8b95" }}
+        /* Les teintes du graphe viennent des jetons : en dur, elles
+           disparaissaient sur le fond sombre. */
+        colors={{
+          scroll: "var(--signal)",
+          texte: "var(--encre)",
+          pointeur: "var(--second)",
+        }}
         groupLabels={{
           scroll: "Défilement",
           texte: "Texte",
@@ -522,14 +690,14 @@ export function DemoGraph({ compact }: PropsDemo) {
             ? "Aperçu d'un graphe de huit entrées. Le détail complet et navigable est sur la fiche du composant."
             : undefined
         }
-        edgeColor="#d4d4da"
-        labelColor="#62626c"
+        edgeColor="var(--filet-vif)"
+        labelColor="var(--sourdine)"
         autoCycle={1900}
         settleVisible={70}
         padding={56}
         canvasClassName={[
           compact ? "h-52" : "h-56",
-          "w-full rounded-nova border border-filet bg-surface",
+          "w-full rounded-plan border border-filet bg-banc",
         ].join(" ")}
         className="[&_[data-nova-graph-legend]]:mt-5 [&_[data-nova-graph-legend]]:grid [&_[data-nova-graph-legend]]:grid-cols-3 [&_[data-nova-graph-legend]]:gap-5 [&_h4]:mb-2 [&_h4]:font-mono [&_h4]:text-[10px] [&_h4]:uppercase [&_h4]:tracking-[0.14em] [&_h4]:text-sourdine [&_button]:text-[13px] [&_button]:text-sourdine hover:[&_button]:text-encre [&_[data-nova-graph-degree]]:font-mono [&_[data-nova-graph-degree]]:text-[11px] [&_[data-nova-graph-degree]]:opacity-60"
       />
@@ -544,18 +712,18 @@ export function DemoGraph({ compact }: PropsDemo) {
   );
 }
 
-export function DemoConfetti({ forme = "mixed", compact }: PropsDemo) {
+export function DemoConfetti({ forme = "mixed", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const tirer = useConfetti({
     // Sur fond blanc, une palette claire disparaît : on assombrit.
     colors: ["#c93c08", "#101013", "#8b8b95"],
     count: 70,
   });
   return (
-    <Scene compact={compact}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <button
         type="button"
         onClick={() => tirer({ shape: forme as never })}
-        className="rounded-nova border border-signal px-6 py-2.5 font-mono text-sm tracking-wider text-signal transition-colors hover:bg-signal hover:text-fond"
+        className="rounded-presse border border-signal px-6 py-2.5 font-mono text-sm tracking-wider text-signal transition-colors hover:bg-signal hover:text-fond"
       >
         TIRER
       </button>
@@ -563,19 +731,20 @@ export function DemoConfetti({ forme = "mixed", compact }: PropsDemo) {
   );
 }
 
-export function DemoBlinds({ forme = "vertical", compact }: PropsDemo) {
+export function DemoBlinds({ forme = "vertical", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
   return (
-    <Scene onRejouer={rejouer} compact={compact}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <Blinds
         key={cle}
         trigger="mount"
         orientation={forme as never}
         count={forme === "vertical" ? 7 : 5}
-        color="var(--color-surface)"
+        color="var(--banc)"
+        {...reglages}
         className={[
           compact ? "h-32 w-48" : "h-40 w-64",
-          "overflow-hidden rounded-nova",
+          "overflow-hidden rounded-plan",
         ].join(" ")}
       >
         {/* Une mire plutôt qu'une image : la démo ne charge aucune ressource,
@@ -586,10 +755,10 @@ export function DemoBlinds({ forme = "vertical", compact }: PropsDemo) {
   );
 }
 
-export function DemoBrushUnderline({ compact }: PropsDemo) {
+export function DemoBrushUnderline({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const { cle, rejouer } = useRejeu();
   return (
-    <Scene onRejouer={rejouer} compact={compact}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <p
         key={cle}
         className={[
@@ -598,7 +767,7 @@ export function DemoBrushUnderline({ compact }: PropsDemo) {
         ].join(" ")}
       >
         Rendre lisible{" "}
-        <BrushUnderline seed={3} trigger="mount" delay={260}>
+        <BrushUnderline seed={3} trigger="mount" delay={260} {...reglages}>
           ce qui ne l&apos;est pas
         </BrushUnderline>
         .
@@ -612,10 +781,16 @@ export function DemoBrushUnderline({ compact }: PropsDemo) {
  * sortirait de son encadré et couvrirait tout le site. Une démonstration ne
  * doit pas faire ce que le composant ferait en production.
  */
-export function DemoLoader({ forme = "blades", compact }: PropsDemo) {
+export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
   return (
-    <Scene onRejouer={rejouer} compact={compact} className="isolate">
+    <Scene
+      onRejouer={rejouer}
+      compact={compact}
+      geometrie={geometrie}
+      nom={nomAffiche}
+      className="isolate"
+    >
       <Loader
         key={cle}
         form={forme as never}
@@ -628,17 +803,29 @@ export function DemoLoader({ forme = "blades", compact }: PropsDemo) {
         className="!absolute inset-0 !z-10 bg-surface"
       >
         {forme === "greetings" ? null : (
-          <p className="font-mono text-sm tracking-[0.16em] text-sourdine">
-            NOVA
-          </p>
+          <p className="valeur text-sm tracking-[0.16em] text-sourdine">NOVA</p>
         )}
       </Loader>
-      <p className="cote">le rideau se lève</p>
+      {/* Un rideau qui se lève sur un mot ne démontre pas un rideau : il faut
+          que la page découverte VAILLE d'être découverte, sinon on ne sait pas
+          si quelque chose s'est passé. */}
+      <div className="w-full max-w-sm">
+        <p className="titre text-2xl leading-tight">Bâtir en verre</p>
+        <p className="mt-2 text-sm leading-relaxed text-prose">
+          Le rideau vient de se retirer sur cette page. C&apos;est ce
+          qu&apos;elle cachait.
+        </p>
+        <div className="mt-4 flex gap-2">
+          <span className="h-1 flex-1 bg-encre/25" />
+          <span className="h-1 flex-1 bg-encre/15" />
+          <span className="h-1 flex-1 bg-encre/10" />
+        </div>
+      </div>
     </Scene>
   );
 }
 
-export function DemoFlight({ compact }: PropsDemo) {
+export function DemoFlight({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const voler = useFlight({ duration: 800 });
   const source = useRef<HTMLButtonElement>(null);
   const cible = useRef<HTMLSpanElement>(null);
@@ -655,20 +842,20 @@ export function DemoFlight({ compact }: PropsDemo) {
   }
 
   return (
-    <Scene compact={compact}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <div className="flex w-full items-center justify-between gap-6">
         <button
           ref={source}
           type="button"
           onClick={envoyer}
-          className="rounded-nova border border-filet bg-surface-haute px-4 py-2 font-mono text-xs tracking-wider text-sourdine transition-colors hover:border-encre hover:text-encre"
+          className="rounded-presse border border-filet bg-banc-haut px-4 py-2 font-mono text-xs tracking-wider text-sourdine transition-colors hover:border-encre hover:text-encre"
         >
-          preuve
+          Ajouter au panier
         </button>
-        <span className="cote">→</span>
+        <span className="cote">vole vers</span>
         <span
           ref={cible}
-          className="flex size-10 items-center justify-center rounded-nova border border-signal font-mono text-sm text-signal"
+          className="flex size-10 items-center justify-center rounded-presse border border-signal font-mono text-sm text-signal"
         >
           {recus}
         </span>
@@ -682,7 +869,7 @@ export function DemoFlight({ compact }: PropsDemo) {
  * des pièces appariées par `data-nova-flip-id`, des lignes qui n'existent que
  * dépliées, un chevron qui se retourne.
  */
-export function DemoExpand({ compact }: PropsDemo) {
+export function DemoExpand({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const [ouvert, setOuvert] = useState(false);
   const { ref, capture, shown } = useExpand<HTMLDivElement>(ouvert);
 
@@ -694,12 +881,12 @@ export function DemoExpand({ compact }: PropsDemo) {
   }
 
   return (
-    <Scene compact={compact}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <div className="w-full max-w-sm">
         <div
           ref={ref}
           className={cn(
-            "relative overflow-hidden rounded-nova border",
+            "relative overflow-hidden rounded-plan border",
             shown ? "bg-foreground text-background" : "bg-card text-foreground",
           )}
         >
@@ -717,7 +904,7 @@ export function DemoExpand({ compact }: PropsDemo) {
                 data-nova-flip-id="titre"
                 className="text-sm font-medium tracking-tight"
               >
-                Relancer Dupont
+                Relancer Dupont — 12 jours
               </span>
               <span
                 data-nova-spin
@@ -740,7 +927,9 @@ export function DemoExpand({ compact }: PropsDemo) {
           {shown ? (
             <div data-nova-reveal className="border-t border-white/15 p-4 text-xs">
               Le panneau. Le voile s&apos;est retiré, et chaque pièce a changé
-              d&apos;encre au moment où son bord l&apos;a dépassée.
+              d&apos;encre au moment où son bord l&apos;a dépassée. La ligne
+              n&apos;a pas été remplacée : c&apos;est le MÊME nœud, mesuré avant
+              et replacé après.
             </div>
           ) : null}
         </div>
@@ -757,16 +946,33 @@ export function DemoExpand({ compact }: PropsDemo) {
  * page. La démonstration dit donc ce qu'il fait et ce qu'il ne fait pas,
  * plutôt que de simuler un effet dans une boîte de deux cents pixels.
  */
-export function DemoSmoothScroll({ compact }: PropsDemo) {
+export function DemoSmoothScroll({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+  const [actif, setActif] = useState(false);
   return (
-    <Scene compact={compact}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+      {/* Ce composant agit sur la PAGE, pas dans un encadré : le montrer dans
+          une boîte serait mentir. On le monte donc pour de vrai, comme le
+          curseur, et on le dit. C'est la seule démonstration honnête. */}
+      {actif ? <SmoothScroll /> : null}
       <div className="text-center">
-        <p className="text-sm text-muted-foreground">
-          Il agit sur la page entière, pas dans un encadré.
+        <button
+          type="button"
+          onClick={() => setActif((v) => !v)}
+          aria-pressed={actif}
+          className={[
+            "rounded-presse border px-5 py-2 font-mono text-sm tracking-wider transition-colors",
+            actif
+              ? "border-filet-vif text-encre"
+              : "border-filet text-second hover:border-filet-vif hover:text-encre",
+          ].join(" ")}
+        >
+          {actif ? "Désactiver" : "Activer sur cette page"}
+        </button>
+        <p className="cote mt-4">
+          {actif
+            ? "défilez la page — la molette est lissée"
+            : "boucle partagée · tactile natif · absent en mouvement réduit"}
         </p>
-        <span className="cote mt-4 block">
-          boucle partagée · tactile natif · absent en mouvement réduit
-        </span>
       </div>
     </Scene>
   );
@@ -778,7 +984,7 @@ export function DemoSmoothScroll({ compact }: PropsDemo) {
  * temps nommés — pilotés par un curseur. C'est exactement ce que le moteur
  * publie, à ceci près que c'est la molette qui le fournit en production.
  */
-export function DemoScrollScene({ compact }: PropsDemo) {
+export function DemoScrollScene({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const [t, setT] = useState(0.5);
   const segment = (a: number, b: number) =>
     Math.min(1, Math.max(0, (t - a) / (b - a)));
@@ -792,7 +998,7 @@ export function DemoScrollScene({ compact }: PropsDemo) {
   ];
 
   return (
-    <Scene compact={compact}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <div className="w-full max-w-sm">
         <div className="flex items-baseline justify-between">
           <span className="cote">--nova-t</span>
@@ -806,15 +1012,43 @@ export function DemoScrollScene({ compact }: PropsDemo) {
           value={t}
           onChange={(e) => setT(Number(e.target.value))}
           aria-label="Progression de la scène"
-          className="mt-2 w-full accent-signal"
+          className="nova-curseur mt-2 w-full"
         />
-        <ul className="mt-4 space-y-2">
+        {/* LA SCÈNE, au-dessus de ses temps.
+
+            Trois barres nommées `arrivee`, `stockage`, `paquet` montraient des
+            nombres bouger — pas une scène. Or c'est tout le sujet du
+            composant : le défilement fournit `t`, et des éléments réels s'en
+            servent. Sans quelque chose qui bouge, la démonstration expliquait
+            le mécanisme en cachant son résultat. */}
+        <div className="relative mt-4 h-20 overflow-hidden rounded-presse border border-filet bg-banc-haut">
+          {/* arrivee — un bloc qui traverse */}
+          <span
+            className="absolute top-3 size-6 rounded-presse bg-encre"
+            style={{ left: `calc(${temps[0]!.valeur * 100}% - ${temps[0]!.valeur * 24}px)` }}
+            aria-hidden
+          />
+          {/* stockage — une pile qui se remplit */}
+          <span
+            className="absolute bottom-3 left-3 h-6 bg-encre/45"
+            style={{ width: `${temps[1]!.valeur * 60}%` }}
+            aria-hidden
+          />
+          {/* paquet — une impulsion qui monte puis redescend */}
+          <span
+            className="absolute bottom-3 right-3 size-6 rounded-full bg-signal"
+            style={{ opacity: temps[2]!.valeur, transform: `scale(${0.4 + temps[2]!.valeur * 0.6})` }}
+            aria-hidden
+          />
+        </div>
+
+        <ul className="mt-3 space-y-2">
           {temps.map((temp) => (
             <li key={temp.nom} className="flex items-center gap-3">
               <span className="cote w-20 shrink-0">{temp.nom}</span>
-              <span className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+              <span className="h-1 flex-1 overflow-hidden rounded-full bg-filet">
                 <span
-                  className="block h-full bg-signal transition-none"
+                  className="block h-full bg-encre transition-none"
                   style={{ width: `${temp.valeur * 100}%` }}
                 />
               </span>
@@ -831,14 +1065,15 @@ export function DemoScrollScene({ compact }: PropsDemo) {
   );
 }
 
-export function DemoTextHighlight({ compact }: PropsDemo) {
+export function DemoTextHighlight({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const { cle, rejouer } = useRejeu();
   return (
-    <Scene onRejouer={rejouer} compact={compact}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <TextHighlight
         key={cle}
         text="nous le pratiquons d'abord sur nous-mêmes"
         trigger="mount"
+        {...reglages}
         className="bg-signal/20"
         as="p"
       >
@@ -856,13 +1091,16 @@ export function DemoTextHighlight({ compact }: PropsDemo) {
   );
 }
 
+/* Des MOTIFS, pas des aplats. Un dégradé gris qu'on agrandit reste un dégradé
+   gris : rien ne prouve que la bulle a grandi. Un pas de trame qui s'écarte,
+   si. */
 const VIGNETTES = [
-  { id: "verriere", teinte: "from-neutral-800 to-neutral-600", titre: "Verrière" },
-  { id: "claustra", teinte: "from-neutral-500 to-neutral-300", titre: "Claustra" },
-  { id: "plancher", teinte: "from-neutral-700 to-neutral-400", titre: "Plancher" },
+  { id: "verriere", motif: "grille" as const, titre: "Verrière" },
+  { id: "claustra", motif: "rayures" as const, titre: "Claustra" },
+  { id: "plancher", motif: "trame" as const, titre: "Plancher" },
 ];
 
-export function DemoLightbox({ compact }: PropsDemo) {
+export function DemoLightbox({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
   const [ouvert, setOuvert] = useState(false);
   const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
   const [choix, setChoix] = useState(VIGNETTES[0]!);
@@ -876,7 +1114,7 @@ export function DemoLightbox({ compact }: PropsDemo) {
   }
 
   return (
-    <Scene compact={compact}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
       <div className="w-full">
         <div className="grid grid-cols-3 gap-2">
           {VIGNETTES.map((vignette) => (
@@ -884,12 +1122,11 @@ export function DemoLightbox({ compact }: PropsDemo) {
               key={vignette.id}
               type="button"
               onClick={(event) => ouvrir(event, vignette)}
-              className={cn(
-                "aspect-[3/2] rounded-nova bg-gradient-to-br transition-transform hover:scale-[1.03]",
-                vignette.teinte,
-              )}
+              className="aspect-[3/2] overflow-hidden rounded-plan border border-filet bg-banc-haut transition-colors hover:border-filet-vif"
               aria-label={`Ouvrir ${vignette.titre}`}
-            />
+            >
+              <Mire motif={vignette.motif} className="h-full w-full" />
+            </button>
           ))}
         </div>
         <span className="cote mt-4 block text-center">
@@ -907,8 +1144,12 @@ export function DemoLightbox({ compact }: PropsDemo) {
         >
           <div
             data-nova-bloom-media
-            className={cn("h-full w-full bg-gradient-to-br", choix.teinte)}
-          />
+            className="h-full w-full bg-banc-haut"
+          >
+            {/* Le même motif que la vignette, agrandi : c'est le pas de trame
+                qui s'écarte qui rend la croissance de la bulle visible. */}
+            <Mire motif={choix.motif} className="h-full w-full" />
+          </div>
           <figcaption
             data-nova-bloom-late
             className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 bg-foreground/80 px-5 py-3 text-background"
@@ -966,12 +1207,26 @@ export function Demo({
   nom,
   forme,
   compact,
+  geometrie,
+  nomAffiche,
+  reglages,
 }: {
   nom: string;
   forme?: string;
   compact?: boolean;
+  geometrie?: Geometrie;
+  nomAffiche?: string;
+  reglages?: Record<string, unknown>;
 }) {
   const Composant = demos[nom];
   if (!Composant) return null;
-  return <Composant forme={forme} compact={compact} />;
+  return (
+    <Composant
+      forme={forme}
+      compact={compact}
+      geometrie={geometrie}
+      nomAffiche={nomAffiche}
+      reglages={reglages}
+    />
+  );
 }

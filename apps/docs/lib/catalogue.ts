@@ -59,11 +59,147 @@ export interface Fiche {
   formes?: Forme[];
   /** Signalé comme récent dans la grille. */
   nouveau?: boolean;
+  /**
+   * Emprise de la case dans le catalogue, et hauteur de sa scène.
+   *
+   * Elle vient de la GÉOMÉTRIE DU MOUVEMENT, pas de l'importance de la
+   * famille : ce qui défile est une bande, ce qui rayonne est un carré. La
+   * forme de la case annonce ainsi la nature de l'effet avant qu'on lise
+   * l'étiquette. Défaut : `carre`. Voir DESIGN.md.
+   */
+  geometrie?: "bande" | "bloc" | "carre";
+}
+
+/**
+ * Un réglage manipulable en direct sous la démonstration.
+ *
+ * C'est le prolongement de la télémétrie : celle-ci montre ce que le moteur
+ * ÉCRIT, les réglages laissent changer ce qu'on lui DONNE. Ensemble, la fiche
+ * cesse d'être une image animée et devient un objet qu'on mesure et qu'on
+ * règle. Voir DESIGN.md.
+ *
+ * On ne déclare ici que ce qui change VISIBLEMENT le mouvement. Un `seed`, une
+ * `className` ou un rappel n'ont rien à faire dans un panneau de réglages :
+ * ils allongeraient la liste sans rien apprendre.
+ */
+export type Reglage =
+  | {
+      type: "nombre";
+      nom: string;
+      libelle: string;
+      min: number;
+      max: number;
+      pas: number;
+      defaut: number;
+      unite?: string;
+    }
+  | { type: "bool"; nom: string; libelle: string; defaut: boolean }
+  | {
+      type: "choix";
+      nom: string;
+      libelle: string;
+      choix: string[];
+      defaut: string;
+    };
+
+const N = (
+  nom: string,
+  libelle: string,
+  min: number,
+  max: number,
+  pas: number,
+  defaut: number,
+  unite?: string,
+): Reglage => ({ type: "nombre", nom, libelle, min, max, pas, defaut, unite });
+
+/** Les réglages par famille. Le nom de la clé est le NOM DE LA PROP réelle. */
+export const REGLAGES: Record<string, Reglage[]> = {
+  reveal: [
+    N("duration", "Durée", 100, 2000, 50, 700, "ms"),
+    N("stagger", "Décalage", 0, 400, 10, 80, "ms"),
+  ],
+  "scramble-text": [
+    N("stepMs", "Durée d'un pas", 10, 200, 2, 52, "ms"),
+    N("scrambleSteps", "Pas brouillés", 1, 20, 1, 6),
+    N("interval", "Rejeu auto", 0, 10000, 500, 5000, "ms"),
+  ],
+  counter: [
+    N("duration", "Durée", 200, 5000, 100, 1500, "ms"),
+    N("decimals", "Décimales", 0, 3, 1, 0),
+  ],
+  "text-effect": [N("duration", "Durée", 200, 3000, 50, 900, "ms")],
+  marquee: [
+    N("speed", "Vitesse", 10, 300, 5, 60, "px/s"),
+    { type: "bool", nom: "pauseOnHover", libelle: "Pause au survol", defaut: true },
+  ],
+  "scroll-marquee": [
+    N("drift", "Dérive", 0, 200, 2, 44, "px/s"),
+    N("skew", "Cisaillement", 0, 10, 0.2, 2.6, "°"),
+    N("smoothing", "Lissage", 0.02, 0.5, 0.01, 0.1),
+  ],
+  cursor: [
+    N("lerp", "Suivi", 0.05, 1, 0.01, 0.2),
+    N("hoverScale", "Grossissement", 1, 6, 0.1, 2.6, "×"),
+  ],
+  confetti: [
+    N("count", "Nombre", 10, 300, 10, 50),
+    N("spread", "Étalement", 50, 500, 10, 200, "px"),
+  ],
+  halftone: [
+    N("cols", "Colonnes", 8, 120, 4, 48),
+    N("steps", "Paliers", 2, 12, 1, 4),
+    N("gamma", "Gamma", 0.1, 2, 0.05, 0.45),
+  ],
+  graph: [
+    N("autoCycle", "Cycle auto", 0, 5000, 100, 1900, "ms"),
+    N("settleVisible", "Stabilisation", 10, 300, 10, 90),
+  ],
+  blinds: [
+    N("count", "Lames", 2, 20, 1, 6),
+    N("stagger", "Décalage", 0, 300, 5, 55, "ms"),
+    N("duration", "Durée", 100, 2000, 50, 650, "ms"),
+  ],
+  "brush-underline": [
+    N("duration", "Durée", 200, 3000, 50, 1100, "ms"),
+    N("delay", "Retard", 0, 1500, 50, 180, "ms"),
+    N("weight", "Épaisseur", 0.1, 2, 0.05, 0.5),
+  ],
+  loader: [
+    N("holdMs", "Maintien", 200, 3000, 100, 1100, "ms"),
+    N("exitMs", "Sortie", 200, 2000, 50, 700, "ms"),
+  ],
+  flight: [
+    N("duration", "Durée", 200, 2500, 50, 900, "ms"),
+    N("arc", "Arc", 0, 1, 0.02, 0.18),
+    N("scale", "Échelle d'arrivée", 0.1, 1.5, 0.05, 0.6),
+  ],
+  expand: [
+    N("maxDuration", "Durée max", 0.05, 1, 0.01, 0.18, "s"),
+    N("reverseSpeed", "Vitesse retour", 0.5, 3, 0.1, 1.6, "×"),
+  ],
+  "smooth-scroll": [
+    N("lerp", "Lissage", 0.01, 0.5, 0.01, 0.1),
+    N("wheelMultiplier", "Molette", 0.2, 3, 0.1, 1, "×"),
+  ],
+  "text-highlight": [
+    N("duration", "Durée d'une bande", 50, 2000, 25, 350, "ms"),
+    N("stagger", "Décalage entre lignes", 0, 300, 5, 30, "ms"),
+  ],
+  lightbox: [
+    N("duration", "Durée d'ouverture", 0.2, 2, 0.05, 0.8, "s"),
+    N("closeSpeed", "Vitesse de fermeture", 0.5, 3, 0.1, 1.5, "×"),
+  ],
+};
+
+/** Les réglages d'une famille, ou rien si elle n'en expose pas. */
+export function reglagesDe(nom: string): Reglage[] {
+  return REGLAGES[nom] ?? [];
 }
 
 export const catalogue: Fiche[] = [
   {
     nom: "reveal",
+    geometrie: "bloc",
     categorie: "defilement",
     titre: "Reveal",
     accroche: "Apparition au scroll, sans jamais rien laisser masqué.",
@@ -128,6 +264,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "scramble-text",
+    geometrie: "carre",
     categorie: "texte",
     titre: "Scramble Text",
     accroche: "Le texte se brouille, puis se décode lettre par lettre.",
@@ -167,6 +304,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "counter",
+    geometrie: "carre",
     categorie: "donnees",
     titre: "Counter",
     accroche: "Un nombre qui compte jusqu'à sa valeur, sans rien bousculer.",
@@ -205,6 +343,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "text-effect",
+    geometrie: "bande",
     categorie: "texte",
     nouveau: true,
     titre: "Text Effect",
@@ -316,6 +455,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "marquee",
+    geometrie: "bande",
     categorie: "defilement",
     titre: "Marquee",
     accroche: "Un bandeau qui défile sans fin, à vitesse constante. Horizontal ou vertical.",
@@ -364,6 +504,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "scroll-marquee",
+    geometrie: "bande",
     categorie: "defilement",
     nouveau: true,
     titre: "Scroll Marquee",
@@ -391,6 +532,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "roll-text",
+    geometrie: "carre",
     categorie: "texte",
     nouveau: true,
     titre: "Roll Text",
@@ -411,6 +553,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "spotlight",
+    geometrie: "carre",
     categorie: "pointeur",
     nouveau: true,
     titre: "Spotlight",
@@ -432,6 +575,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "cursor",
+    geometrie: "carre",
     categorie: "pointeur",
     titre: "Cursor",
     accroche: "Un curseur additif, qui augmente le curseur système sans le remplacer.",
@@ -464,6 +608,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "confetti",
+    geometrie: "carre",
     categorie: "effets",
     titre: "Confetti",
     accroche: "Une salve de particules, qui se nettoie derrière elle.",
@@ -501,6 +646,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "halftone",
+    geometrie: "carre",
     categorie: "rendu",
     nouveau: true,
     titre: "Halftone",
@@ -542,6 +688,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "graph",
+    geometrie: "bloc",
     categorie: "donnees",
     nouveau: true,
     titre: "Graph",
@@ -569,6 +716,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "blinds",
+    geometrie: "bloc",
     titre: "Blinds",
     categorie: "defilement",
     nouveau: true,
@@ -595,6 +743,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "brush-underline",
+    geometrie: "bande",
     titre: "Brush Underline",
     categorie: "texte",
     nouveau: true,
@@ -616,6 +765,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "loader",
+    geometrie: "bloc",
     titre: "Loader",
     categorie: "effets",
     nouveau: true,
@@ -645,6 +795,7 @@ export const catalogue: Fiche[] = [
   },
   {
     nom: "flight",
+    geometrie: "carre",
     titre: "Flight",
     categorie: "effets",
     nouveau: true,
@@ -666,6 +817,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "expand",
+    geometrie: "bloc",
     titre: "Expand",
     categorie: "effets",
     nouveau: true,
@@ -693,6 +845,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "smooth-scroll",
+    geometrie: "bande",
     titre: "Smooth Scroll",
     categorie: "defilement",
     nouveau: true,
@@ -713,6 +866,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "scroll-scene",
+    geometrie: "bloc",
     titre: "Scroll Scene",
     categorie: "defilement",
     nouveau: true,
@@ -738,6 +892,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "text-highlight",
+    geometrie: "bande",
     titre: "Text Highlight",
     categorie: "texte",
     nouveau: true,
@@ -749,6 +904,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
       { nom: "text", type: "string", defaut: "—", role: "Le passage à retrouver. Casse et blancs ignorés." },
       { nom: "className", type: "string", defaut: "—", role: "Classes posées sur les BANDES. C'est là que vit la couleur." },
       { nom: "stagger", type: "number", defaut: "30", role: "Décalage entre deux lignes, en ms." },
+      { nom: "duration", type: "number", defaut: "350", role: "Durée d'apparition d'une bande, en ms." },
       { nom: "padding", type: "[number, number]", defaut: "[2, 1]", role: "Débord horizontal et vertical de la bande." },
       { nom: "onMiss", type: "() => void", defaut: "—", role: "Passage introuvable. À vous de replier — le moteur ne devine pas." },
     ],
@@ -761,6 +917,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "lightbox",
+    geometrie: "bloc",
     titre: "Lightbox",
     categorie: "effets",
     nouveau: true,

@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export interface EntreeNav {
@@ -106,13 +105,13 @@ export function BarreLaterale({
                     {entree.formes}
                   </span>
                 ) : null}
+                {/* Recensement, pas badge : huit « New » sur treize entrées
+                    visibles ne signalaient plus rien. Voir DESIGN.md. */}
                 {entree.nouveau ? (
-                  <Badge
-                    variant="secondary"
-                    className="ml-1.5 bg-signal/12 px-1.5 py-0 font-mono text-[9px] uppercase tracking-wider text-signal"
-                  >
-                    New
-                  </Badge>
+                  <span
+                    className="ml-1.5 inline-block size-[3px] shrink-0 bg-signal"
+                    aria-hidden
+                  />
                 ) : null}
               </LienNav>
             ))}
@@ -144,7 +143,7 @@ function LienNav({
         href={href}
         aria-current={actif ? "page" : undefined}
         className={cn(
-          "flex items-center gap-1 rounded-nova px-2 py-1.5 text-[13.5px] transition-colors",
+          "flex items-center gap-1 rounded-presse px-2 py-1.5 text-[13.5px] transition-colors",
           actif
             ? "bg-accent text-accent-foreground"
             : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",

@@ -4,48 +4,122 @@
 /* ==========================================================================
    Nova — site vitrine.
 
-   Direction : instrument de mesure, sur papier. Blanc franc, filets d'un
-   pixel, libellés en chasse fixe, une seule couleur incandescente. Le
-   composant démontré doit rester la seule chose colorée à l'écran.
+   Direction : un banc d'essai. Un atelier éteint, mat, réglé au filet, sur
+   lequel une seule pièce est sous la lampe à la fois. Le site est l'établi,
+   jamais le spectacle.
+
+   Le point fixe : LE MOUVEMENT EST L'OBJET. Voir DESIGN.md, qui fait
+   référence pour toute décision visuelle.
+
+   La règle qui rend la thèse vérifiable en relecture de différence :
+   aucun élément de chrome ne dépasse 7:1, aucun contenu de scène ne descend
+   sous 12:1. Le décor ne peut jamais gagner contre ce qu'il accompagne.
 
    Le curseur additif de Nova n'est PAS monté sur ce site. C'est un composant
    de la librairie, démontrable sur sa fiche, pas une signature imposée à
-   chaque page : un site de documentation se lit, il ne se met pas en scène.
+   chaque page.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Les jetons shadcn, adossés à la palette de Nova.
+   Les rôles. Le SOMBRE est canonique — c'est le mode dans lequel la direction
+   est dessinée, et celui qui donne au mouvement une direction de contraste
+   que le blanc lui interdit : sur fond clair une animation ne peut que
+   s'assombrir, sur fond sombre elle peut émettre.
 
-   shadcn n'a pas pu les écrire lui-même : en Tailwind 4 il n'y a plus de
-   fichier de configuration à patcher. On les pose donc à la main, et surtout
-   on ne les invente pas — chacun pointe vers une couleur du site. Il n'y a
-   qu'une palette, et les composants shadcn s'y conforment au lieu d'en
-   apporter une seconde.
+   Un jeton est un RÔLE, pas un hexadécimal : `--signal` ne vaut pas la même
+   valeur dans les deux modes, et c'est correct.
    -------------------------------------------------------------------------- */
 
 :root {
-  --background: #ffffff;
-  --foreground: #101013;
-  --card: #f7f7f8;
-  --card-foreground: #101013;
-  --popover: #ffffff;
-  --popover-foreground: #101013;
-  /* Le bouton plein est noir, comme le « Parcourir le catalogue » de l'accueil. */
-  --primary: #101013;
-  --primary-foreground: #ffffff;
-  --secondary: #f7f7f8;
-  --secondary-foreground: #101013;
-  --muted: #f7f7f8;
-  --muted-foreground: #62626c;
-  --accent: #eeeef1;
-  --accent-foreground: #101013;
-  --destructive: #b3261e;
-  --border: #e3e3e7;
-  --input: #e3e3e7;
-  /* L'anneau de focus prend la couleur signal : c'est le seul endroit du site
-     où elle sert à autre chose qu'un accent décoratif. */
-  --ring: #c93c08;
-  --radius: 2px;
+  color-scheme: dark;
+
+  --nuit: #0b0b0c;        /* page */
+  --plan: #101013;        /* plan ENFONCÉ : code, tableaux */
+  --banc: #1a1a20;        /* plan SURÉLEVÉ : scène de démonstration */
+  --banc-haut: #24242b;   /* surface interne à une scène */
+  --filet: #26262c;
+  --filet-vif: #3c3c46;   /* filet actif, bord de scène survolée */
+
+  --encre: #f2f2ef;       /* 17,0:1 sur --nuit */
+  --prose: #c3c3c9;       /* 11,1:1 */
+  --second: #9a9aa3;      /*  6,9:1 */
+  --sourdine: #7c7c86;    /*  4,7:1 */
+
+  /* Une nova est une étoile, et le bleu-blanc en est l'extrémité chaude. */
+  --signal: #4da3ff;      /*  7,3:1 sur --nuit · 6,6:1 sur --banc */
+
+  /* Rampe du code. CHAUDE parce que le signal est froid : un bleu dans le
+     code se lirait comme du signal, et le rationnement à deux occurrences
+     par écran n'aurait plus de sens. */
+  --code-cle: #ff9e6b;
+  --code-type: #8fb6cf;
+  --code-chaine: #8fbf9f;
+  --code-nombre: #e2c48d;
+  --code-comm: #6b6b74;
+  --code-ponct: #7c7c86;
+
+  --radius: 8px;
+}
+
+[data-theme="clair"] {
+  color-scheme: light;
+
+  --nuit: #f4f4f0;        /* papier, jamais #ffffff */
+  --plan: #ebebe4;
+  --banc: #ffffff;        /* le SEUL blanc pur du site : la scène */
+  --banc-haut: #f7f7f3;
+  --filet: #dcdcd4;
+  --filet-vif: #b4b4a9;
+
+  --encre: #121214;       /* 17,0:1 */
+  --prose: #3a3a42;       /* 10,3:1 */
+  --second: #5a5a64;      /*  6,2:1 */
+  --sourdine: #6b6b75;    /*  4,8:1 */
+
+  --signal: #1b4fd8;      /*  6,0:1 */
+
+  --code-cle: #9a3412;
+  --code-type: #28607f;
+  --code-chaine: #2f6b45;
+  --code-nombre: #8a6423;
+  --code-comm: #8a8a93;
+  --code-ponct: #6b6b75;
+}
+
+/* --------------------------------------------------------------------------
+   Les jetons shadcn, adossés aux rôles ci-dessus.
+
+   shadcn n'a pas pu les écrire lui-même : en Tailwind 4 il n'y a plus de
+   fichier de configuration à patcher. On les pose donc à la main, et surtout
+   on ne les invente pas — chacun pointe vers un rôle de Nova. Il n'y a qu'une
+   palette, et les composants shadcn s'y conforment au lieu d'en apporter une
+   seconde.
+
+   `--card` pointe sur le plan ENFONCÉ : chez shadcn une carte s'élève, ici
+   elle descend. C'est voulu — dans cette direction, seule la scène monte.
+   -------------------------------------------------------------------------- */
+
+:root,
+[data-theme="clair"] {
+  --background: var(--nuit);
+  --foreground: var(--encre);
+  --card: var(--plan);
+  --card-foreground: var(--encre);
+  --popover: var(--banc-haut);
+  --popover-foreground: var(--encre);
+  --primary: var(--encre);
+  --primary-foreground: var(--nuit);
+  --secondary: var(--plan);
+  --secondary-foreground: var(--encre);
+  --muted: var(--plan);
+  --muted-foreground: var(--second);
+  --accent: var(--banc-haut);
+  --accent-foreground: var(--encre);
+  --destructive: #e5484d;
+  --border: var(--filet);
+  --input: var(--filet);
+  /* L'anneau de focus est l'un des DEUX seuls emplois autorisés du signal. */
+  --ring: var(--signal);
 }
 
 @theme inline {
@@ -68,60 +142,214 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --radius-sm: var(--radius);
-  --radius-md: var(--radius);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 2);
-}
+  /* Les noms d'utilitaires de Nova. `fond`, `surface` et `filet` existaient
+     avant la refonte : ils sont repointés plutôt que renommés, pour que le
+     site continue de rendre pendant la migration écran par écran. */
+  --color-fond: var(--nuit);
+  --color-plan: var(--plan);
+  --color-surface: var(--banc);
+  --color-banc: var(--banc);
+  --color-banc-haut: var(--banc-haut);
+  --color-surface-haute: var(--banc-haut);
+  --color-filet: var(--filet);
+  --color-filet-vif: var(--filet-vif);
+  --color-encre: var(--encre);
+  --color-prose: var(--prose);
+  --color-second: var(--second);
+  --color-sourdine: var(--sourdine);
+  --color-signal: var(--signal);
 
-@theme {
-  --color-fond: #ffffff;
-  --color-surface: #f7f7f8;
-  --color-surface-haute: #eeeef1;
-  --color-filet: #e3e3e7;
-  --color-encre: #101013;
-  --color-sourdine: #62626c;
-  /* Orange assombri jusqu'à passer le contraste AA sur blanc (≈ 5:1). Le
-     #ff5b1f d'origine n'y arrivait pas — 3,2:1 — et il sert ici à du texte
-     de 11 px, pas seulement à des aplats. */
-  --color-signal: #c93c08;
+  --color-code-cle: var(--code-cle);
+  --color-code-type: var(--code-type);
+  --color-code-chaine: var(--code-chaine);
+  --color-code-nombre: var(--code-nombre);
+  --color-code-comm: var(--code-comm);
+  --color-code-ponct: var(--code-ponct);
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  /* Deux niveaux seulement, et ils veulent dire quelque chose :
+     `presse` pour ce qui se saisit, `plan` pour ce qui contient.
+     La scène pleine largeur n'en porte aucun — elle touche les deux bords. */
+  --radius-presse: 8px;
+  --radius-plan: 14px;
+  --radius-nova: 8px;
+  --radius-sm: 8px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-xl: 14px;
 
-  --radius-nova: 2px;
+  --font-titre: var(--police-titre), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--police-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--police-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 :root {
-  color-scheme: light;
-  /* Les caractères encore brouillés du Scramble prennent la couleur signal. */
-  --nova-accent: var(--color-signal);
-  /* Le curseur n'est pas monté ici, mais sa fiche le fait essayer : en mode
-     `difference`, du blanc s'inverse en noir sur un fond clair. */
-  --nova-cursor-color: #ffffff;
+  /* Les caractères encore brouillés du Scramble prennent le signal. */
+  --nova-accent: var(--signal);
+  /* Le curseur n'est pas monté ici, mais sa fiche le fait essayer. */
+  --nova-cursor-color: var(--encre);
 }
 
 body {
-  background: var(--color-fond);
-  color: var(--color-encre);
+  background: var(--nuit);
+  color: var(--encre);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Libellé technique : petite capitale en chasse fixe, très espacée. */
+/* La bascule de thème ne doit pas faire clignoter la page entière : seules
+   les couleurs transitionnent, et seulement sur les surfaces de fond. */
+body,
+.transition-theme {
+  transition:
+    background-color 240ms linear,
+    color 240ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  body,
+  .transition-theme {
+    transition: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Typographie. Trois registres qui ne se croisent jamais :
+   un titre est TOUJOURS en Bricolage Grotesque, une phrase TOUJOURS en
+   Instrument Sans, un chiffre TOUJOURS en Spline Sans Mono.
+   -------------------------------------------------------------------------- */
+
+.titre {
+  font-family: var(--font-titre);
+  letter-spacing: -0.022em;
+  font-weight: 600;
+}
+
+/* Bricolage Grotesque ne descend jamais sous 1.25rem : en petit, son dessin
+   devient du bruit. Les libellés d'interface passent en Instrument Sans. */
+.titre-affiche {
+  font-family: var(--font-titre);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 0.96;
+  font-variation-settings: "opsz" 96, "wdth" 88;
+}
+
+/* Libellé technique : petite capitale en chasse fixe.
+   L'approche descend de 0.14em à 0.09em — l'ancien espacement compensait une
+   chasse fixe système sans caractère. */
 .cote {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.14em;
+  font-weight: 500;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--color-sourdine);
+  color: var(--sourdine);
+}
+
+/* Une valeur est toujours tabulaire : deux nombres l'un sous l'autre doivent
+   s'aligner sur leurs chiffres. */
+.valeur {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* --------------------------------------------------------------------------
+   Le banc — la mise en scène d'une démonstration.
+
+   UN PLAN, PAS UNE BOÎTE. Filet haut, filet bas, aucun filet vertical, aucun
+   rayon. Les bords verticaux fabriquent une carte ; les retirer fabrique une
+   bande. C'est l'écart principal de la direction.
+   -------------------------------------------------------------------------- */
+
+.banc {
+  position: relative;
+  background: var(--banc);
+  border-top: 1px solid var(--filet);
+  border-bottom: 1px solid var(--filet);
+  transition: border-color 220ms linear;
+}
+/* Le survol d'une scène ne fait QU'UNE chose. C'est le seul retour de survol
+   du catalogue, donc il signifie « celle-ci est vivante ». */
+.banc:hover {
+  border-top-color: var(--filet-vif);
+  border-bottom-color: var(--filet-vif);
+}
+@media (prefers-reduced-motion: reduce) {
+  .banc {
+    transition: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Le curseur des réglages.
+
+   Un `input[type=range]` natif ne se met pas en forme : il faut redessiner la
+   piste et la poignée par navigateur. C'est le seul endroit du site où l'on
+   déshabille un contrôle natif, et c'est justifié — la version système impose
+   sa propre couleur d'accent, qui ferait une troisième occurrence de signal
+   par écran alors qu'il est rationné à deux.
+   -------------------------------------------------------------------------- */
+
+.nova-curseur {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  height: 18px;
+  cursor: pointer;
+}
+.nova-curseur::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--filet-vif);
+  border-radius: 1px;
+}
+.nova-curseur::-moz-range-track {
+  height: 2px;
+  background: var(--filet-vif);
+  border-radius: 1px;
+}
+.nova-curseur::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--encre);
+  border: 0;
+  transition: transform 160ms ease-out;
+}
+.nova-curseur::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--encre);
+  border: 0;
+  transition: transform 160ms ease-out;
+}
+.nova-curseur:active::-webkit-slider-thumb {
+  transform: scale(1.25);
+}
+.nova-curseur:active::-moz-range-thumb {
+  transform: scale(1.25);
+}
+/* L'anneau de focus est l'un des deux emplois autorisés du signal. */
+.nova-curseur:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nova-curseur::-webkit-slider-thumb,
+  .nova-curseur::-moz-range-thumb {
+    transition: none;
+  }
 }
 
 /* Fond quadrillé discret — la trame de l'instrument. */
 .trame {
   background-image:
-    linear-gradient(to right, var(--color-filet) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--color-filet) 1px, transparent 1px);
+    linear-gradient(to right, var(--filet) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--filet) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
 }
@@ -140,7 +368,7 @@ body {
   background: currentColor;
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 400ms var(--nova-ease-expo);
+  transition: transform 400ms var(--nova-ease-expo, cubic-bezier(0.16, 1, 0.3, 1));
 }
 .lien:hover::after,
 .lien[aria-current="page"]::after {

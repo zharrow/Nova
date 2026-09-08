@@ -14,6 +14,16 @@ export const metadata = {
 };
 
 export default function ToutParcourir() {
+  /* Le recensement est PLAFONNÉ à quatre. Le badge « New » était porté par
+     quinze fiches sur vingt-et-une : un marqueur présent sur plus d'un tiers
+     des éléments n'informe plus, il bruite. Voir DESIGN.md. */
+  const recents = new Set(
+    catalogue
+      .filter((fiche) => fiche.nouveau)
+      .slice(-4)
+      .map((fiche) => fiche.nom),
+  );
+
   const cartes: CarteCatalogue[] = catalogue.map((fiche) => ({
     nom: fiche.nom,
     titre: fiche.titre,
@@ -21,25 +31,25 @@ export default function ToutParcourir() {
     categorie: fiche.categorie,
     categorieLabel: libelleCategorie(fiche.categorie),
     formes: nombreDeFormes(fiche),
-    nouveau: fiche.nouveau,
+    geometrie: fiche.geometrie ?? "carre",
+    recent: recents.has(fiche.nom),
   }));
 
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-4xl font-medium tracking-tight sm:text-5xl">
-          Tout parcourir
-        </h1>
+        <h1 className="titre text-4xl sm:text-5xl">Tout parcourir</h1>
         <p className="cote pb-1.5">
           {catalogue.length} familles · {TOTAL_FORMES} formes
         </p>
       </div>
 
-      <p className="mt-4 max-w-[62ch] text-[15px] leading-relaxed text-sourdine">
+      <p className="mt-4 max-w-[62ch] leading-relaxed text-prose">
         Une entrée du catalogue est une <b className="text-encre">famille</b>,
         pas une pièce unique : la plupart se déclinent en plusieurs formes, soit
-        par une prop, soit par une autre façon de s&apos;en servir. Le compte
-        est indiqué sur chaque carte.
+        par une prop, soit par une autre façon de s&apos;en servir. L&apos;emprise
+        d&apos;une case vient de la géométrie de son mouvement — une bande pour
+        ce qui défile, un carré pour ce qui rayonne.
       </p>
 
       <Grille cartes={cartes} categories={[...CATEGORIES]} />

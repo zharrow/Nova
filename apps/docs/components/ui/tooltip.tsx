@@ -47,6 +47,8 @@ function TooltipContent({
         {...props}
       >
         {children}
+        {/* La pointe garde son rayon propre : c'est un carré de 10 px
+            tourné à 45°, et à 8 px de rayon il deviendrait un disque. */}
         <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>

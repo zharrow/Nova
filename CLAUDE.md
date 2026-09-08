@@ -215,6 +215,29 @@ options.
   `Spotlight`, `Cursor`, `Halftone` — n'ont pas de bouton rejouer. Ce serait une
   commande morte.
 
+## Direction graphique
+
+**[DESIGN.md](DESIGN.md) fait référence pour toute décision visuelle** — palette,
+typographie, espacement, formes, mise en scène. À lire avant de toucher au rendu de
+`apps/docs`, et à ne pas contredire sans accord explicite.
+
+Le point fixe : **le mouvement est l'objet**. Tout s'efface pour la démonstration.
+
+Trois règles s'y vérifient en relecture de différence, et ce sont celles dont le reste
+dépend :
+
+- **Budget de contraste** — aucun élément de chrome ne dépasse 7:1, aucun contenu de
+  scène ne descend sous 12:1. Le décor ne peut jamais gagner contre ce qu'il accompagne.
+- **Rationnement du signal** — `--signal` est autorisé à deux occurrences par écran, et
+  à deux emplois seulement : l'anneau de focus et l'intérieur d'une scène.
+- **Aucun titre ne s'anime.** Le seul mouvement hors scène est le bandeau `Marquee` et
+  les filets au survol. Une librairie d'animation dont le chrome s'anime enseigne au
+  visiteur que le mouvement est décoratif.
+
+La section « Vitrine » ci-dessus décrit le fonctionnement actuel du site. Là où elle
+décrit l'ancienne apparence — palette claire, jetons de `globals.css` — c'est DESIGN.md
+qui prévaut : la refonte est décidée mais pas encore appliquée au code.
+
 ## Langue
 
 Code, commentaires et documentation en français. Noms de symboles en anglais

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Demo } from "./demos";
-import type { Forme } from "@/lib/catalogue";
-import { Button } from "@/components/ui/button";
+import { Telemetrie } from "./telemetrie";
+import { reglagesDe, type Forme } from "@/lib/catalogue";
+import { Reglages, valeursParDefaut, type Valeurs } from "./reglages";
 import { cn } from "@/lib/utils";
 
 const VOIES: Record<string, { titre: string; explication: string }> = {
@@ -25,7 +26,13 @@ const VOIES: Record<string, { titre: string; explication: string }> = {
 };
 
 /**
- * Aperçu d'une fiche : la démonstration, et le sélecteur de formes.
+ * Aperçu d'une fiche : la scène, sa télémétrie, et le sélecteur de formes.
+ *
+ * La scène est le PREMIER et le plus grand élément de la page — voir
+ * DESIGN.md. L'ordre précédent plaçait quatre éléments de texte avant elle, et
+ * lui laissait 208 px de haut, moins que son propre tableau d'options. Sur une
+ * vitrine dont le point fixe est « le mouvement est l'objet », la composition
+ * disait exactement l'inverse de la thèse.
  *
  * Le sélecteur n'est pas une commodité de démonstration. C'est la seule façon
  * de montrer qu'une entrée du catalogue est une FAMILLE et non une pièce
@@ -34,20 +41,72 @@ const VOIES: Record<string, { titre: string; explication: string }> = {
  */
 export function Apercu({
   nom,
+  titre,
   voie,
   formes,
 }: {
   nom: string;
+  titre: string;
   voie?: "option" | "usage" | "frere";
   formes?: Forme[];
 }) {
   const [active, setActive] = useState(formes?.[0]?.id);
+  /**
+   * La scène est tenue dans un ÉTAT, pas dans une ref : la télémétrie doit se
+   * rebrancher quand le nœud arrive, et une `useRef` ne provoque aucun rendu.
+   * Même mécanique que le portail de Radix dans `lightbox.tsx`.
+   */
+  const [scene, setScene] = useState<HTMLDivElement | null>(null);
+  const reglages = reglagesDe(nom);
+  const [valeurs, setValeurs] = useState<Valeurs>(() => valeursParDefaut(reglages));
+
+  /**
+   * Rejeu après réglage.
+   *
+   * Les moteurs qui tournent en continu — marquee, curseur, halftone —
+   * appliquent une nouvelle option à chaud par leur `update()`. Ceux qui
+   * jouent UNE FOIS au montage, comme TextHighlight ou Blinds, ne montreraient
+   * rien : la durée changée ne servirait qu'au prochain rejeu manuel.
+   *
+   * On remonte donc la scène, mais 220 ms APRÈS le dernier mouvement. Un
+   * curseur glissé tire des dizaines d'événements par seconde, et remonter à
+   * chaque tick ferait broncher le canevas du halftone. Pendant le glissement
+   * les props passent en direct ; au relâchement, l'effet se rejoue.
+   */
+  const [tour, setTour] = useState(0);
+  const premierRendu = useRef(true);
+  useEffect(() => {
+    if (premierRendu.current) {
+      premierRendu.current = false;
+      return;
+    }
+    const minuteur = setTimeout(() => setTour((n) => n + 1), 220);
+    return () => clearTimeout(minuteur);
+  }, [valeurs]);
   const courante = formes?.find((forme) => forme.id === active);
   const entete = voie ? VOIES[voie] : undefined;
 
   return (
     <div>
-      <Demo nom={nom} forme={active} />
+      <div ref={setScene} className="relative">
+        <Demo
+          key={tour}
+          nom={nom}
+          forme={active}
+          nomAffiche={titre}
+          reglages={valeurs}
+        />
+        <Telemetrie cible={scene} />
+      </div>
+
+      <Reglages
+        reglages={reglages}
+        valeurs={valeurs}
+        onChange={(cle, valeur) =>
+          setValeurs((precedent) => ({ ...precedent, [cle]: valeur }))
+        }
+        onReinit={() => setValeurs(valeursParDefaut(reglages))}
+      />
 
       {formes && formes.length > 1 ? (
         <div className="mt-5">
@@ -56,7 +115,7 @@ export function Apercu({
               {entete?.titre ?? "Formes"} · {formes.length}
             </p>
             {entete ? (
-              <p className="text-[12.5px] leading-relaxed text-sourdine">
+              <p className="max-w-[62ch] text-[13px] leading-relaxed text-second">
                 {entete.explication}
               </p>
             ) : null}
@@ -64,29 +123,29 @@ export function Apercu({
 
           <div className="flex flex-wrap gap-1.5">
             {formes.map((forme) => (
-              <Button
+              <button
                 key={forme.id}
                 type="button"
-                variant="outline"
-                size="sm"
                 onClick={() => setActive(forme.id)}
                 aria-pressed={active === forme.id}
                 className={cn(
-                  "h-7 rounded-nova px-2.5 font-mono text-[11px] font-normal",
-                  active === forme.id &&
-                    "border-signal text-signal hover:text-signal",
+                  "valeur rounded-presse border px-3 py-1.5 text-[11px] transition-colors",
+                  // Le jeton actif se marque au FILET et à l'encre pleine, pas
+                  // au signal : celui-ci est rationné à deux occurrences par
+                  // écran, et la scène en consomme déjà. Voir DESIGN.md.
+                  active === forme.id
+                    ? "border-filet-vif text-encre"
+                    : "border-filet text-second hover:border-filet-vif hover:text-encre",
                 )}
               >
                 {forme.nom}
-              </Button>
+              </button>
             ))}
           </div>
 
           {courante ? (
-            <p className="mt-3 text-[13px] leading-relaxed text-sourdine">
-              <span className="font-mono text-[12px] text-encre">
-                {courante.id}
-              </span>{" "}
+            <p className="mt-3 max-w-[62ch] text-[13px] leading-relaxed text-prose">
+              <span className="valeur text-[12px] text-encre">{courante.id}</span>{" "}
               — {courante.note}
             </p>
           ) : null}

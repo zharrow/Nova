@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
-import { Reveal, ScrambleText, Counter, TextEffect, Marquee } from "../src/index";
+import { Reveal, ScrambleText, Counter, TextEffect, Marquee, Cursor } from "../src/index";
 import { MockIntersectionObserver } from "./setup";
 
 describe("composants React", () => {
@@ -58,6 +58,31 @@ describe("composants React", () => {
     const track = container.querySelector(".nova-marquee__track");
     expect(track).not.toBeNull();
     expect(container.textContent).toContain("NOVA");
+  });
+
+  // Une option du moteur oubliée dans la déstructuration de l'adaptateur part
+  // deux fois en silence : elle n'atteint jamais le moteur, et React la pose
+  // sur le nœud — d'où l'avertissement « React does not recognize the prop ».
+  // C'est arrivé à `replayOnHover`, `variant` et `pauseOffscreen`.
+  it("ne laisse fuir aucune option de moteur dans le DOM", () => {
+    const scramble = render(
+      <ScrambleText text="NOVA" interval={5000} replayOnHover trigger="view" />,
+    ).container.querySelector("span")!;
+    expect(scramble.getAttribute("interval")).toBeNull();
+    expect(scramble.getAttribute("replayonhover")).toBeNull();
+
+    const marquee = render(
+      <Marquee speed={80} pauseOffscreen={false}>
+        <span>NOVA</span>
+      </Marquee>,
+    ).container.firstElementChild!;
+    expect(marquee.getAttribute("pauseoffscreen")).toBeNull();
+
+    const curseur = render(<Cursor variant="dot-ring" />).container
+      .firstElementChild as HTMLElement;
+    expect(curseur.getAttribute("variant")).toBeNull();
+    // Et l'option est bien arrivée jusqu'au moteur.
+    expect(curseur.dataset.novaCursorVariant).toBe("dot-ring");
   });
 
   it("nettoie tout au démontage", () => {

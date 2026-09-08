@@ -26,6 +26,7 @@ export function Marquee({
   speed,
   direction,
   pauseOnHover,
+  pauseOffscreen,
   gap,
   ...rest
 }: MarqueeProps) {
@@ -33,6 +34,7 @@ export function Marquee({
     speed,
     direction,
     pauseOnHover,
+    pauseOffscreen,
     gap,
   });
 

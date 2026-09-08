@@ -16,8 +16,15 @@ export interface CursorProps
  * Inactif au tactile et en `prefers-reduced-motion`. À monter une seule fois,
  * dans le layout racine.
  */
-export function Cursor({ lerp, hoverScale, hoverSelector, ...rest }: CursorProps) {
+export function Cursor({
+  variant,
+  lerp,
+  hoverScale,
+  hoverSelector,
+  ...rest
+}: CursorProps) {
   const ref = useNovaEngine<HTMLDivElement, CursorOptions>(createCursor, {
+    variant,
     lerp,
     hoverScale,
     hoverSelector,
