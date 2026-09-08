@@ -84,11 +84,15 @@ Un changement dans `packages/core` ou `packages/react` ne suffit pas : le
 registry distribue des copies figées.
 
 ```bash
+pnpm build                    # registry, core, react, CLI, docs
 pnpm test && pnpm typecheck   # `test` dépend du build du paquet lui-même,
                               # sinon le test du bundle lit un dist périmé
-pnpm registry:build           # régénère registry/dist depuis les sources
-pnpm --filter novaui build    # ré-embarque le registry dans la CLI
 ```
+
+`novaui#build` dépend de la tâche racine `registry:build` dans `turbo.json` :
+`pnpm build` régénère le registry puis le ré-embarque dans la CLI. Avant cette
+dépendance, l'ordre était à tenir à la main, et `pnpm build` échouait sur un
+clone neuf — `registry/dist` est ignoré par git.
 
 `scripts/build-registry.ts` échoue si un import vers `@nova-ui/*` subsiste après
 réécriture — c'est voulu, ne pas contourner le garde-fou. Il réécrit aussi les

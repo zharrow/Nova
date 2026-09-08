@@ -32,11 +32,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # AVANT le build, et non après : `pnpm build` construit aussi la CLI,
-      # dont le script d'empaquetage échoue si `registry/dist` n'existe pas.
-      # Sur un clone neuf il n'existe pas — il est ignoré par git.
-      - run: pnpm registry:build
-
+      # `novaui#build` dépend de la tâche racine `registry:build` dans
+      # turbo.json : le registry est généré avant que la CLI l'embarque, sans
+      # qu'on ait à ordonner les étapes ici.
       - run: pnpm build
 
       # `test` dépend du build du paquet lui-même : sans lui, le test du bundle
@@ -59,12 +57,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Le garde-fou de build-registry.ts : il échoue si un import vers
-      # `@nova-ui/*` subsiste après réécriture. C'est tout l'intérêt de le
-      # rejouer en CI — le typecheck du monorepo ne couvre pas le code copié.
+      # Explicite, alors que `pnpm build` l'entraînerait de toute façon : le
+      # garde-fou de build-registry.ts échoue si un import vers `@nova-ui/*`
+      # subsiste après réécriture, et c'est le sujet même de ce job. Le voir
+      # échouer sur sa propre ligne vaut mieux que noyé dans un build.
       - run: pnpm registry:build
 
-      # Construit aussi la CLI, qui embarque le registry qu'on vient de générer.
       - run: pnpm build
 
       # Ce que la CLI produit réellement chez un utilisateur, compilé pour de

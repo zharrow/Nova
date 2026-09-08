@@ -26,6 +26,27 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "//#registry:build": {
+      "inputs": [
+        "scripts/build-registry.ts",
+        "registry/registry.json",
+        "packages/core/src/**",
+        "packages/react/src/**"
+      ],
+      "outputs": [
+        "registry/dist/**"
+      ]
+    },
+    "novaui#build": {
+      "dependsOn": [
+        "^build",
+        "//#registry:build"
+      ],
+      "outputs": [
+        "dist/**",
+        "registry/**"
+      ]
     }
   }
 }

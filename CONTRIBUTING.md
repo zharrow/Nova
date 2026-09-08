@@ -118,15 +118,17 @@ Le chemin complet d'un nouveau composant :
 ## Avant d'ouvrir la pull request
 
 ```bash
+pnpm build                    # registry, core, react, CLI, docs
 pnpm test && pnpm typecheck   # `test` dépend du build du paquet lui-même,
                               # sinon le test du bundle lit un dist périmé
-pnpm registry:build           # régénère registry/dist depuis les sources
-pnpm --filter novaui build    # ré-embarque le registry dans la CLI
 ```
 
-Un changement dans `packages/core` ou `packages/react` ne suffit pas : **le
-registry distribue des copies figées.** Sans ces deux dernières commandes,
-`novaui add` continue de distribuer l'ancienne version.
+**Le registry distribue des copies figées** : un changement dans
+`packages/core` ou `packages/react` doit être régénéré avant d'atteindre
+`novaui add`. C'est `pnpm build` qui s'en charge — `novaui#build` dépend de la
+tâche racine `registry:build` dans `turbo.json`. Ne cassez pas cette
+dépendance : sans elle, la CLI distribue silencieusement l'ancienne version, et
+rien ne le signale avant qu'un utilisateur s'en plaigne.
 
 `scripts/build-registry.ts` échoue si un import vers `@nova-ui/*` subsiste après
 réécriture. C'est voulu : ne contournez pas le garde-fou, corrigez la source.

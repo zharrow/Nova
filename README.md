@@ -121,16 +121,16 @@ registry distant le jour où il y en aura un.
 
 ```bash
 pnpm install
-pnpm build              # core, react, docs
+pnpm build              # registry, core, react, CLI, docs
 pnpm test               # 131 tests
 pnpm typecheck
-pnpm registry:build     # régénère registry/dist
-pnpm --filter novaui build
 pnpm --filter @nova-ui/docs dev
 ```
 
-Après toute modification d'un moteur ou d'un composant, régénérer le registry
-puis reconstruire la CLI — sinon `novaui add` distribue l'ancienne version.
+`pnpm build` suffit après une modification d'un moteur ou d'un composant :
+`novaui#build` dépend de la tâche racine `registry:build` dans `turbo.json`, si
+bien que le registry est régénéré et ré-embarqué dans la CLI sans qu'on ait à y
+penser. Sans cette dépendance, `novaui add` distribuerait l'ancienne version.
 
 ## Et Angular ?
 
