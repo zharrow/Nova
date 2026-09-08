@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question d'utilisation
+    url: https://github.com/zharrow/Nova/discussions
+    about: "« Comment faire pour… » se pose en discussion, pas en issue."
+  - name: Faille de sécurité
+    url: https://github.com/zharrow/Nova/security/advisories/new
+    about: Un signalement privé, jamais une issue publique.
+  - name: La doctrine du dépôt
+    url: https://github.com/zharrow/Nova/blob/main/VARIANTES.md
+    about: Pourquoi une entrée du catalogue est une famille, et comment on la décline.

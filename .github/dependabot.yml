@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Le monorepo. Les mises à jour sont groupées : vingt PR séparées pour des
+  # montées de patch ne se relisent pas, et Nova a peu de dépendances.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      outillage:
+        patterns: ["typescript", "tsup", "vitest", "jsdom", "turbo", "tsx", "@types/*"]
+      vitrine:
+        patterns: ["next", "react", "react-dom", "tailwindcss", "@tailwindcss/*", "lucide-react"]
+      animation:
+        patterns: ["gsap", "lenis", "radix-ui"]
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(ci)"

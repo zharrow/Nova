@@ -1,0 +1,77 @@
+name: Proposer un composant ou une option
+description: Une forme qui manque, une option qui manque.
+title: "[proposition] "
+labels: ["proposition", "à trier"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Avant d'écrire : Nova a une doctrine assez arrêtée sur ce qui entre et
+        sous quelle forme. Deux lectures rapides évitent souvent un refus.
+
+        - [VARIANTES.md](https://github.com/zharrow/Nova/blob/main/VARIANTES.md)
+          — une entrée du catalogue est une **famille**, pas une pièce. Une
+          forme s'obtient par une **option**, un **usage** ou un **frère**.
+        - [DEPENDANCES.md](https://github.com/zharrow/Nova/blob/main/DEPENDANCES.md)
+          — quand une librairie se justifie, et laquelle.
+
+  - type: textarea
+    id: geste
+    attributes:
+      label: Le geste
+      description: Décrivez le mouvement, pas l'implémentation. Un lien vers un exemple en ligne vaut mieux qu'un paragraphe.
+    validations:
+      required: true
+
+  - type: textarea
+    id: usage
+    attributes:
+      label: À quoi il sert
+      description: Dans quelle interface, pour dire quoi au lecteur. Une animation qui ne dit rien est une décoration, et Nova en refuse.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: voie
+    attributes:
+      label: Par quelle voie, selon vous
+      description: Voir VARIANTES.md. Si vous hésitez, dites-le — c'est justement la discussion à avoir.
+      options:
+        - Une option d'une famille existante
+        - Un usage d'une famille existante
+        - Un frère — le mécanisme diffère trop
+        - Une famille nouvelle
+        - Je ne sais pas
+    validations:
+      required: true
+
+  - type: input
+    id: famille
+    attributes:
+      label: De quelle famille, si elle existe
+      placeholder: text-effect
+
+  - type: dropdown
+    id: dependance
+    attributes:
+      label: Ce que le geste demande
+      options:
+        - Du CSS suffit
+        - Il faut mesurer la mise en page
+        - Il faut du séquencement ou du FLIP (donc GSAP)
+        - Il faut animer un démontage (donc motion)
+        - Je ne sais pas
+    validations:
+      required: true
+
+  - type: textarea
+    id: repli
+    attributes:
+      label: Le repli
+      description: |
+        Que voit-on en `prefers-reduced-motion`, sans JavaScript, ou si le bloc
+        est déjà à l'écran au montage ? Dans Nova, l'état par défaut est
+        **visible** : une proposition qui ne sait pas répondre à cette question
+        n'est pas encore prête.
+    validations:
+      required: true

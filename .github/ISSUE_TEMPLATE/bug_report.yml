@@ -1,0 +1,95 @@
+name: Signaler un bug
+description: Un composant ne se comporte pas comme annoncé.
+title: "[bug] "
+labels: ["bug", "à trier"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci du signalement. Le plus utile est toujours un cas reproductible
+        minimal — sans lui, le tri prend dix fois plus de temps.
+
+        Une **faille de sécurité** ne se signale pas ici : voir
+        [SECURITY.md](https://github.com/zharrow/Nova/blob/main/SECURITY.md).
+
+  - type: input
+    id: composant
+    attributes:
+      label: Composant ou moteur
+      description: Le nom exact, par exemple `Reveal`, `createScramble`, ou la commande `novaui add`.
+      placeholder: TextEffect
+    validations:
+      required: true
+
+  - type: textarea
+    id: attendu
+    attributes:
+      label: Ce qui devrait se passer
+    validations:
+      required: true
+
+  - type: textarea
+    id: observe
+    attributes:
+      label: Ce qui se passe
+      description: Le message d'erreur complet s'il y en a un.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Comment le reproduire
+      description: |
+        Les étapes, ou mieux : un lien vers un dépôt ou un bac à sable minimal.
+        Le code du composant avec ses options exactes suffit souvent.
+      placeholder: |
+        1. `npx novaui add text-effect`
+        2. Monter `<TextEffect effect="wave">…</TextEffect>`
+        3. Faire défiler jusqu'au bloc
+        4. Le texte reste invisible
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Mode d'installation
+      options:
+        - Copié par la CLI (novaui add)
+        - Paquet @nova-ui/react
+        - Paquet @nova-ui/core
+        - Dépôt cloné
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environnement
+    attributes:
+      label: Environnement
+      description: Navigateur et version, système, version de Node, framework et version.
+      placeholder: |
+        Navigateur : Firefox 142
+        Système : macOS 15.5
+        Node : 22.11
+        Framework : Next.js 16.3
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: verifications
+    attributes:
+      label: Vérifications
+      options:
+        - label: Le problème persiste avec `prefers-reduced-motion` désactivé.
+        - label: J'ai bien chargé la feuille de style de Nova (`@nova-ui/core/styles.css` ou son équivalent copié).
+        - label: J'ai cherché dans les issues existantes.
+          required: true

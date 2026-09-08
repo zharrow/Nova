@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifier:
+    name: Build, tests et typage (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # La version de pnpm vient de `packageManager` dans le package.json racine.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      # `test` dépend du build du paquet lui-même : sans lui, le test du bundle
+      # lit un dist périmé et le garde-fou "use client" passe en silence.
+      - run: pnpm test
+
+      - run: pnpm typecheck
+
+  registry:
+    name: Registry et CLI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      # Le garde-fou de build-registry.ts : il échoue si un import vers
+      # `@nova-ui/*` subsiste après réécriture. C'est tout l'intérêt de le
+      # rejouer en CI — le typecheck du monorepo ne couvre pas le code copié.
+      - run: pnpm registry:build
+      - run: pnpm --filter novaui build
+
+      # Ce que la CLI produit réellement chez un utilisateur, compilé pour de
+      # bon. Le typecheck du monorepo ne couvre PAS le code copié : c'est ce
+      # passage qui a révélé une erreur de typage invisible autrement.
+      - name: Compiler le code copié par la CLI
+        run: |
+          set -euo pipefail
+          projet="$RUNNER_TEMP/consommateur"
+          mkdir -p "$projet/src"
+          cd "$projet"
+
+          cat > package.json <<'JSON'
+          { "name": "consommateur", "private": true, "type": "module" }
+          JSON
+
+          # Pas de `baseUrl` : TypeScript 6 l'a supprimée, et `paths` se
+          # résout relativement au tsconfig sans elle.
+          cat > tsconfig.json <<'JSON'
+          {
+            "compilerOptions": {
+              "target": "ES2022",
+              "lib": ["ES2022", "DOM", "DOM.Iterable"],
+              "module": "ESNext",
+              "moduleResolution": "bundler",
+              "jsx": "react-jsx",
+              "strict": true,
+              "noEmit": true,
+              "skipLibCheck": true,
+              "paths": { "@/*": ["./src/*"] }
+            },
+            "include": ["src"]
+          }
+          JSON
+
+          cli="$GITHUB_WORKSPACE/packages/cli/dist/index.js"
+          node "$cli" init --yes --cwd "$projet"
+
+          # Tout le catalogue, pour que la compilation couvre chaque moteur.
+          composants=$(node -e "
+            const r = require('$GITHUB_WORKSPACE/registry/dist/index.json');
+            console.log(r.items.map((c) => c.name).join(' '));
+          ")
+          echo "Composants installés : $composants"
+
+          # `--yes` : sans lui, `add` demande confirmation avant d'installer
+          # gsap, lenis et radix-ui, et le job resterait bloqué.
+          node "$cli" add $composants --yes --cwd "$projet"
+
+          # La CLI a déjà installé les dépendances des composants. Restent
+          # celles que tout projet React apporte de son côté.
+          npm install --no-audit --no-fund \
+            typescript react react-dom @types/react @types/react-dom
+
+          npx tsc --noEmit
