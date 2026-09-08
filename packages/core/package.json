@@ -29,7 +29,12 @@
       "import": "./dist/engines/smooth-scroll.js",
       "require": "./dist/engines/smooth-scroll.cjs"
     },
-    "./styles.css": "./dist/nova.css"
+    "./styles.css": "./dist/nova.css",
+    "./bloom": {
+      "types": "./dist/engines/bloom.d.ts",
+      "import": "./dist/engines/bloom.js",
+      "require": "./dist/engines/bloom.cjs"
+    }
   },
   "scripts": {
     "build": "tsup",

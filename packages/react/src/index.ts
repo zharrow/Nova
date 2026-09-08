@@ -55,6 +55,9 @@ export type { HalftoneProps } from "./components/halftone";
 export { Graph } from "./components/graph";
 export type { GraphProps } from "./components/graph";
 
+export { Lightbox } from "./components/lightbox";
+export type { LightboxProps } from "./components/lightbox";
+
 export { SmoothScroll } from "./components/smooth-scroll";
 export type { SmoothScrollProps } from "./components/smooth-scroll";
 

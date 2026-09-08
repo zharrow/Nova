@@ -130,6 +130,7 @@ Les formes partagent-elles le mécanisme ?
 | `flight` | — | 1 |
 | `scroll-scene` | — | 1 |
 | `text-highlight` | — | 1 |
+| `lightbox` | — | 1 |
 | `graph` | — | 1 |
 
 Trois familles sont nées de la récolte elle-même, en réunissant des pièces
@@ -179,13 +180,14 @@ se généralisent pas. Mais deux de ses pièces ont donné des familles :
 `DataStory` et `SessionFlow` calculaient la même progression scrollée, devenue
 `ScrollScene` ; `SiteLoader` a donné la quatrième forme du `Loader`.
 
-**Repéré, toujours pas pris.** Une pièce vaut encore le détour :
+**Récolte terminée.** `VisionneuseVerre` est entrée sous le nom de `Lightbox`,
+branchée sur le `Dialog` de Radix pour tout ce qui n'est pas le geste. Sa voie
+WebGL — un shader de verre avec réfraction — n'est pas reprise : elle appartient
+à Bât-et-Verre.
 
-- `VisionneuseVerre` (Bât-et-Verre) — une visionneuse qui s'ouvre en fleur
-  depuis le point cliqué, avec un FLIP de la vignette vers le cadre. Portable
-  maintenant que GSAP est admis, mais elle doit se brancher sur le `Dialog` de
-  Radix pour la sémantique et le piège de focus — voir
-  [DEPENDANCES.md](DEPENDANCES.md). C'est le prochain gros morceau.
+Il ne reste rien dans les projets qui vaille une famille. Ce qui s'y trouve
+encore est soit une composition de site, soit déjà couvert. La prochaine
+récolte viendra des projets à venir, pas de ceux-là.
 
 ## Conséquences pratiques
 

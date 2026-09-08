@@ -494,6 +494,30 @@
           "kind": "component"
         }
       ]
+    },
+    {
+      "name": "lightbox",
+      "title": "Lightbox",
+      "description": "Une visionneuse qui jaillit du point cliqué. Radix apporte la sémantique, Nova le geste.",
+      "exports": [
+        "Lightbox"
+      ],
+      "dependencies": [
+        "gsap",
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/bloom.ts",
+          "target": "engines/bloom.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/lightbox.tsx",
+          "target": "lightbox.tsx",
+          "kind": "component"
+        }
+      ]
     }
   ]
 }

@@ -759,6 +759,34 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   <p>{contenu}</p>
 </TextHighlight>`,
   },
+  {
+    nom: "lightbox",
+    titre: "Lightbox",
+    categorie: "effets",
+    nouveau: true,
+    accroche: "Une visionneuse qui jaillit du point cliqué.",
+    provenance: "VisionneuseVerre — Bât-et-Verre",
+    apport:
+      "La division est celle de la doctrine du dépôt : Radix apporte la sémantique — piège de focus, Échap, verrou du défilement, ARIA, portail, retour du focus à ce qui a ouvert — et Nova n'apporte que le geste. Rien de tout cela n'est réimplémenté. La bulle naît là où la main était, grossit en ondulant, se fige en rectangle centré, puis son contenu se résout du flou vers le net ; la fermeture rejoue le même geste à l'envers, une fois et demie plus vite. Les rayons de coin sont tirés au hasard à chaque ouverture : deux clics de suite ne donnent jamais la même déformation, et le geste garde l'air d'une matière plutôt que d'une interpolation. La voie WebGL de l'original — un shader de verre avec réfraction — n'est pas reprise : elle appartient à cette maison-là.",
+    options: [
+      { nom: "origin", type: "{ x, y }", defaut: "—", role: "Point d'où la bulle jaillit. Relevé au clic sur la vignette." },
+      { nom: "aspect", type: "number", defaut: "3 / 2", role: "Rapport du panneau final." },
+      { nom: "maxHeight", type: "number", defaut: "0.82", role: "Fraction de la hauteur de fenêtre occupée au plus." },
+      { nom: "seed", type: "number", defaut: "46", role: "Diamètre de la bulle de départ, en px." },
+      { nom: "duration", type: "number", defaut: "0.8", role: "Durée de l'ouverture, en s." },
+      { nom: "closeSpeed", type: "number", defaut: "1.5", role: "Accélération de la fermeture." },
+    ],
+    usage: `<Lightbox
+  open={ouvert}
+  onOpenChange={setOuvert}
+  origin={point}
+  aspect={16 / 9}
+  title="Verrière de l'atelier"
+>
+  <img data-nova-bloom-media src={src} alt="" />
+  <figcaption data-nova-bloom-late>{legende}</figcaption>
+</Lightbox>`,
+  },
 ];
 
 export function trouverFiche(nom: string): Fiche | undefined {

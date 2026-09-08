@@ -24,6 +24,7 @@ import {
   useExpand,
   ScrollScene,
   TextHighlight,
+  Lightbox,
 } from "@nova-ui/react";
 
 /**
@@ -855,6 +856,80 @@ export function DemoTextHighlight({ compact }: PropsDemo) {
   );
 }
 
+const VIGNETTES = [
+  { id: "verriere", teinte: "from-neutral-800 to-neutral-600", titre: "Verrière" },
+  { id: "claustra", teinte: "from-neutral-500 to-neutral-300", titre: "Claustra" },
+  { id: "plancher", teinte: "from-neutral-700 to-neutral-400", titre: "Plancher" },
+];
+
+export function DemoLightbox({ compact }: PropsDemo) {
+  const [ouvert, setOuvert] = useState(false);
+  const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
+  const [choix, setChoix] = useState(VIGNETTES[0]!);
+
+  function ouvrir(event: React.MouseEvent, vignette: (typeof VIGNETTES)[number]) {
+    // Le point du CLIC, pas le centre de la vignette : c'est de là que la
+    // bulle doit naître.
+    setPoint({ x: event.clientX, y: event.clientY });
+    setChoix(vignette);
+    setOuvert(true);
+  }
+
+  return (
+    <Scene compact={compact}>
+      <div className="w-full">
+        <div className="grid grid-cols-3 gap-2">
+          {VIGNETTES.map((vignette) => (
+            <button
+              key={vignette.id}
+              type="button"
+              onClick={(event) => ouvrir(event, vignette)}
+              className={cn(
+                "aspect-[3/2] rounded-nova bg-gradient-to-br transition-transform hover:scale-[1.03]",
+                vignette.teinte,
+              )}
+              aria-label={`Ouvrir ${vignette.titre}`}
+            />
+          ))}
+        </div>
+        <span className="cote mt-4 block text-center">
+          cliquez — la bulle naît sous le curseur
+        </span>
+
+        <Lightbox
+          open={ouvert}
+          onOpenChange={setOuvert}
+          origin={point}
+          aspect={3 / 2}
+          title={choix.titre}
+          overlayClassName="bg-foreground/70"
+          className="overflow-hidden shadow-2xl"
+        >
+          <div
+            data-nova-bloom-media
+            className={cn("h-full w-full bg-gradient-to-br", choix.teinte)}
+          />
+          <figcaption
+            data-nova-bloom-late
+            className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 bg-foreground/80 px-5 py-3 text-background"
+          >
+            <span className="font-mono text-xs tracking-[0.14em] uppercase">
+              {choix.titre}
+            </span>
+            <button
+              type="button"
+              onClick={() => setOuvert(false)}
+              className="font-mono text-xs underline-offset-4 hover:underline"
+            >
+              fermer
+            </button>
+          </figcaption>
+        </Lightbox>
+      </div>
+    </Scene>
+  );
+}
+
 const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   reveal: DemoReveal,
   blinds: DemoBlinds,
@@ -875,6 +950,7 @@ const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   loader: DemoLoader,
   flight: DemoFlight,
   expand: DemoExpand,
+  lightbox: DemoLightbox,
   "smooth-scroll": DemoSmoothScroll,
 };
 

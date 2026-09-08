@@ -13,6 +13,7 @@ export default defineConfig({
     "src/index.ts",
     "src/engines/expand.ts",
     "src/engines/smooth-scroll.ts",
+    "src/engines/bloom.ts",
   ],
   format: ["esm", "cjs"],
   dts: true,

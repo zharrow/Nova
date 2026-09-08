@@ -10,9 +10,9 @@ npx novaui add reveal scramble-text marquee
 
 ## Pourquoi celle-ci
 
-Vingt **familles** tirées de projets en production — portfolio, Bât-et-Verre,
-KaopyX, générateur de CV, CRM Closer, Champlon — et non d'une page blanche.
-Cinquante-six formes en tout : une entrée du catalogue n'est pas une pièce unique. Voir
+Vingt et une **familles** tirées de projets en production — portfolio,
+Bât-et-Verre, KaopyX, générateur de CV, CRM Closer, Champlon — et non d'une
+page blanche. Cinquante-sept formes en tout : une entrée du catalogue n'est pas une pièce unique. Voir
 [VARIANTES.md](VARIANTES.md).
 
 Trois familles n'existaient dans aucun projet : elles n'apparaissent qu'en
@@ -41,7 +41,7 @@ ne fait que brancher ce contrat sur son cycle de vie.
 
 ```
 packages/
-  core/     @nova-ui/core   — moteurs TypeScript, 110 tests
+  core/     @nova-ui/core   — moteurs TypeScript, 116 tests
   react/    @nova-ui/react  — composants React, 14 tests
   cli/      novaui          — CLI de copie et d'installation
 registry/                   — manifeste + sources réécrites pour la copie
@@ -87,6 +87,7 @@ projet par projet sans toucher au moteur.
 | `createScrollScene` | `DataStory` et `SessionFlow` — Champlon |
 | `createTextHighlight` | `PhraseHighlight` — générateur de CV |
 | `createExpand` | `useExpandTransition` — CRM Closer |
+| `createBloom` | `VisionneuseVerre` — Bât-et-Verre |
 | `createSmoothScroll` | `SmoothScroll` — quatre projets |
 | `confetti` | `triggerConfetti` — portfolio |
 
@@ -120,7 +121,7 @@ registry distant le jour où il y en aura un.
 ```bash
 pnpm install
 pnpm build              # core, react, docs
-pnpm test               # 124 tests
+pnpm test               # 130 tests
 pnpm typecheck
 pnpm registry:build     # régénère registry/dist
 pnpm --filter novaui build
