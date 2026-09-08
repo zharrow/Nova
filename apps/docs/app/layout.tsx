@@ -104,7 +104,7 @@ function Entete() {
             Installation
           </Link>
           <a
-            href="https://github.com/Zharrow/nova-ui"
+            href="https://github.com/zharrow/Nova"
             className="lien text-second hover:text-encre"
           >
             Source

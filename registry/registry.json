@@ -1,6 +1,6 @@
 {
   "name": "nova",
-  "homepage": "https://github.com/Zharrow/nova-ui",
+  "homepage": "https://github.com/zharrow/Nova",
   "framework": "react",
   "comment": [
     "Manifeste du registry Nova. Les chemins sont relatifs à la racine du dépôt.",
