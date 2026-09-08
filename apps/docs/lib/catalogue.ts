@@ -98,6 +98,46 @@ export type Reglage =
       libelle: string;
       choix: string[];
       defaut: string;
+    }
+  | {
+      /**
+       * Un texte libre, écrit par le visiteur.
+       *
+       * Sur une famille dont la matière EST le texte, une phrase imposée ne
+       * dit qu'une chose : ce que l'effet fait sur CETTE phrase. Le visiteur
+       * veut y voir la sienne — son titre, son nom de produit, sa langue —
+       * parce que c'est la seule façon de savoir si l'effet tient sur un mot
+       * de vingt lettres ou sur une ligne de trois mots.
+       */
+      type: "texte";
+      nom: string;
+      libelle: string;
+      defaut: string;
+      /** Longueur maximale. Une scène de démonstration n'est pas un éditeur. */
+      max?: number;
+    }
+  | {
+      /**
+       * Une courbe d'accélération, choisie sur sa VIGNETTE.
+       *
+       * Elle a son type à elle, et non `choix`, parce qu'elle est la seule
+       * option qu'on ne peut pas comprendre en lisant son nom : « ease-in » et
+       * « ease-out » se retiennent à l'envers une fois sur deux, et
+       * `cubic-bezier(0.34, 1.56, 0.64, 1)` ne dit rien à personne. Le panneau
+       * en trace donc le dessin à côté du nom.
+       */
+      type: "courbe";
+      nom: string;
+      libelle: string;
+      /**
+       * Le vocabulaire que le moteur comprend, et les deux ne se recouvrent
+       * pas. `css` pour les moteurs qui laissent la feuille de style animer et
+       * prennent une chaîne ; `js` pour ceux qui interpolent eux-mêmes et
+       * prennent le nom d'une courbe de `internal/easing.ts` — une chaîne CSS
+       * ne s'évalue pas dans une boucle. Voir `lib/courbes.ts`.
+       */
+      vocabulaire: "css" | "js";
+      defaut: string;
     };
 
 const N = (
@@ -110,13 +150,32 @@ const N = (
   unite?: string,
 ): Reglage => ({ type: "nombre", nom, libelle, min, max, pas, defaut, unite });
 
+/** Un champ de texte libre. */
+const T = (
+  nom: string,
+  libelle: string,
+  defaut: string,
+  max = 80,
+): Reglage => ({ type: "texte", nom, libelle, defaut, max });
+
+/** Un sélecteur de courbe. `EXPO` est la signature de Nova, donc le défaut. */
+const EXPO = "cubic-bezier(0.16, 1, 0.3, 1)";
+const C = (
+  vocabulaire: "css" | "js",
+  defaut: string,
+  nom = "easing",
+  libelle = "Courbe",
+): Reglage => ({ type: "courbe", nom, libelle, vocabulaire, defaut });
+
 /** Les réglages par famille. Le nom de la clé est le NOM DE LA PROP réelle. */
 export const REGLAGES: Record<string, Reglage[]> = {
   reveal: [
     N("duration", "Durée", 100, 2000, 50, 700, "ms"),
     N("stagger", "Décalage", 0, 400, 10, 80, "ms"),
+    C("css", EXPO),
   ],
   "scramble-text": [
+    T("text", "Votre texte", "INCANDESCENCE", 40),
     N("stepMs", "Durée d'un pas", 10, 200, 2, 52, "ms"),
     N("scrambleSteps", "Pas brouillés", 1, 20, 1, 6),
     N("interval", "Rejeu auto", 0, 10000, 500, 5000, "ms"),
@@ -124,8 +183,15 @@ export const REGLAGES: Record<string, Reglage[]> = {
   counter: [
     N("duration", "Durée", 200, 5000, 100, 1500, "ms"),
     N("decimals", "Décimales", 0, 3, 1, 0),
+    /* Vocabulaire JS : le compteur interpole lui-même dans le ticker, il ne
+       peut rien faire d'une chaîne CSS. */
+    C("js", "expoOut"),
   ],
-  "text-effect": [N("duration", "Durée", 200, 3000, 50, 900, "ms")],
+  "text-effect": [
+    T("text", "Votre texte", "Bâtir en verre, tenir la lumière"),
+    N("duration", "Durée", 200, 3000, 50, 900, "ms"),
+    C("css", EXPO),
+  ],
   marquee: [
     N("speed", "Vitesse", 10, 300, 5, 60, "px/s"),
     { type: "bool", nom: "pauseOnHover", libelle: "Pause au survol", defaut: true },
@@ -156,15 +222,22 @@ export const REGLAGES: Record<string, Reglage[]> = {
     N("count", "Lames", 2, 20, 1, 6),
     N("stagger", "Décalage", 0, 300, 5, 55, "ms"),
     N("duration", "Durée", 100, 2000, 50, 650, "ms"),
+    C("css", EXPO),
   ],
   "brush-underline": [
     N("duration", "Durée", 200, 3000, 50, 1100, "ms"),
     N("delay", "Retard", 0, 1500, 50, 180, "ms"),
     N("weight", "Épaisseur", 0.1, 2, 0.05, 0.5),
   ],
+  /* Les défauts sont ceux de la DÉMONSTRATION, pas ceux de la librairie
+     (1100 / 700 / 200) : sur une vraie page on traverse un rideau, sur une
+     fiche on le regarde. Ils doivent rester alignés sur les valeurs codées
+     dans `DemoLoader` — ce sont ces réglages-ci qui gagnent sur la fiche, et
+     celles-là qui servent en grille. */
   loader: [
-    N("holdMs", "Maintien", 200, 3000, 100, 1100, "ms"),
-    N("exitMs", "Sortie", 200, 2000, 50, 700, "ms"),
+    N("holdMs", "Maintien", 400, 4000, 100, 1800, "ms"),
+    N("exitMs", "Sortie", 300, 2500, 50, 1000, "ms"),
+    N("stepMs", "Cadence des mots", 120, 900, 20, 340, "ms"),
   ],
   flight: [
     N("duration", "Durée", 200, 2500, 50, 900, "ms"),
@@ -214,6 +287,7 @@ export const catalogue: Fiche[] = [
       { nom: "distance", type: "string", defaut: "1.5rem", role: "Amplitude du déplacement." },
       { nom: "repeat", type: "boolean", defaut: "false", role: "Rejouer à chaque entrée en vue." },
       { nom: "stagger", type: "number", defaut: "80", role: "RevealGroup — décalage entre enfants, en ms." },
+      { nom: "easing", type: "string", defaut: "cubic-bezier(0.16, 1, 0.3, 1)", role: "Courbe d'accélération, en syntaxe CSS." },
     ],
     usage: `<Reveal variant="mask" duration={1100}>
   <img src="/atelier.jpg" alt="" />
@@ -318,6 +392,7 @@ export const catalogue: Fiche[] = [
       { nom: "format", type: "Intl.NumberFormatOptions", defaut: "—", role: "Devise, pourcentage…" },
       { nom: "decimals", type: "number", defaut: "0", role: "Nombre de décimales." },
       { nom: "prefix / suffix", type: "string", defaut: "\"\"", role: "Texte encadrant la valeur." },
+      { nom: "easing", type: "nom de courbe · fonction", defaut: "expoOut", role: "Courbe d'accélération. Le compteur interpole en JavaScript : il prend un nom de courbe, pas une chaîne CSS." },
     ],
     usage: `<Counter to={12480} locale="fr-FR" suffix=" €" />
 <Counter to={99.4} decimals={1} suffix=" %" duration={2000} />`,
@@ -725,6 +800,7 @@ export const catalogue: Fiche[] = [
       { nom: "stagger", type: "number", defaut: "55", role: "Décalage entre deux lames, en ms." },
       { nom: "duration", type: "number", defaut: "650", role: "Durée du retrait d'une lame." },
       { nom: "color", type: "string", defaut: "fond hérité", role: "Couleur des lames." },
+      { nom: "easing", type: "string", defaut: "cubic-bezier(0.16, 1, 0.3, 1)", role: "Courbe d'accélération, en syntaxe CSS." },
     ],
     usage: `<Blinds count={6} className="aspect-video">
   <img src="/verriere.jpg" alt="" />
@@ -770,7 +846,10 @@ export const catalogue: Fiche[] = [
     options: [
       { nom: "form", type: "blades · greetings · splash · seam", defaut: "blades", role: "Forme du rideau." },
       { nom: "holdMs", type: "number", defaut: "1100", role: "Temps d'affichage avant la sortie." },
-      { nom: "exitMs", type: "number", defaut: "700", role: "Durée de la sortie." },
+      { nom: "exitMs", type: "number", defaut: "700", role: "Durée de la sortie. Toute la chorégraphie y tient, dernière lame comprise." },
+      { nom: "blades", type: "number", defaut: "6", role: "Nombre de lames, pour la forme blades." },
+      { nom: "greetings", type: "string[]", defaut: "20 langues", role: "Les mots d'accueil, pour la forme greetings." },
+      { nom: "stepMs", type: "number", defaut: "200", role: "Cadence du défilé des mots, pour la forme greetings." },
       { nom: "skippable", type: "boolean", defaut: "true", role: "Une interaction termine le rideau." },
       { nom: "sessionKey", type: "string · null", defaut: "nova:loader", role: "Clé de session. null le fait rejouer à chaque montage." },
       { nom: "onDone", type: "() => void", defaut: "—", role: "Appelé à la fin, ou tout de suite s'il ne joue pas." },

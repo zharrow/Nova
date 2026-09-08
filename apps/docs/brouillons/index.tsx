@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Lames } from "./lames";
 
 /**
  * Les brouillons — l'antichambre de la librairie.
@@ -127,6 +128,20 @@ function Aimant({
 }
 
 export const BROUILLONS: Brouillon[] = [
+  {
+    nom: "lames",
+    titre: "Lames — dix variations",
+    note: "Dix chorégraphies pour le rideau `blades` de Loader, sous une horloge unique et un budget de sortie commun. À trancher : lesquelles méritent d'être des formes, et laquelle remplace la référence. Cliquez une vignette pour l'isoler.",
+    Composant: Lames as React.ComponentType<Record<string, unknown>>,
+    defauts: {
+      lames: 6,
+      holdMs: 700,
+      exitMs: 1000,
+      pauseMs: 900,
+      boucle: true,
+      solo: "",
+    },
+  },
   {
     nom: "aimant",
     titre: "Aimant",

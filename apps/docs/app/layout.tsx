@@ -6,6 +6,7 @@ import {
   Spline_Sans_Mono,
 } from "next/font/google";
 import { BasculeTheme } from "@/components/bascule-theme";
+import { Marque } from "@/components/marque";
 import "./globals.css";
 
 /**
@@ -40,6 +41,16 @@ export const metadata: Metadata = {
   title: "Nova — composants animés",
   description:
     "Une librairie de composants animés en TypeScript. Moteur framework-agnostique, composants React copiés dans votre projet.",
+  /* Déclarées à la main plutôt que par convention de fichier : le kit livre
+     un `.ico` multi-tailles, et `app/icon.png` ne sait pas le remplacer. */
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 /**
@@ -81,16 +92,21 @@ function Entete() {
   return (
     <header className="sticky top-0 z-50 border-b border-filet bg-fond/85 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between px-6">
-        <Link href="/" className="flex shrink-0 items-baseline gap-2.5">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5 text-encre">
+          {/* La marque, et le nom dans la police du site. Le lettrage du kit
+              est un grotesque géométrique arrondi : posé ici, il mettrait une
+              seconde voix typographique dans le bandeau, à côté de Bricolage
+              Grotesque. Le symbole n'a pas ce problème — il n'a pas de voix. */}
+          <Marque className="h-[27px] w-[27px]" />
           <span
-            className="titre text-[1.05rem] font-bold text-encre"
+            className="titre text-[1.05rem] font-bold"
             style={{ fontVariationSettings: '"opsz" 40, "wdth" 92' }}
           >
             Nova
           </span>
           {/* La version disparaît sous 640 px : sur un téléphone elle pousse
               la navigation contre le nom de marque. */}
-          <span className="cote hidden sm:inline">v0.1.0</span>
+          <span className="cote hidden translate-y-px sm:inline">v0.1.0</span>
         </Link>
 
         <nav className="flex items-center gap-4 text-sm sm:gap-7">
