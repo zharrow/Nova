@@ -27,15 +27,20 @@ describe("createBloom", () => {
   it("part du point cliqué, pas du centre", async () => {
     // C'est tout le geste : la bulle naît là où la main était.
     //
-    // La durée est portée à soixante secondes pour que la mesure soit
-    // DÉTERMINISTE : le temps de laisser passer une image, une course de huit
-    // dixièmes a déjà bien avancé, et l'assertion dépendrait de la charge de
-    // la machine. Ici, après une image, la bulle n'a pas encore bougé.
+    // La durée est portée à dix minutes pour que la mesure soit DÉTERMINISTE :
+    // le temps de laisser passer une image, une course de huit dixièmes a déjà
+    // bien avancé, et l'assertion dépendrait de la charge de la machine.
+    //
+    // Soixante secondes ne suffisaient pas, et le test échouait une fois sur
+    // cinq : l'easing est `power4.out`, qui abat le plus gros de sa course dans
+    // ses premiers pour cent. Sur soixante secondes, une image qui traîne de
+    // cinquante millisecondes suffisait à faire sortir la largeur des trois
+    // pixels de tolérance. Dix minutes demandent dix fois ce retard.
     const panneau = monter();
     const bloom = createBloom(panneau, {
       origin: { x: 300, y: 200 },
       seed: 40,
-      duration: 60,
+      duration: 600,
     });
     bloom.open();
     await uneImage();
