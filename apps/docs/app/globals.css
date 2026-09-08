@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "@nova-ui/core/styles.css";
 
+/* Les composants de `@nova-ui/react` sont hors de ce dossier, et Tailwind ne
+   détecte ses sources que sous la racine du projet. Sans cette ligne, un
+   composant Nova qui porte des classes utilitaires arrive NU sur la vitrine :
+   le panneau du sélecteur de date s'étalait sur toute la hauteur de la page,
+   faute de `h-60` généré. Il est le premier à en porter — les autres moteurs
+   n'habillent rien, ils posent des attributs. */
+@source "../../../packages/react/src";
+
 /* ==========================================================================
    Nova — site vitrine.
 

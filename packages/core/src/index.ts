@@ -57,6 +57,9 @@ export type { ScrollMarqueeOptions } from "./engines/scroll-marquee";
 export { createRollText } from "./engines/roll-text";
 export type { RollTextOptions } from "./engines/roll-text";
 
+export { createDial } from "./engines/dial";
+export type { DialOptions, DialInstance } from "./engines/dial";
+
 export { createScrollScene } from "./engines/scroll-scene";
 export type { ScrollSceneOptions } from "./engines/scroll-scene";
 

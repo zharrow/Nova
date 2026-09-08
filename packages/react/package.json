@@ -1,7 +1,7 @@
 {
   "name": "@nova-ui/react",
   "version": "0.1.0",
-  "description": "Composants React de Nova, b\u00e2tis sur @nova-ui/core.",
+  "description": "Composants React de Nova, bâtis sur @nova-ui/core.",
   "license": "MIT",
   "type": "module",
   "files": [
@@ -29,20 +29,22 @@
     "tailwind-merge": "^3.6.0"
   },
   "peerDependencies": {
+    "radix-ui": ">=1.4",
     "react": ">=18",
-    "radix-ui": ">=1.4"
+    "react-day-picker": ">=9"
   },
   "devDependencies": {
-    "@types/react": "^19.0.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
     "@testing-library/react": "^16.1.0",
-    "tsup": "^8.3.5",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8",
+    "@types/react": "^19.0.2",
+    "gsap": "^3.15.0",
     "jsdom": "^25.0.1",
     "radix-ui": "^1.6.7",
-    "gsap": "^3.15.0"
+    "react": "^19.0.0",
+    "react-day-picker": "^9.14.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   },
   "peerDependenciesMeta": {
     "radix-ui": {
@@ -50,6 +52,9 @@
     },
     "react": {
       "optional": false
+    },
+    "react-day-picker": {
+      "optional": true
     }
   }
 }

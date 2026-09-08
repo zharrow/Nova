@@ -518,6 +518,30 @@
           "kind": "component"
         }
       ]
+    },
+    {
+      "name": "date-picker",
+      "title": "Date Picker",
+      "description": "Sélecteur de date en trois gestes : la grille d'abord, les cadrans d'abord, ou les cadrans seuls. react-day-picker tient la grille — ce sur quoi la Calendar de shadcn est bâtie — Radix le popover, Nova le cadran qui roule.",
+      "exports": [
+        "DatePicker"
+      ],
+      "dependencies": [
+        "radix-ui",
+        "react-day-picker"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/dial.ts",
+          "target": "engines/dial.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/date-picker.tsx",
+          "target": "date-picker.tsx",
+          "kind": "component"
+        }
+      ]
     }
   ]
 }

@@ -71,6 +71,13 @@ mieux que ce qu'on écrirait, et c'est maintenu.
 Un composant Nova ne réimplémente jamais un `Dialog`, un `Accordion`, un
 `Popover` ou un `Tooltip` — il s'y branche.
 
+La règle vaut aussi pour ce que shadcn ne tient pas lui-même mais emballe.
+Sa `Calendar` est `react-day-picker` habillé de Tailwind : `DatePicker` se
+branche donc sur `react-day-picker` directement — grille ARIA, clavier,
+locales, bornes — et n'apporte que le cadran qui roule. Un projet qui a déjà
+`components/ui/calendar.tsx` a déjà la dépendance, et peut remplacer la table
+de classes du composant par la sienne : c'est la même API `classNames`.
+
 Même chose pour Tailwind et `cn()` : la mise en forme passe par des classes
 utilitaires fusionnées avec `tailwind-merge`, pas par une feuille de style
 maison. Une classe passée par l'appelant doit remplacer celle du composant, pas
