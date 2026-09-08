@@ -454,7 +454,7 @@ export const catalogue: Fiche[] = [
     titre: "Marquee",
     accroche: "Un bandeau qui défile sans fin, à vitesse constante. Horizontal ou vertical.",
     apport:
-      "La vitesse est en pixels par seconde, pas en durée fixe : deux bandeaux réglés pareil défilent au même rythme, quelle que soit la longueur de leur contenu. Le contenu est répété jusqu'à dépasser le conteneur — sans quoi la boucle laisse un trou, le défaut que ScrollList documentait sur l'axe vertical. Et hors écran l'animation est SUSPENDUE, pas coupée : elle reprend où elle s'était arrêtée au lieu de repartir du début.",
+      "La vitesse est en pixels par seconde, pas en durée fixe : deux bandeaux réglés pareil défilent au même rythme, quelle que soit la longueur de leur contenu. Le contenu est répété jusqu'à dépasser le conteneur — sans quoi la boucle laisse un trou, le défaut le plus visible sur l'axe vertical. Et hors écran l'animation est SUSPENDUE, pas coupée : elle reprend où elle s'était arrêtée au lieu de repartir du début.",
     options: [
       { nom: "speed", type: "number", defaut: "60", role: "Vitesse en px/s." },
       { nom: "direction", type: "left · right · up · down", defaut: "left", role: "Sens. up et down basculent l'axe." },

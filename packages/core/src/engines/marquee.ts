@@ -9,9 +9,9 @@
  *     recalculée depuis la taille mesurée.
  *  2. le contenu est dupliqué autant de fois qu'il faut pour couvrir le
  *     conteneur. Une seule copie ne suffit pas si le contenu est plus petit
- *     que la fenêtre : la boucle laissait un trou. C'est le défaut que
- *     `ScrollList` documentait sur l'axe vertical — six lignes dans un cadre
- *     de 330 px, et la liste réapparaissait en bloc au lieu de couler.
+ *     que la fenêtre : la boucle laissait un trou. Le défaut se voyait sur
+ *     l'axe vertical — six lignes dans un cadre de 330 px, et la liste
+ *     réapparaissait en bloc au lieu de couler.
  *  3. hors écran, l'animation est SUSPENDUE et non coupée. `animation: none`
  *     la ferait repartir du début à chaque retour à l'écran ; une pause
  *     reprend exactement là où elle s'était arrêtée.

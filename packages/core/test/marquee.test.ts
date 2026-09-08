@@ -57,7 +57,7 @@ describe("marquee vertical", () => {
   }
 
   it("bascule d'axe et répète assez pour dépasser la fenêtre", () => {
-    // C'est le défaut que ScrollList documentait : six lignes dans un cadre de
+    // Le défaut se voyait sur l'axe vertical : six lignes dans un cadre de
     // 330 px laissaient du vide, et la liste réapparaissait en bloc au lieu de
     // couler ligne à ligne.
     const element = mountVertical();
