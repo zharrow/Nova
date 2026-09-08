@@ -132,6 +132,7 @@ Les formes partagent-elles le mécanisme ?
 | `text-highlight` | — | 1 |
 | `lightbox` | — | 1 |
 | `graph` | — | 1 |
+| `date-picker` | option | 3 — la grille d'abord, les cadrans d'abord, les cadrans seuls |
 
 Trois familles sont nées de la récolte elle-même, en réunissant des pièces
 écrites séparément dans des projets différents :

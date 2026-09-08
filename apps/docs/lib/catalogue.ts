@@ -187,6 +187,10 @@ export const REGLAGES: Record<string, Reglage[]> = {
     N("duration", "Durée d'ouverture", 0.2, 2, 0.05, 0.8, "s"),
     N("closeSpeed", "Vitesse de fermeture", 0.5, 3, 0.1, 1.5, "×"),
   ],
+  "date-picker": [
+    N("dialDuration", "Durée d'une course", 100, 1200, 20, 420, "ms"),
+    N("dialFalloff", "Profondeur du cadran", 1, 6, 0.1, 2.6, "items"),
+  ],
 };
 
 /** Les réglages d'une famille, ou rien si elle n'en expose pas. */
@@ -920,6 +924,59 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   <img data-nova-bloom-media src={src} alt="" />
   <figcaption data-nova-bloom-late>{legende}</figcaption>
 </Lightbox>`,
+  },
+  {
+    nom: "date-picker",
+    geometrie: "bloc",
+    titre: "Date Picker",
+    categorie: "donnees",
+    nouveau: true,
+    voie: "option",
+    formes: [
+      {
+        id: "day",
+        nom: "Jour",
+        note: "La grille d'abord, et l'en-tête déplie les cadrans par-dessus. Le geste de qui connaît déjà son mois.",
+      },
+      {
+        id: "month-first",
+        nom: "Mois puis jour",
+        note: "Les cadrans d'abord, « appliquer » mène à la grille. Le geste des dates lointaines : personne ne feuillette quatre cents mois pour arriver à 1995.",
+      },
+      {
+        id: "month",
+        nom: "Mois seul",
+        note: "Les cadrans SONT le panneau. Pas de grille : un mois et une année, rien d'autre.",
+      },
+    ],
+    accroche: "Deux colonnes qui roulent sous une ligne de sélection.",
+    apport:
+      "Rien de la sémantique n'est réimplémenté, et c'est la même division que pour Lightbox. Radix tient le popover — ancrage, portail, Échap, clic au-dehors, retour du focus au déclencheur. react-day-picker tient la grille des jours, c'est-à-dire ce sur quoi la Calendar de shadcn est elle-même bâtie : grille ARIA, clavier, locales, bornes. Nova n'apporte que le cadran. L'accroche est celle du navigateur — `scroll-snap` fait l'inertie et le tactile mieux qu'on ne l'écrirait — et le moteur ne la suspend que le temps de ses propres courses. Le fondu, lui, est calculé en CSS : le moteur n'écrit qu'UNE variable par image, sur le conteneur, et chaque item en déduit son écart au centre depuis son propre rang. Un cadran de cent vingt années coûte donc exactement ce que coûte un cadran de douze mois. Le gabarit affiché à vide vient de la locale et non d'une constante — MM/DD/YYYY en anglais, DD/MM/YYYY en français.",
+    options: [
+      { nom: "granularity", type: "day · month", defaut: "day", role: "On choisit un jour, ou on s'arrête au mois." },
+      { nom: "startWith", type: "day · month", defaut: "day", role: "Par où le panneau commence. `month` ouvre sur les cadrans, et « appliquer » mène à la grille." },
+      { nom: "value", type: "Date | null", defaut: "—", role: "Valeur contrôlée. `defaultValue` pour le mode libre." },
+      { nom: "onValueChange", type: "(v: Date | null) => void", defaut: "—", role: "Appelé au clic sur un jour, ou sur « appliquer »." },
+      { nom: "startYear", type: "number", defaut: "année − 100", role: "Première année du cadran." },
+      { nom: "endYear", type: "number", defaut: "année + 10", role: "Dernière année du cadran." },
+      { nom: "min", type: "Date", defaut: "—", role: "Borne basse. Les jours au-delà sont désactivés." },
+      { nom: "max", type: "Date", defaut: "—", role: "Borne haute." },
+      { nom: "locale", type: "Locale", defaut: "—", role: "Locale de react-day-picker. Elle décide aussi du format affiché." },
+      { nom: "name", type: "string", defaut: "—", role: "Champ caché ISO, pour les formulaires qui lisent un FormData." },
+      { nom: "container", type: "HTMLElement", defaut: "body", role: "Où le panneau est porté. Utile dans une boîte défilante." },
+      { nom: "dialDuration", type: "number", defaut: "420", role: "Durée d'une course de cadran, en ms." },
+      { nom: "dialFalloff", type: "number", defaut: "2.6", role: "Nombre d'items sur lequel le fondu s'épuise." },
+    ],
+    usage: `{/* Une date de naissance : le mois et l'année d'abord,
+    le jour ensuite. */}
+<DatePicker
+  value={naissance}
+  onValueChange={setNaissance}
+  startWith="month"
+  startYear={1940}
+  endYear={2012}
+  locale={fr}
+/>`,
   },
 ];
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRaccourciRejeu } from "./raccourci-rejeu";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -26,7 +27,9 @@ import {
   SmoothScroll,
   TextHighlight,
   Lightbox,
+  DatePicker,
 } from "@nova-ui/react";
+import { fr } from "react-day-picker/locale";
 
 /**
  * Démonstrations vivantes.
@@ -72,6 +75,14 @@ export interface PropsDemo {
    * visiteur gagne. En grille l'objet est absent, et rien ne change.
    */
   reglages?: Record<string, unknown>;
+  /**
+   * Mode NU : ni plancher, ni hauteur imposée — c'est l'appelant qui cadre.
+   *
+   * Le banc de test fournit sa propre scène, sa propre hauteur et son propre
+   * plancher. Sans ce mode, la démonstration en apportait un second et la
+   * page affichait deux barres de légende l'une sous l'autre.
+   */
+  nu?: boolean;
 }
 
 /**
@@ -107,6 +118,7 @@ function Scene({
   compact,
   geometrie = "bloc",
   nom,
+  nu,
   className,
 }: {
   children: React.ReactNode;
@@ -115,17 +127,34 @@ function Scene({
   geometrie?: Geometrie;
   /** Nom de la famille, posé sur le plancher de la scène. Fiches seulement. */
   nom?: string;
+  /** Ni plancher ni hauteur : le banc de test cadre lui-même. */
+  nu?: boolean;
   className?: string;
 }) {
+  /* Le nœud est tenu dans un ÉTAT, pas dans une ref : l'inscription au
+     raccourci doit se refaire quand le nœud arrive, et une `useRef` ne
+     provoque aucun rendu. Même mécanique que la télémétrie. */
+  const [noeud, setNoeud] = useState<HTMLDivElement | null>(null);
+  /* En mode `nu`, c'est l'appelant qui possède le rejeu — le banc remonte la
+     démonstration entière par sa clé. S'inscrire quand même ferait DEUX
+     scènes inscrites sur le banc : aucune ne serait unique, et la touche ne
+     viserait plus rien. */
+  useRaccourciRejeu(nu ? null : noeud, onRejouer);
+
   const aire = (
     <div
+      ref={compact || nu ? setNoeud : undefined}
       className={[
         "relative flex items-center overflow-hidden",
         // On centre ce qui rayonne, on aligne à gauche ce qui se lit — le
         // choix est fait par chaque démo via `className`, le défaut est le
         // centrage parce que la majorité des scènes sont des figures.
         "justify-center",
-        compact ? `${HAUTEURS[geometrie]} p-5` : `${HAUTEURS.champ} px-6 sm:px-12`,
+        nu
+          ? "h-full w-full"
+          : compact
+            ? `${HAUTEURS[geometrie]} p-5`
+            : `${HAUTEURS.champ} px-6 sm:px-12`,
         className ?? "",
       ].join(" ")}
     >
@@ -136,18 +165,19 @@ function Scene({
         <button
           type="button"
           onClick={onRejouer}
-          className="lien cote absolute bottom-2 right-3 bg-banc px-1.5 opacity-0 transition-opacity hover:text-encre focus-visible:opacity-100 group-hover:opacity-100"
+          className="cote absolute bottom-2 right-3 flex items-center gap-1.5 bg-banc px-1.5 opacity-0 transition-opacity hover:text-encre focus-visible:opacity-100 group-hover:opacity-100"
         >
-          rejouer
+          <span className="lien">rejouer</span>
+          <Touche />
         </button>
       ) : null}
     </div>
   );
 
-  if (compact) return aire;
+  if (compact || nu) return aire;
 
   return (
-    <div className="banc">
+    <div className="banc" ref={setNoeud}>
       {aire}
       {/* Le plancher : la légende est DANS la scène, sur son filet du bas. */}
       <div className="flex items-baseline justify-between gap-4 border-t border-filet px-4 py-2.5 sm:px-6">
@@ -158,9 +188,10 @@ function Scene({
           <button
             type="button"
             onClick={onRejouer}
-            className="lien cote shrink-0 hover:text-encre"
+            className="cote flex shrink-0 items-center gap-1.5 hover:text-encre"
           >
-            rejouer
+            <span className="lien">rejouer</span>
+            <Touche />
           </button>
         ) : null}
       </div>
@@ -208,6 +239,21 @@ function Mire({
 }
 
 /**
+ * Le badge de touche. Un raccourci qu'on ne peut pas deviner n'existe pas :
+ * il est écrit à côté de la commande qu'il double, pas dans une aide.
+ */
+function Touche() {
+  return (
+    <kbd
+      aria-hidden
+      className="rounded-[3px] border border-filet px-1 py-px font-mono text-[9px] leading-none text-sourdine"
+    >
+      F
+    </kbd>
+  );
+}
+
+/**
  * Remonte ses enfants à chaque appel de `rejouer`.
  *
  * La clé inclut la forme courante : changer de forme depuis le sélecteur
@@ -221,10 +267,10 @@ function useRejeu(cleExterne?: string) {
   };
 }
 
-export function DemoReveal({ forme = "slide-up", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoReveal({ forme = "slide-up", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
   return (
-    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <RevealGroup
         key={cle}
         repeat
@@ -254,11 +300,11 @@ export function DemoReveal({ forme = "slide-up", compact, geometrie, nomAffiche,
   );
 }
 
-export function DemoScrambleText({ forme = "interval", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoScrambleText({ forme = "interval", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const boucle = forme === "interval";
   const { cle, rejouer } = useRejeu(forme);
   return (
-    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <p className="text-center">
         <ScrambleText
           key={cle}
@@ -283,7 +329,7 @@ export function DemoScrambleText({ forme = "interval", compact, geometrie, nomAf
   );
 }
 
-export function DemoCounter({ forme = "localise", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoCounter({ forme = "localise", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
 
   /* Type explicite : sans lui, TypeScript infère trois formes de cellules
@@ -326,7 +372,7 @@ export function DemoCounter({ forme = "localise", compact, geometrie, nomAffiche
   const visibles = compact ? cellules.slice(0, 1) : cellules;
 
   return (
-    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div
         key={cle}
         className={[
@@ -374,12 +420,12 @@ const DEFILEMENT = new Set(["reading", "reading-blur", "highlight"]);
    présentation de la fiche, pas un contrat public du moteur. */
 const GRAIN_LETTRE = new Set(["letter", "wave", "weight", "roll"]);
 
-export function DemoTextEffect({ forme = "line", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoTextEffect({ forme = "line", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
   const defilement = DEFILEMENT.has(forme);
 
   return (
-    <Scene onRejouer={defilement ? undefined : rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene onRejouer={defilement ? undefined : rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="w-full text-center">
         <TextEffect
           key={cle}
@@ -419,12 +465,12 @@ export function DemoTextEffect({ forme = "line", compact, geometrie, nomAffiche,
   );
 }
 
-export function DemoMarquee({ forme = "left", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoMarquee({ forme = "left", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const vertical = forme === "up" || forme === "down";
   const { cle, rejouer } = useRejeu(forme);
 
   return (
-    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       {vertical ? (
         <Marquee
           key={cle}
@@ -483,10 +529,10 @@ export function DemoMarquee({ forme = "left", compact, geometrie, nomAffiche, re
   );
 }
 
-export function DemoScrollMarquee({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoScrollMarquee({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu();
   return (
-    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="w-full">
         <ScrollMarquee key={cle} drift={40} gap="1.5rem" className="py-2" {...reglages}>
           {["PRÉVOIR", "SÉCURISER", "LIBÉRER"].map((mot) => (
@@ -511,9 +557,9 @@ export function DemoScrollMarquee({ compact, geometrie, nomAffiche, reglages }: 
 
 /* --- Sans rejeu : l'effet EST le geste du visiteur ----------------------- */
 
-export function DemoRollText({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoRollText({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   return (
-    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="flex flex-col items-center gap-5">
         <button
           type="button"
@@ -527,9 +573,9 @@ export function DemoRollText({ compact, geometrie, nomAffiche, reglages }: Props
   );
 }
 
-export function DemoSpotlight({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoSpotlight({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   return (
-    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <Spotlight radius="13rem" {...reglages} />
       {/* Le halo doit avoir quelque chose à ÉCLAIRER. Avant, il balayait un
           panneau vide avec une phrase au milieu : l'effet fonctionnait, mais
@@ -560,10 +606,10 @@ export function DemoSpotlight({ compact, geometrie, nomAffiche, reglages }: Prop
  * librairie, pas une signature imposée à toutes les pages. La démonstration
  * le met donc en marche à la demande, et le retire quand on la quitte.
  */
-export function DemoCursor({ forme = "blob", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoCursor({ forme = "blob", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const [actif, setActif] = useState(false);
   return (
-    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="text-center">
         {actif ? <Cursor key={forme} variant={forme as never} /> : null}
         {/* La forme au repos, avant même d'activer : sans elle, la vignette du
@@ -614,9 +660,9 @@ function couvertureAnneau(x: number, y: number): number {
   return Math.max(0, Math.min(1, anneau));
 }
 
-export function DemoHalftone({ forme = "square", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoHalftone({ forme = "square", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   return (
-    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="text-center">
         <Halftone
           alt=""
@@ -661,7 +707,7 @@ const ARETES: [string, string][] = [
   ["reveal", "text"],
 ];
 
-export function DemoGraph({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoGraph({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu();
   return (
     <div className="relative">
@@ -713,14 +759,14 @@ export function DemoGraph({ compact, geometrie, nomAffiche, reglages }: PropsDem
   );
 }
 
-export function DemoConfetti({ forme = "mixed", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoConfetti({ forme = "mixed", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const tirer = useConfetti({
     // Sur fond blanc, une palette claire disparaît : on assombrit.
     colors: ["#c93c08", "#101013", "#8b8b95"],
     count: 70,
   });
   return (
-    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <button
         type="button"
         onClick={() => tirer({ shape: forme as never })}
@@ -732,10 +778,10 @@ export function DemoConfetti({ forme = "mixed", compact, geometrie, nomAffiche, 
   );
 }
 
-export function DemoBlinds({ forme = "vertical", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoBlinds({ forme = "vertical", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
   return (
-    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <Blinds
         key={cle}
         trigger="mount"
@@ -756,10 +802,10 @@ export function DemoBlinds({ forme = "vertical", compact, geometrie, nomAffiche,
   );
 }
 
-export function DemoBrushUnderline({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoBrushUnderline({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu();
   return (
-    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <p
         key={cle}
         className={[
@@ -782,7 +828,7 @@ export function DemoBrushUnderline({ compact, geometrie, nomAffiche, reglages }:
  * sortirait de son encadré et couvrirait tout le site. Une démonstration ne
  * doit pas faire ce que le composant ferait en production.
  */
-export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
   return (
     <Scene
@@ -790,6 +836,7 @@ export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, r
       compact={compact}
       geometrie={geometrie}
       nom={nomAffiche}
+      nu={nu}
       className="isolate"
     >
       <Loader
@@ -826,7 +873,7 @@ export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, r
   );
 }
 
-export function DemoFlight({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoFlight({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const voler = useFlight({ duration: 800 });
   const source = useRef<HTMLButtonElement>(null);
   const cible = useRef<HTMLSpanElement>(null);
@@ -843,7 +890,7 @@ export function DemoFlight({ compact, geometrie, nomAffiche, reglages }: PropsDe
   }
 
   return (
-    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="flex w-full items-center justify-between gap-6">
         <button
           ref={source}
@@ -870,7 +917,7 @@ export function DemoFlight({ compact, geometrie, nomAffiche, reglages }: PropsDe
  * des pièces appariées par `data-nova-flip-id`, des lignes qui n'existent que
  * dépliées, un chevron qui se retourne.
  */
-export function DemoExpand({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoExpand({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const [ouvert, setOuvert] = useState(false);
   const { ref, capture, shown } = useExpand<HTMLDivElement>(ouvert);
 
@@ -882,7 +929,7 @@ export function DemoExpand({ compact, geometrie, nomAffiche, reglages }: PropsDe
   }
 
   return (
-    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="w-full max-w-sm">
         <div
           ref={ref}
@@ -947,10 +994,10 @@ export function DemoExpand({ compact, geometrie, nomAffiche, reglages }: PropsDe
  * page. La démonstration dit donc ce qu'il fait et ce qu'il ne fait pas,
  * plutôt que de simuler un effet dans une boîte de deux cents pixels.
  */
-export function DemoSmoothScroll({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoSmoothScroll({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const [actif, setActif] = useState(false);
   return (
-    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       {/* Ce composant agit sur la PAGE, pas dans un encadré : le montrer dans
           une boîte serait mentir. On le monte donc pour de vrai, comme le
           curseur, et on le dit. C'est la seule démonstration honnête. */}
@@ -985,7 +1032,7 @@ export function DemoSmoothScroll({ compact, geometrie, nomAffiche, reglages }: P
  * temps nommés — pilotés par un curseur. C'est exactement ce que le moteur
  * publie, à ceci près que c'est la molette qui le fournit en production.
  */
-export function DemoScrollScene({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoScrollScene({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const [t, setT] = useState(0.5);
   const segment = (a: number, b: number) =>
     Math.min(1, Math.max(0, (t - a) / (b - a)));
@@ -999,7 +1046,7 @@ export function DemoScrollScene({ compact, geometrie, nomAffiche, reglages }: Pr
   ];
 
   return (
-    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="w-full max-w-sm">
         <div className="flex items-baseline justify-between">
           <span className="cote">--nova-t</span>
@@ -1066,10 +1113,10 @@ export function DemoScrollScene({ compact, geometrie, nomAffiche, reglages }: Pr
   );
 }
 
-export function DemoTextHighlight({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoTextHighlight({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu();
   return (
-    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <TextHighlight
         key={cle}
         text="nous le pratiquons d'abord sur nous-mêmes"
@@ -1101,7 +1148,7 @@ const VIGNETTES = [
   { id: "plancher", motif: "trame" as const, titre: "Plancher" },
 ];
 
-export function DemoLightbox({ compact, geometrie, nomAffiche, reglages }: PropsDemo) {
+export function DemoLightbox({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const [ouvert, setOuvert] = useState(false);
   const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
   const [choix, setChoix] = useState(VIGNETTES[0]!);
@@ -1115,7 +1162,7 @@ export function DemoLightbox({ compact, geometrie, nomAffiche, reglages }: Props
   }
 
   return (
-    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche}>
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="w-full">
         <div className="grid grid-cols-3 gap-2">
           {VIGNETTES.map((vignette) => (
@@ -1172,6 +1219,78 @@ export function DemoLightbox({ compact, geometrie, nomAffiche, reglages }: Props
   );
 }
 
+/**
+ * Le sélecteur de date.
+ *
+ * Pas de bouton « rejouer », et c'est la même règle que pour RollText,
+ * Spotlight et Cursor : l'effet EST le geste du visiteur. Une commande qui
+ * ferait rouler les cadrans à sa place ne montrerait pas le mouvement, elle
+ * montrerait une animation — or c'est justement ce que ce composant n'est pas.
+ *
+ * Le panneau est porté DANS la scène plutôt que dans le `body` : sur une fiche
+ * il reste ainsi cadré avec ce qu'il démontre. En grille, la case est trop
+ * basse pour l'accueillir, et il repart au `body` comme en production.
+ */
+/* Les trois formes tiennent en DEUX props, et la table le montre mieux qu'une
+   cascade de ternaires : ce qui change d'une forme à l'autre est par où l'on
+   commence et où l'on s'arrête, pas le composant. */
+const FORMES_DATE: Record<string, { granularity: "day" | "month"; startWith: "day" | "month" }> = {
+  day: { granularity: "day", startWith: "day" },
+  "month-first": { granularity: "day", startWith: "month" },
+  month: { granularity: "month", startWith: "month" },
+};
+
+export function DemoDatePicker({ forme = "day", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
+  const [scene, setScene] = useState<HTMLDivElement | null>(null);
+  const [valeur, setValeur] = useState<Date | null>(new Date(1995, 8, 12));
+  const reglage = FORMES_DATE[forme] ?? FORMES_DATE.day!;
+
+  return (
+    <Scene
+      compact={compact}
+      geometrie={geometrie}
+      nom={nomAffiche}
+      nu={nu}
+      /* En fiche, le déclencheur est en haut : le panneau s'ouvre dessous et
+         doit tenir dans la scène. En grille, il n'y a pas de panneau ouvert,
+         et le coller en haut laissait la case aux trois quarts vide. */
+      className={compact ? undefined : "items-start"}
+    >
+      <div ref={setScene} className={cn("relative w-full max-w-[17.5rem]", !compact && "pt-4")}>
+        <DatePicker
+          key={forme}
+          value={valeur}
+          onValueChange={setValeur}
+          granularity={reglage.granularity}
+          startWith={reglage.startWith}
+          locale={fr}
+          startYear={1940}
+          endYear={2012}
+          container={compact ? undefined : scene}
+          labels={{
+            apply: "Appliquer",
+            clear: "Vider",
+            months: "Mois",
+            years: "Année",
+            changeMonth: "Choisir le mois et l'année",
+            day: "JJ",
+            month: "MM",
+            year: "AAAA",
+          }}
+          {...reglages}
+        />
+        <span className="cote mt-3 block">
+          {forme === "month"
+            ? "deux colonnes, rien d'autre — roulez"
+            : forme === "month-first"
+              ? "le mois et l'année d'abord, le jour ensuite"
+              : "l'en-tête déplie les cadrans"}
+        </span>
+      </div>
+    </Scene>
+  );
+}
+
 const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   reveal: DemoReveal,
   blinds: DemoBlinds,
@@ -1193,6 +1312,7 @@ const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   flight: DemoFlight,
   expand: DemoExpand,
   lightbox: DemoLightbox,
+  "date-picker": DemoDatePicker,
   "smooth-scroll": DemoSmoothScroll,
 };
 
@@ -1211,6 +1331,7 @@ export function Demo({
   geometrie,
   nomAffiche,
   reglages,
+  nu,
 }: {
   nom: string;
   forme?: string;
@@ -1218,6 +1339,7 @@ export function Demo({
   geometrie?: Geometrie;
   nomAffiche?: string;
   reglages?: Record<string, unknown>;
+  nu?: boolean;
 }) {
   const Composant = demos[nom];
   if (!Composant) return null;
@@ -1228,6 +1350,7 @@ export function Demo({
       geometrie={geometrie}
       nomAffiche={nomAffiche}
       reglages={reglages}
+      nu={nu}
     />
   );
 }

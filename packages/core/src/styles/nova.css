@@ -231,6 +231,94 @@
 }
 
 /* --------------------------------------------------------------------------
+   Dial — la colonne qui roule sous une ligne de sélection
+
+   Le moteur n'écrit qu'UNE variable par image, sur le conteneur :
+   `--nova-dial-position`, la position de la colonne en unités d'item. Chaque
+   item connaît son propre rang — `--nova-dial-i`, posé une fois — et calcule
+   ici son écart au centre. Un cadran de cent vingt années coûte donc autant
+   qu'un cadran de douze mois.
+
+   `abs()` n'existe pas partout ; `max(x, -1 * x)` fait la même chose et existe
+   depuis 2020.
+   -------------------------------------------------------------------------- */
+
+[data-nova-dial] {
+  /* Structurel seulement : ce qui fait de l'élément une colonne défilante.
+     Ni dimension, ni fond, ni couleur — c'est l'appelant qui habille. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* La course du moteur écrit `scrollTop` image par image. Un
+     `scroll-behavior: smooth` hérité du projet la lisserait une seconde fois,
+     et les deux interpolations se contrediraient. */
+  scroll-behavior: auto;
+  scrollbar-width: none;
+}
+[data-nova-dial]::-webkit-scrollbar {
+  display: none;
+}
+
+/* Le rembourrage est ce qui permet au PREMIER et au DERNIER item d'atteindre
+   le centre. Il est mesuré par le moteur, et n'existe donc qu'une fois la
+   colonne armée : sans JavaScript, la liste reste une liste ordinaire. */
+[data-nova-dial="armed"] {
+  padding-block: var(--nova-dial-pad, 0px);
+  scroll-snap-type: y mandatory;
+}
+
+/* Suspendue le temps d'une course programmée : l'accroche native corrigerait
+   chaque `scrollTop` écrit par le moteur. */
+[data-nova-dial-state="settling"] {
+  scroll-snap-type: none;
+}
+
+[data-nova-dial-item] {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+@media not (prefers-reduced-motion: reduce) {
+  [data-nova-dial="armed"] [data-nova-dial-item] {
+    --nova-dial-ecart: calc(
+      var(--nova-dial-i, 0) - var(--nova-dial-position, 0)
+    );
+    --nova-dial-distance: max(
+      var(--nova-dial-ecart),
+      calc(-1 * var(--nova-dial-ecart))
+    );
+    --nova-dial-fondu: min(
+      1,
+      calc(var(--nova-dial-distance) / var(--nova-dial-falloff, 2.6))
+    );
+
+    /* Les deux amplitudes sont des jetons : un projet règle la profondeur du
+       cadran sans forker le moteur. */
+    opacity: calc(1 - var(--nova-dial-fondu) * var(--nova-dial-dim, 0.58));
+    transform: scale(
+      calc(1 - var(--nova-dial-fondu) * var(--nova-dial-shrink, 0.12))
+    );
+  }
+}
+
+/* Le panneau du sélecteur de date échange sa grille contre ses cadrans à
+   hauteur constante. Sans rien, l'échange est un saut ; avec, c'est un
+   relais. La règle ne pose ni fond, ni dimension : seulement le passage. */
+[data-nova-date-view] {
+  animation: nova-date-view 260ms var(--nova-ease-expo) both;
+}
+@keyframes nova-date-view {
+  from {
+    opacity: 0;
+    transform: translateY(var(--nova-date-rise, 6px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-nova-date-view] {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Spotlight — halo de repérage
    -------------------------------------------------------------------------- */
 

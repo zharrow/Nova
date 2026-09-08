@@ -1,6 +1,6 @@
 import { defineConfig } from "tsup";
 
-export default defineConfig({
+export default defineConfig((options) => ({
   /**
    * Trois entrées, et ce n'est pas cosmétique.
    *
@@ -17,11 +17,12 @@ export default defineConfig({
   ],
   format: ["esm", "cjs"],
   dts: true,
-  clean: true,
+  // Pas de purge en watch : voir packages/react/tsup.config.ts.
+  clean: !options.watch,
   treeshake: true,
   sourcemap: true,
   external: ["gsap", "lenis"],
   // La feuille de style est copiée telle quelle : elle est importée par les
   // consommateurs via "@nova-ui/core/styles.css", jamais bundlée dans le JS.
   publicDir: "src/styles",
-});
+}));

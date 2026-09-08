@@ -155,6 +155,7 @@ function rewriteSource(
     /from\s+"\.\.\/polymorphic"/g,
     `from "${LIB_TOKEN}/polymorphic"`,
   );
+  output = output.replace(/from\s+"\.\.\/cn"/g, `from "${LIB_TOKEN}/cn"`);
 
   // Les fichiers du cœur gardent leurs chemins relatifs : l'arborescence
   // `internal/` et `engines/` est reproduite telle quelle chez l'utilisateur.
@@ -167,6 +168,23 @@ function rewriteSource(
     throw new Error(
       `${file.path} : import non réécrit — ${leftover[0]}`,
     );
+  }
+
+  // Second garde-fou, et il a déjà servi : un composant part dans
+  // `src/components/nova/`, la lib dans `src/lib/nova/`. Un chemin relatif
+  // remontant qui survit à la réécriture ne résout donc plus rien chez
+  // l'utilisateur — c'est exactement ce qui est arrivé au `../cn` du
+  // sélecteur de date, invisible au typecheck du monorepo puisque là-bas il
+  // était juste. Les fichiers du cœur, eux, gardent leur arborescence et
+  // leurs chemins relatifs sont légitimes.
+  if (file.kind === "component") {
+    const relatif = output.match(/from\s+"\.\.?\/[^"]+"/);
+    if (relatif) {
+      throw new Error(
+        `${file.path} : chemin relatif non réécrit — ${relatif[0]}. ` +
+          `Un composant copié ne partage plus son dossier avec la lib.`,
+      );
+    }
   }
   return output;
 }

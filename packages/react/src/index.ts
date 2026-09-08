@@ -58,6 +58,15 @@ export type { GraphProps } from "./components/graph";
 export { Lightbox } from "./components/lightbox";
 export type { LightboxProps } from "./components/lightbox";
 
+/* La grille des jours vient de `react-day-picker` — ce sur quoi la `Calendar`
+   de shadcn est elle-même bâtie. Nova n'y ajoute que le cadran. */
+export { DatePicker } from "./components/date-picker";
+export type {
+  DatePickerProps,
+  DatePickerGranularity,
+  DatePickerLabels,
+} from "./components/date-picker";
+
 export { SmoothScroll } from "./components/smooth-scroll";
 export type { SmoothScrollProps } from "./components/smooth-scroll";
 
@@ -89,6 +98,8 @@ export type {
   MarqueeDirection,
   ScrollMarqueeOptions,
   RollTextOptions,
+  DialOptions,
+  DialInstance,
   SpotlightOptions,
   ScrollSceneOptions,
   TextHighlightOptions,

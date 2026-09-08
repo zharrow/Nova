@@ -3,13 +3,13 @@
 Librairie de composants animés, récoltée dans des projets en production plutôt
 qu'écrite d'une page blanche. Monorepo pnpm + Turborepo.
 
-**21 familles, 57 formes.** Une entrée du catalogue est une famille, pas une
+**22 familles, 60 formes.** Une entrée du catalogue est une famille, pas une
 pièce — voir [VARIANTES.md](VARIANTES.md).
 
 ```
 packages/
-  core/     @nova-ui/core   — 21 moteurs, TypeScript, sans React
-  react/    @nova-ui/react  — 18 composants + 4 crochets
+  core/     @nova-ui/core   — 22 moteurs, TypeScript, sans React
+  react/    @nova-ui/react  — 19 composants + 4 crochets
   cli/      novaui          — copie et installe, sans dépendance
 registry/                   — manifeste + sources réécrites pour la copie
 apps/docs/                  — vitrine Next.js sur shadcn
@@ -76,7 +76,8 @@ Deux questions, dans cet ordre.
 Une entrée du registry qui dépend d'un paquet le déclare dans `dependencies` :
 la CLI n'installe que ce qui manque, et seulement pour les composants demandés.
 Aujourd'hui — `gsap` pour `expand` et `lightbox`, `lenis` pour `smooth-scroll`,
-`radix-ui` pour `lightbox`.
+`radix-ui` pour `lightbox` et `date-picker`, `react-day-picker` pour
+`date-picker`.
 
 ## Après modification
 
@@ -119,11 +120,19 @@ Chacun a coûté un débogage. Ils sont ici pour ne pas le repayer.
 
 - **`"use client"` disparaît au bundling.** esbuild supprime le prologue de
   directive quand il fusionne des modules ; l'option `banner` de tsup n'y change
-  rien. `packages/react/scripts/add-use-client.mjs` la repose après le build, et
+  rien. `packages/react/scripts/add-use-client.mjs` la repose, et
   `test/bundle.test.ts` le vérifie. Ce test existe parce que l'étape a déjà été
   contournée en silence par un `dist` restauré du cache Turbo, et que l'erreur
   ne se voyait qu'au build du site consommateur, avec un message pointant vers
   React.
+  **Elle est reposée depuis `onSuccess` de `tsup.config.ts`, pas seulement
+  depuis le script `build`.** Le script `dev` du paquet est un `tsup --watch` :
+  il réécrit `dist` à chaque frappe sans jamais passer par le `&&` du script
+  de build. Un `pnpm dev` à la racine — celui qu'on laisse tourner toute la
+  journée — suffisait donc à produire un bundle sans directive, et le prochain
+  chargement de la vitrine échouait. Le `&&` du script `build` reste en place :
+  il garantit l'ordre avant que Turbo ne mette `dist/**` en cache. L'opération
+  est idempotente, la faire deux fois ne coûte rien.
 - **Un objet exporté d'un module `"use client"` ne traverse pas la frontière
   serveur.** Il arrive côté serveur en référence opaque, et l'indexer renvoie
   `undefined`. Voir `apps/docs/components/demos.tsx` : la table nom → composant
@@ -156,6 +165,14 @@ Chacun a coûté un débogage. Ils sont ici pour ne pas le repayer.
 
 ### CSS
 
+- **La vitrine ne scanne pas `packages/react`.** Tailwind ne détecte ses
+  sources que sous la racine du projet, et `@nova-ui/react` est ailleurs. Un
+  composant Nova qui porte des classes utilitaires arrive donc NU sur le site :
+  le panneau de `DatePicker` s'étalait sur toute la hauteur de la page, faute
+  de `h-60` généré. La ligne `@source "../../../packages/react/src";` dans
+  `globals.css` le règle. Le cas ne s'était jamais présenté parce que les
+  moteurs n'habillent rien — ils posent des attributs, et `nova.css` fait le
+  reste. `DatePicker` est le premier à s'habiller lui-même.
 - **La feuille de style de Nova est chargée APRÈS celle du projet.** À
   spécificité égale, elle gagne. Ne jamais y poser de dimension, de marge ou de
   couleur de fond sur un élément que l'appelant habille : `width: 100%` sur le
@@ -177,6 +194,15 @@ Chacun a coûté un débogage. Ils sont ici pour ne pas le repayer.
   `pointermove` tirent des dizaines d'événements par image, et chacun forcerait
   un calcul de mise en page. Voir `engines/scroll-scene.ts` et
   `engines/spotlight.ts`.
+- **Ne jamais mesurer par-dessus ce qu'on a soi-même écrit.** `clientHeight`
+  compte le rembourrage. `engines/dial.ts` en pose un pour que le premier item
+  puisse atteindre le centre — et le relisait ensuite dans sa propre mesure.
+  Sur un élément dont la hauteur suit son contenu, la boucle diverge : mesure,
+  rembourrage plus grand, mesure plus grande. La colonne avait atteint deux
+  mille cinq cents pixels sur la vitrine. Le moteur retire donc sa variable
+  avant de mesurer, ce qui rend la mesure idempotente, et le composant donne à
+  la colonne une hauteur DÉFINIE — un `height: 100%` sur un élément de grille
+  se replie sur la taille du contenu quand la piste ne l'est pas.
 
 ## Tests
 
@@ -218,6 +244,38 @@ options.
 - Les composants dont l'effet EST le geste du visiteur — `RollText`,
   `Spotlight`, `Cursor`, `Halftone` — n'ont pas de bouton rejouer. Ce serait une
   commande morte.
+- La touche **`F`** double chaque commande de rejeu, et le badge est écrit à
+  côté : un raccourci qu'on ne peut pas deviner n'existe pas. Un seul écouteur
+  pour toute la page — vingt-et-un écouteurs sur le catalogue partiraient
+  ensemble — et la cible est choisie à la frappe : le focus d'abord, le
+  pointeur ensuite, et à défaut la scène unique de la page. Voir
+  `components/raccourci-rejeu.ts`. Deux gardes non négociables : rien ne se
+  déclenche depuis un champ de saisie (taper « effet » dans la recherche
+  relançait une animation par `f`), ni avec une touche morte comme `⌘F`.
+
+## Banc de test
+
+`/banc` — hors vitrine, liée depuis aucune navigation, et **absente de la
+production** : la route y répond 404 et le code des brouillons n'est même pas
+livré. `noindex` ne suffisait pas — il demande aux moteurs de ne pas indexer,
+il n'empêche personne d'ouvrir l'adresse. La garde tient à une branche morte à
+la compilation : `process.env.NODE_ENV` devient une constante au build, et
+l'import dynamique du banc part avec la branche. Un import en tête de fichier
+laissait la page en 404 mais expédiait quand même l'établi.
+
+Trois usages qu'une fiche ne couvre pas : régler un composant **au-delà** des options curées
+de sa fiche (éditeur de props JSON), le voir changer de plan, de hauteur,
+d'alignement et de largeur sans toucher au code, et essayer un **brouillon**.
+
+Un brouillon est un candidat qui n'est pas encore dans `packages/core`. Il vit
+dans `apps/docs/brouillons/`, apparaît sur le banc au même titre qu'une famille,
+et sert à juger avant de lui écrire un moteur, une entrée de registry et une
+fiche. Ajouter un brouillon : le composant, puis une ligne dans `BROUILLONS`.
+
+Un brouillon n'est **pas** une exception aux règles du dépôt — c'est une étape
+avant de les appliquer. Ce qu'il doit prouver avant de passer en `packages` :
+état par défaut visible, mouvement réduit respecté, démontage propre, et une
+seule boucle partagée plutôt qu'un `requestAnimationFrame` local.
 
 ## Direction graphique
 
