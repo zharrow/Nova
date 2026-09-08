@@ -285,6 +285,14 @@ typographie, espacement, formes, mise en scène. À lire avant de toucher au ren
 
 Le point fixe : **le mouvement est l'objet**. Tout s'efface pour la démonstration.
 
+La barre, elle, est en tête de DESIGN.md et vaut pour tout ce qui se voit :
+**« correct » est un échec**. Une surface peut respecter le budget de contraste, le
+rationnement du signal et toute la section anti-slop, et rester banale — la
+conformité n'est pas la barre. Trois tests avant de proposer quoi que ce soit de
+visuel : le trope (l'ai-je déjà vu ailleurs ?), la nécessité (cet objet ne
+pourrait-il venir que d'ici ?), le détail gratuit (y a-t-il une chose que personne
+n'a demandée et que personne n'oubliera ?). Une seule qui tombe, on reprend.
+
 Trois règles s'y vérifient en relecture de différence, et ce sont celles dont le reste
 dépend :
 

@@ -27,6 +27,37 @@ lumineuse.
 
 Humeur : nuit d'atelier, pas nuit de startup. Énergie : immobile, sauf un point.
 
+## Barre de qualité
+
+**« Correct » est un échec.** Chaque composant, et chaque surface qui le présente, doit
+pouvoir tenir seul devant un jury Awwwards. Ce n'est pas une figure de style : la
+librairie vend de l'exécution visuelle, et une démonstration qui ressemble à un
+placeholder d'agence détruit l'argument avant qu'on ait lu une ligne d'API.
+
+Le reste de ce document dit ce qu'il est interdit de rater. Cette section dit ce qu'il
+ne suffit pas de réussir. **La conformité n'est pas la barre** — une surface peut
+respecter le budget de contraste, le rationnement du signal et toute la section
+anti-slop, et rester banale. Le 8 septembre 2026, une mire de réglage techniquement
+juste a été rejetée pour cette seule raison.
+
+Trois tests, avant de proposer une surface. Une seule qui tombe, on reprend.
+
+1. **Le test du trope.** Est-ce que je l'ai déjà vu ailleurs ? Une mire d'imprimeur, une
+   grille de points, un terminal stylisé, un dégradé de bruit : ce sont des objets
+   trouvés. Ils rassurent parce qu'ils sont familiers, et c'est exactement le problème.
+2. **Le test de la nécessité.** Est-ce que cet objet ne pourrait venir que de CE projet ?
+   S'il pourrait illustrer n'importe quelle librairie, il n'illustre pas la nôtre. La
+   bonne réponse tire sa forme de la matière du dépôt — une courbe d'accélération, un
+   relevé de moteur, un découpage de lames — pas d'un imaginaire d'atelier générique.
+3. **Le test du détail gratuit.** Y a-t-il une chose que personne n'a demandée et que
+   personne n'oubliera ? Une poignée de contrôle tracée là où un trait aurait suffi, une
+   graduation dont le pas change à mi-course. Un seul par surface : deux font du bruit,
+   zéro fait un gabarit.
+
+Ce qui fait tomber une surface à tous les coups : le remplissage neutre, le faux contenu
+(lorem, titre d'article, mot d'ordre), la symétrie parfaite sans accident, et l'accessoire
+ajouté parce que la place était vide.
+
 ## Contexte
 
 - **Ce que c'est** : la vitrine de documentation d'une librairie de composants animés
@@ -395,8 +426,17 @@ Jamais, sans discussion : dégradé violet ou dégradé visible de quelque sorte
 dégradés ne sont autorisés qu'en `mask-image`, pour les fondus de bord de marquee) ;
 grille de trois icônes dans des cercles colorés ; page centrée ; forme floue
 décorative ; glassmorphism, toutes les surfaces sont opaques ; photographie ou
-illustration — les seules images du site sont les composants eux-mêmes et des formes
-calculées ; `system-ui` en police d'affichage ou de texte ; Inter, Geist, Space Grotesk.
+illustration — les seules images du site sont les composants eux-mêmes, des formes
+calculées, et **la marque** ; `system-ui` en police d'affichage ou de texte ; Inter,
+Geist, Space Grotesk.
+
+La marque est la seule ressource graphique du site, et elle est posée en **masque**,
+jamais en `<img>` : le fichier livré est un raster noir sur transparent, seul son canal
+alpha est lu, et la couleur vient de `currentColor`. Un fichier, les deux modes, et la
+marque se comporte comme un glyphe. Son lettrage, lui, ne sert nulle part sur le site :
+c'est un grotesque géométrique arrondi, et le poser à côté de Bricolage Grotesque
+mettrait deux voix typographiques dans le même bandeau. Le nom s'écrit dans la police du
+site, à côté du symbole.
 
 Iconographie limitée à quatre icônes fonctionnelles — chevron, copier, valider, fermer —
 à 16px, trait 1,5px, `currentColor`, jamais colorées, jamais dans un cercle.
@@ -443,3 +483,7 @@ Ce document sert à éviter que chaque écran soit redécidé à la main, pas à
 | 2026-09-08 | Le filet de tête part du bord du banc, pas du bord de l'écran | Tiré sur toute la largeur, il barrait le titre comme un texte rayé. Le geste d'affiche ne vaut rien s'il abîme la ligne qu'il doit aligner. |
 | 2026-09-08 | Rayons nommés par leur rôle (`presse` / `plan`), `rounded-nova` retiré du code applicatif | L'ancien nom valait 2 px et pointait désormais sur 8 px : il rendait, mais ne disait plus ce qu'il faisait. La pointe de l'infobulle garde un rayon propre de 2 px, sinon elle devient un disque. |
 | 2026-09-08 | Aucun titre ne s'anime | Une librairie d'animation dont le chrome s'anime enseigne que le mouvement est décoratif. |
+| 2026-09-08 | Barre de qualité inscrite en tête, avec ses trois tests | Le document disait ce qu'il est interdit de rater, jamais ce qu'il ne suffit pas de réussir. Une surface conforme et banale passait toutes les relectures. Les trois tests rendent le refus argumentable au lieu de le laisser au goût. |
+| 2026-09-08 | Ce qu'une démonstration découvre porte la marque | Le tracé de la courbe passait les trois tests, mais répondait à la mauvaise question : un rideau d'ouverture ne se lève pas sur un diagramme, il se lève sur une marque — c'est le seul usage réel que le composant ait. Les réglettes graduées restent : sans elles la scène devient un écran de démarrage, et la vitrine est un banc d'essai. Le tracé de courbe part dans le sélecteur de courbe, où il fait un travail au lieu de décorer. |
+| 2026-09-08 | La marque en masque CSS, son lettrage nulle part | Le kit livre un raster : en `<img>` il faudrait deux fichiers et une bascule au thème, en masque il en faut un et il hérite de `currentColor`. Le lettrage du kit est d'une autre famille que Bricolage Grotesque — deux voix dans un bandeau de 56 px. |
+| 2026-09-08 | Ce qu'une démonstration découvre trace la courbe signature | Le faux titre d'article était du remplissage, et la mire de réglage qui l'a remplacé échouait au test du trope et à celui de la nécessité : elle aurait illustré n'importe quelle librairie. `cubic-bezier(0.16, 1, 0.3, 1)` est ce qui donne à chaque moteur sa sensation — c'est le seul fond qui ne pouvait venir que d'ici. |
