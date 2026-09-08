@@ -468,20 +468,25 @@ export function DemoTextEffect({ forme = "line", compact, geometrie, nomAffiche,
           key={cle}
           as="p"
           {...reglages}
-          /* « Bâtir en verre » faisait trois mots : sur un effet dont la
-             matière EST le décalage entre les grains, trois mots ne montrent
-             rien. Une phrase entière rend le `stagger` lisible, et la
-             différence entre un grain mot et un grain lettre devient visible
-             au lieu d'être une note de bas de page. */
-          /* Le texte du visiteur gagne, s'il y en a un. L'étalement des
+          /* UNE PHRASE, PAS TROIS MOTS. Sur un effet dont la matière EST le
+             décalage entre les grains, trois mots ne montrent rien : il faut
+             assez de mots pour que le `stagger` se lise et que la différence
+             entre grain mot et grain lettre devienne visible.
+
+             La phrase dit la doctrine du dépôt et rien d'autre. Aucune ne doit
+             parler d'un métier, d'une marque ou d'un client — c'est de la
+             provenance, et DESIGN.md dit que la vitrine n'en parle pas.
+
+             Le texte du visiteur gagne, s'il y en a un. L'étalement des
              réglages est AVANT cette ligne : sans le `??`, la phrase codée en
              dur écraserait le champ et il ne servirait à rien. Les formes de
              défilement gardent leur paragraphe — une phrase de titre ne
              démontre pas un effet qui se joue sur toute une hauteur. */
           text={
             defilement
-              ? "Le conseil que nous vendons, nous le pratiquons d'abord sur nous-mêmes."
-              : ((reglages?.text as string) ?? "Bâtir en verre, tenir la lumière")
+              ? "Un mouvement réussi ne se remarque pas : on sent le geste, jamais l'effet."
+              : ((reglages?.text as string) ??
+                "Le texte reste lisible, puis il s'anime")
           }
           effect={forme as never}
           trigger={defilement ? undefined : "mount"}
@@ -553,7 +558,7 @@ export function DemoMarquee({ forme = "left", compact, geometrie, nomAffiche, re
             pauseOnHover
             className="py-2"
           >
-            {["ATELIER", "VERRE", "MÉTAL", "LUMIÈRE", "TRAME"].map((mot) => (
+            {["MOUVEMENT", "MESURE", "RYTHME", "MATIÈRE", "REPOS"].map((mot) => (
               <span
                 key={mot}
                 className="mr-10 font-mono text-lg tracking-[0.18em] text-sourdine"
@@ -577,7 +582,7 @@ export function DemoScrollMarquee({ compact, geometrie, nomAffiche, reglages, nu
     <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="w-full">
         <ScrollMarquee key={cle} drift={40} gap="1.5rem" className="py-2" {...reglages}>
-          {["PRÉVOIR", "SÉCURISER", "LIBÉRER"].map((mot) => (
+          {["OBSERVER", "MESURER", "RÉGLER"].map((mot) => (
             <span
               key={mot}
               className="mr-6 inline-flex items-center gap-6 font-mono text-lg tracking-[0.16em] text-sourdine"
@@ -1194,8 +1199,8 @@ export function DemoTextHighlight({ compact, geometrie, nomAffiche, reglages, nu
             compact ? "text-sm" : "text-base",
           )}
         >
-          Le conseil que nous vendons, nous le pratiquons d&apos;abord sur
-          nous-mêmes.
+          Un mouvement réussi ne se remarque pas : on sent le geste, jamais
+          l&apos;effet.
         </span>
       </TextHighlight>
     </Scene>

@@ -188,7 +188,7 @@ export const REGLAGES: Record<string, Reglage[]> = {
     C("js", "expoOut"),
   ],
   "text-effect": [
-    T("text", "Votre texte", "Bâtir en verre, tenir la lumière"),
+    T("text", "Votre texte", "Le texte reste lisible, puis il s'anime"),
     N("duration", "Durée", 200, 3000, 50, 900, "ms"),
     C("css", EXPO),
   ],
@@ -432,7 +432,7 @@ export const catalogue: Fiche[] = [
       { nom: "duration", type: "number", defaut: "900", role: "Durée d'une unité, en ms." },
       { nom: "easing", type: "string", defaut: "courbe du catalogue", role: "Timing CSS." },
     ],
-    usage: `<TextEffect as="h1" text="Bâtir en verre" effect="line" />
+    usage: `<TextEffect as="h1" text="Le texte reste lisible" effect="line" />
 <TextEffect text="NOVA" effect="wave" />
 
 /* Au défilement — aucune durée, c'est la molette qui donne le temps : */
@@ -542,8 +542,8 @@ export const catalogue: Fiche[] = [
       { nom: "gap", type: "string", defaut: "0px", role: "Écart entre deux copies." },
     ],
     usage: `<Marquee speed={80} gap="3rem" pauseOnHover>
-  <span>ATELIER</span>
-  <span>VERRE</span>
+  <span>MOUVEMENT</span>
+  <span>MESURE</span>
 </Marquee>
 
 /* Colonne de texture, à la verticale : */
@@ -856,7 +856,7 @@ export const catalogue: Fiche[] = [
     ],
     usage: `/* Une seule fois, dans le layout racine : */
 <Loader form="blades" onDone={() => setPret(true)}>
-  <p>Bât &amp; Verre — Maison de lumière</p>
+  <p>Votre logo</p>
 </Loader>`,
   },
   {

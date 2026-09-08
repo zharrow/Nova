@@ -14,7 +14,7 @@ export type TextEffectProps<Tag extends ElementType = "span"> = PolymorphicProps
 /**
  * Texte animé — dix-sept traitements sur un même primitif de fragmentation.
  *
- * Rendre un titre : `<TextEffect as="h1" text="Bâtir en verre" effect="line" />`.
+ * Rendre un titre : `<TextEffect as="h1" text="Nova en mouvement" effect="line" />`.
  * Le titre reste annoncé d'une seule traite aux lecteurs d'écran, le texte est
  * rendu dès le serveur, et en `prefers-reduced-motion` rien n'est fragmenté du
  * tout — le texte reste brut.
