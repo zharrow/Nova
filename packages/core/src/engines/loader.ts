@@ -120,6 +120,13 @@ export function createLoader(
   /** Termine le rideau après sa sortie. */
   function sortir(): void {
     if (fini) return;
+    // Le défilé s'arrête AVANT la sortie. Un mot qui continue de changer
+    // pendant que le contenu s'efface donne deux mouvements contradictoires,
+    // et on ne lit ni l'un ni l'autre.
+    if (cycle !== null) {
+      clearInterval(cycle);
+      cycle = null;
+    }
     element.dataset.novaLoaderState = "leaving";
     minuteries.push(setTimeout(terminer, config.exitMs));
   }
@@ -167,15 +174,25 @@ export function createLoader(
     if (config.form === "blades") {
       const rideau = document.createElement("div");
       rideau.className = "nova-loader__blades";
+
+      // TOUTE la chorégraphie tient dans `exitMs`, dernière lame comprise.
+      // Le rideau est retiré de la page à la fin de ce budget : une lame
+      // encore en course y était coupée net, et la sortie se terminait par un
+      // saut au lieu d'un retrait. L'ancien calcul dépassait de 30 % —
+      // 292 ms de décalage plus 630 ms de course pour un budget de 700.
+      // 55 % pour la course d'une lame, 40 % pour l'étalement, 5 % de marge :
+      // une transition démarre à l'image SUIVANTE, pas au poser de l'attribut.
+      const course = config.exitMs * 0.55;
+      const etalement =
+        config.blades > 1 ? (config.exitMs * 0.4) / (config.blades - 1) : 0;
+      element.style.setProperty("--nova-loader-blade", `${course}ms`);
+
       for (let index = 0; index < config.blades; index++) {
         const lame = document.createElement("span");
         lame.className = "nova-loader__blade";
         // Les lames se retirent l'une après l'autre : c'est le décalage qui
         // fait le calepinage, pas un rideau qui tombe d'un bloc.
-        lame.style.setProperty(
-          "--nova-blade-delay",
-          `${index * (config.exitMs / (config.blades * 2))}ms`,
-        );
+        lame.style.setProperty("--nova-blade-delay", `${index * etalement}ms`);
         rideau.appendChild(lame);
       }
       element.appendChild(rideau);
@@ -185,18 +202,30 @@ export function createLoader(
 
     if (config.form === "greetings") {
       const mots = config.greetings ?? SALUTATIONS;
+      // L'entrée d'un mot doit se terminer avant l'arrivée du suivant, sinon
+      // on lit un fondu permanent au lieu d'une succession de mots.
+      element.style.setProperty("--nova-loader-step", `${config.stepMs}ms`);
+
       const mot = document.createElement("span");
       mot.className = "nova-loader__greeting";
       mot.textContent = mots[0] ?? "";
+      mot.dataset.novaParite = "0";
       contenu.appendChild(mot);
 
       let index = 0;
+      let pas = 0;
       cycle = setInterval(() => {
         index = (index + 1) % mots.length;
         mot.textContent = mots[index] ?? "";
-        // La clé de rejeu de l'animation : retirer et reposer l'attribut ne
-        // suffirait pas dans la même image.
-        mot.dataset.novaStep = String(index);
+        // CHANGER UN ATTRIBUT NE REJOUE PAS UNE ANIMATION CSS. Changer son
+        // `animation-name`, si : la parité fait alterner entre deux keyframes
+        // identiques sous deux noms. Sans cela l'animation jouait une fois,
+        // au montage, et les dix-neuf mots suivants se substituaient d'un
+        // coup — c'est le clignotement qu'on prenait pour un rideau raté.
+        // La parité compte les PAS, pas l'index : une liste de longueur
+        // impaire reboucle sur la même parité et ne rejouerait rien.
+        pas += 1;
+        mot.dataset.novaParite = pas % 2 === 0 ? "0" : "1";
       }, config.stepMs);
     }
   }
@@ -242,6 +271,8 @@ export function createLoader(
       delete element.dataset.novaLoader;
       delete element.dataset.novaLoaderState;
       element.style.removeProperty("--nova-loader-exit");
+      element.style.removeProperty("--nova-loader-blade");
+      element.style.removeProperty("--nova-loader-step");
     },
   };
 }

@@ -565,22 +565,41 @@
 .nova-loader__blade {
   flex: 1;
   margin-right: -1px;
-  background: var(--nova-loader-color, var(--nova-fond, #fff));
+  /* `currentColor` comme `blinds` : un `#fff` en dur posait un aplat blanc
+     sur toute application sombre, et c'est le premier réglage qu'on oublie. */
+  background: var(--nova-loader-color, var(--nova-fond, currentColor));
   transform-origin: 50% 0%;
-  transition: transform calc(var(--nova-loader-exit, 700ms) * 0.9)
+  /* La durée vient du moteur : lui seul connaît le nombre de lames, donc
+     l'étalement, donc ce qui reste du budget de sortie pour une course. */
+  transition: transform
+    var(--nova-loader-blade, calc(var(--nova-loader-exit, 700ms) * 0.55))
     var(--nova-ease-expo) var(--nova-blade-delay, 0ms);
 }
 [data-nova-loader-state="leaving"] .nova-loader__blade {
   transform: scaleY(0);
 }
 
-/* `greetings` — le mot d'accueil, remplacé à chaque pas. */
+/* `greetings` — le mot d'accueil, remplacé à chaque pas.
+
+   DEUX KEYFRAMES IDENTIQUES SOUS DEUX NOMS. Une animation ne se rejoue pas
+   parce qu'un attribut a changé — elle se rejoue parce que son
+   `animation-name` a changé. Le moteur alterne donc la parité à chaque mot.
+   Avec un seul nom, l'animation ne jouait qu'au montage : le premier mot
+   entrait, les suivants se substituaient sans transition. */
 .nova-loader__greeting {
   display: block;
-  animation: nova-loader-greeting 150ms ease-out;
+  animation: nova-loader-greeting-a
+    calc(var(--nova-loader-step, 200ms) * 0.6) var(--nova-ease-out) both;
 }
-@keyframes nova-loader-greeting {
-  from { opacity: 0; transform: translateY(0.6rem); }
+.nova-loader__greeting[data-nova-parite="1"] {
+  animation-name: nova-loader-greeting-b;
+}
+@keyframes nova-loader-greeting-a {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes nova-loader-greeting-b {
+  from { opacity: 0; transform: translateY(0.5rem); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -929,18 +948,38 @@ html.lenis body {
    rien, donc il ne demande aucun espace autour du bloc.
    Le flou est cher — il repeint à chaque image, sur chaque mot. Acceptable
    sur un titre au chargement, à proscrire sur un paragraphe entier lié au
-   défilement. */
+   défilement.
+
+   AUCUN FILTRE NE RESTE AU REPOS, et ce n'est pas un détail. Un filtre, même
+   nul, fait composer l'élément dans sa propre couche, et le texte y perd son
+   anticrénelage sous-pixel : un mot dont la boîte tombe à une abscisse
+   fractionnaire — « en » à x = 636,219 dans le titre de la fiche — restait
+   visiblement flou une fois l'animation finie, alors que ses voisins étaient
+   nets. C'est le bug qu'on croit voir comme « une partie du texte redevient
+   floue à la fin ».
+
+   Finir la keyframe sur `filter: none` NE SUFFIT PAS : dans une
+   interpolation, `none` vaut la liste identité, et la valeur calculée en fin
+   de course se sérialise `blur(0px)` — la couche reste. Le remède est
+   ailleurs : `animation-fill-mode: backwards` au lieu de `both`, et l'état
+   final déclaré SUR L'ÉLÉMENT. Pendant le retard, le remplissage arrière
+   donne la première keyframe ; après la course, l'animation ne s'applique
+   plus et l'élément retombe sur son propre style, sans filtre.
+   Vaut pour les quatre effets qui floutent au montage. `reading-blur` en est
+   exempt : piloté par le défilement, il ne se termine jamais. */
 [data-nova-text="blur"] .nova-word-i {
   filter: blur(13px);
   opacity: 0;
 }
 [data-nova-text="blur"][data-nova-play] .nova-word-i {
-  animation: nova-text-blur 950ms ease-out both;
+  filter: none;
+  opacity: 1;
+  animation: nova-text-blur 950ms ease-out backwards;
   animation-delay: calc(var(--nova-l, 0) * 80ms + var(--nova-w, 0) * 55ms);
 }
 @keyframes nova-text-blur {
   from { filter: blur(13px); opacity: 0; }
-  to   { filter: blur(0);    opacity: 1; }
+  to   { filter: none;       opacity: 1; }
 }
 
 /* --- focus — mise au point ------------------------------------------------
@@ -955,12 +994,15 @@ html.lenis body {
   transform: scale(1.07);
 }
 [data-nova-text="focus"][data-nova-play] .nova-word-i {
-  animation: nova-text-focus 1s var(--nova-text-easing) both;
+  filter: none;
+  opacity: 1;
+  transform: none;
+  animation: nova-text-focus 1s var(--nova-text-easing) backwards;
   animation-delay: calc(var(--nova-m, 0) * 48ms);
 }
 @keyframes nova-text-focus {
   from { filter: blur(15px); opacity: 0; transform: scale(1.07); }
-  to   { filter: blur(0);    opacity: 1; transform: none; }
+  to   { filter: none;       opacity: 1; transform: none; }
 }
 
 /* --- center — depuis le centre --------------------------------------------
@@ -974,12 +1016,15 @@ html.lenis body {
   transform: translateY(14px);
 }
 [data-nova-text="center"][data-nova-play] .nova-word-i {
-  animation: nova-text-center 800ms var(--nova-text-easing) both;
+  filter: none;
+  opacity: 1;
+  transform: none;
+  animation: nova-text-center 800ms var(--nova-text-easing) backwards;
   animation-delay: calc(var(--nova-dist, 0) * 620ms);
 }
 @keyframes nova-text-center {
   from { opacity: 0; filter: blur(9px); transform: translateY(14px); }
-  to   { opacity: 1; filter: blur(0);   transform: none; }
+  to   { opacity: 1; filter: none;      transform: none; }
 }
 
 /* --- shear — cisaille -----------------------------------------------------
@@ -1031,11 +1076,14 @@ html.lenis body {
   filter: blur(5px);
 }
 [data-nova-text="tracking"][data-nova-play] .nova-text {
-  animation: nova-text-tracking 1.1s var(--nova-text-easing) both;
+  letter-spacing: inherit;
+  opacity: 1;
+  filter: none;
+  animation: nova-text-tracking 1.1s var(--nova-text-easing) backwards;
 }
 @keyframes nova-text-tracking {
   from { letter-spacing: 0.42em;  opacity: 0; filter: blur(5px); }
-  to   { letter-spacing: inherit; opacity: 1; filter: blur(0); }
+  to   { letter-spacing: inherit; opacity: 1; filter: none; }
 }
 
 /* --- weight — graisse -----------------------------------------------------
@@ -1176,7 +1224,7 @@ html.lenis body {
   }
   @keyframes nova-text-sharpen {
     from { filter: blur(6px); opacity: 0.25; }
-    to   { filter: blur(0);   opacity: 1; }
+    to   { filter: none;      opacity: 1; }
   }
 
   /* --- highlight — surlignage ---------------------------------------------

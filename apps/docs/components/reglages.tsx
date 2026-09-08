@@ -1,6 +1,8 @@
 "use client";
 
 import type { Reglage } from "@/lib/catalogue";
+import { courbesDe, trouverCourbe } from "@/lib/courbes";
+import { VignetteCourbe } from "./courbe";
 
 export type Valeurs = Record<string, number | boolean | string>;
 
@@ -54,7 +56,16 @@ export function Reglages({
 
       <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
         {reglages.map((reglage) => (
-          <div key={reglage.nom} className="min-w-0">
+          <div
+            key={reglage.nom}
+            className={
+              // Huit vignettes de courbe ne tiennent pas dans une demi-colonne :
+              // le sélecteur prend la largeur, les curseurs restent appariés.
+              reglage.type === "courbe" || reglage.type === "texte"
+                ? "min-w-0 sm:col-span-2"
+                : "min-w-0"
+            }
+          >
             <div className="mb-1.5 flex items-baseline justify-between gap-3">
               <label
                 htmlFor={`reglage-${reglage.nom}`}
@@ -71,6 +82,18 @@ export function Reglages({
                   {reglage.unite ? (
                     <span className="text-sourdine"> {reglage.unite}</span>
                   ) : null}
+                </span>
+              ) : reglage.type === "texte" ? (
+                <span className="valeur shrink-0 text-[12px] text-sourdine">
+                  {String(valeurs[reglage.nom]).length}
+                  {reglage.max ? ` / ${reglage.max}` : ""}
+                </span>
+              ) : reglage.type === "courbe" ? (
+                /* La valeur EXACTE, telle qu'on l'écrirait. C'est la moitié de
+                   l'intérêt du sélecteur : on choisit sur le dessin, et on
+                   repart avec la chaîne à coller. */
+                <span className="valeur shrink-0 text-[12px] text-encre">
+                  {String(valeurs[reglage.nom])}
                 </span>
               ) : null}
             </div>
@@ -97,7 +120,34 @@ export function Reglages({
               >
                 {valeurs[reglage.nom] ? "activé" : "désactivé"}
               </button>
-            ) : (
+            ) : reglage.type === "texte" ? (
+              /* Le champ est la seule commande du panneau qui produise du
+                 CONTENU et non un nombre. Il prend donc la largeur, et sa
+                 taille de texte est celle d'une saisie, pas d'une étiquette —
+                 on écrit ici ce qu'on lira là-bas. La scène se remonte 220 ms
+                 après la dernière frappe, comme pour un curseur : remonter à
+                 chaque lettre rejouerait l'effet sur un mot en cours
+                 d'écriture. */
+              <input
+                id={`reglage-${reglage.nom}`}
+                type="text"
+                value={String(valeurs[reglage.nom])}
+                maxLength={reglage.max}
+                spellCheck={false}
+                onChange={(e) => onChange(reglage.nom, e.target.value)}
+                placeholder={reglage.defaut}
+                className="w-full rounded-presse border border-filet bg-fond px-3 py-2 text-[14px] text-encre outline-none transition-colors placeholder:text-sourdine focus-visible:border-filet-vif"
+              />
+            ) : reglage.type === "courbe" ? (
+              <SelecteurCourbe
+                reglage={reglage}
+                valeur={String(valeurs[reglage.nom])}
+                onChange={(v) => onChange(reglage.nom, v)}
+              />
+            ) : reglage.type === "choix" ? (
+              /* La branche est explicite et non un `else` : avec cinq types de
+                 réglage, un `else` ne narrowerait plus rien et `choix` ne
+                 serait plus garanti sur le réglage. */
               <div className="flex flex-wrap gap-1.5">
                 {reglage.choix.map((choix) => (
                   <button
@@ -116,10 +166,69 @@ export function Reglages({
                   </button>
                 ))}
               </div>
-            )}
+            ) : null}
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Le sélecteur de courbe.
+ *
+ * Chaque bouton porte le TRACÉ de sa courbe à côté de son nom, et c'est tout
+ * l'intérêt : on choisit sur le dessin. Personne ne retient de tête ce que
+ * fait `cubic-bezier(0.34, 1.56, 0.64, 1)`, et « ease-in » se confond avec
+ * « ease-out » une fois sur deux — mais une courbe qui dépasse le haut du
+ * cadre avant de revenir se comprend sans légende.
+ *
+ * La note de la courbe choisie s'affiche dessous, et elle ne décrit pas la
+ * forme (le dessin s'en charge) : elle dit À QUOI ÇA SERT. C'est la seule
+ * chose que le tracé ne peut pas montrer.
+ */
+function SelecteurCourbe({
+  reglage,
+  valeur,
+  onChange,
+}: {
+  reglage: Extract<Reglage, { type: "courbe" }>;
+  valeur: string;
+  onChange: (valeur: string) => void;
+}) {
+  const courbes = courbesDe(reglage.vocabulaire);
+  const choisie = trouverCourbe(reglage.vocabulaire, valeur);
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-1.5">
+        {courbes.map((courbe) => {
+          const actif = courbe.valeur === valeur;
+          return (
+            <button
+              key={courbe.valeur}
+              type="button"
+              aria-pressed={actif}
+              onClick={() => onChange(courbe.valeur)}
+              title={courbe.note}
+              className={[
+                "flex items-center gap-2 rounded-presse border px-2 py-1.5 transition-colors",
+                actif
+                  ? "border-filet-vif text-encre"
+                  : "border-filet text-second hover:border-filet-vif hover:text-encre",
+              ].join(" ")}
+            >
+              <VignetteCourbe courbe={courbe} actif={actif} />
+              <span className="valeur text-[11px]">{courbe.etiquette}</span>
+            </button>
+          );
+        })}
+      </div>
+      {choisie ? (
+        <p className="mt-2.5 max-w-[62ch] text-[12px] leading-relaxed text-second">
+          {choisie.note}
+        </p>
+      ) : null}
     </div>
   );
 }

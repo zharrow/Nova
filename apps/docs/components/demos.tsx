@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRaccourciRejeu } from "./raccourci-rejeu";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Plaque, Repere } from "./plaque";
 import {
   Reveal,
   RevealGroup,
@@ -254,6 +255,42 @@ function Touche() {
 }
 
 /**
+ * Vrai dès que le nœud est entré dans la vue, et le reste.
+ *
+ * Le rideau d'ouverture est la seule famille dont la démonstration ne peut pas
+ * jouer au montage. Sur la grille, les vingt-deux démos sont montées d'un
+ * coup : le rideau faisait sa seconde et demie pendant que le visiteur était
+ * encore en haut de page, et on n'arrivait jamais que sur l'APRÈS — une scène
+ * découverte, sans avoir vu ce qui la couvrait. C'était le premier symptôme
+ * de « ils passent trop vite ».
+ *
+ * L'attente vit dans la DÉMONSTRATION, pas dans le moteur : en production un
+ * rideau couvre au montage, c'est tout son intérêt.
+ */
+function useEnVue<T extends HTMLElement>() {
+  const [noeud, setNoeud] = useState<T | null>(null);
+  const [enVue, setEnVue] = useState(false);
+
+  useEffect(() => {
+    if (!noeud || enVue) return;
+    const observateur = new IntersectionObserver(
+      ([entree]) => {
+        if (!entree?.isIntersecting) return;
+        setEnVue(true);
+        observateur.disconnect();
+      },
+      // Plus de la moitié de la scène : un rideau aperçu par le bord de
+      // l'écran serait fini avant d'être lisible.
+      { threshold: 0.55 },
+    );
+    observateur.observe(noeud);
+    return () => observateur.disconnect();
+  }, [noeud, enVue]);
+
+  return { ref: setNoeud, enVue };
+}
+
+/**
  * Remonte ses enfants à chaque appel de `rejouer`.
  *
  * La clé inclut la forme courante : changer de forme depuis le sélecteur
@@ -436,10 +473,15 @@ export function DemoTextEffect({ forme = "line", compact, geometrie, nomAffiche,
              rien. Une phrase entière rend le `stagger` lisible, et la
              différence entre un grain mot et un grain lettre devient visible
              au lieu d'être une note de bas de page. */
+          /* Le texte du visiteur gagne, s'il y en a un. L'étalement des
+             réglages est AVANT cette ligne : sans le `??`, la phrase codée en
+             dur écraserait le champ et il ne servirait à rien. Les formes de
+             défilement gardent leur paragraphe — une phrase de titre ne
+             démontre pas un effet qui se joue sur toute une hauteur. */
           text={
             defilement
               ? "Le conseil que nous vendons, nous le pratiquons d'abord sur nous-mêmes."
-              : "Bâtir en verre, tenir la lumière"
+              : ((reglages?.text as string) ?? "Bâtir en verre, tenir la lumière")
           }
           effect={forme as never}
           trigger={defilement ? undefined : "mount"}
@@ -827,9 +869,23 @@ export function DemoBrushUnderline({ compact, geometrie, nomAffiche, reglages, n
  * Le rideau est monté DANS la scène, pas sur la page : `position: fixed` le
  * sortirait de son encadré et couvrirait tout le site. Une démonstration ne
  * doit pas faire ce que le composant ferait en production.
+ *
+ * Deux réglages qui n'en ont pas l'air.
+ *
+ * LE FOND EST PORTÉ PAR LA FORME, pas par la scène. Pour `blades`, ce sont les
+ * LAMES le rideau : un fond opaque sur la racine les rendait décoratives — on
+ * les voyait se retirer sur un panneau qui, lui, restait plein jusqu'au
+ * `display: none` final. Le retrait ne découvrait rien, et la scène
+ * réapparaissait d'un saut. Les trois autres formes n'ont pas de rideau propre
+ * et ont donc besoin de ce fond.
+ *
+ * LE RIDEAU ATTEND D'ÊTRE REGARDÉ. Voir `useEnVue`.
  */
 export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
+  const { ref, enVue } = useEnVue<HTMLDivElement>();
+  const lames = forme === "blades";
+
   return (
     <Scene
       onRejouer={rejouer}
@@ -839,35 +895,42 @@ export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, r
       nu={nu}
       className="isolate"
     >
-      <Loader
-        key={cle}
-        form={forme as never}
-        /* `null` : le rideau doit rejouer à chaque clic sur « rejouer ». En
-           production il ne rejoue pas dans la même session. */
-        sessionKey={null}
-        holdMs={1600}
-        exitMs={700}
-        skippable={false}
-        className="!absolute inset-0 !z-10 bg-surface"
-      >
-        {forme === "greetings" ? null : (
-          <p className="valeur text-sm tracking-[0.16em] text-sourdine">NOVA</p>
-        )}
-      </Loader>
-      {/* Un rideau qui se lève sur un mot ne démontre pas un rideau : il faut
-          que la page découverte VAILLE d'être découverte, sinon on ne sait pas
-          si quelque chose s'est passé. */}
-      <div className="w-full max-w-sm">
-        <p className="titre text-2xl leading-tight">Bâtir en verre</p>
-        <p className="mt-2 text-sm leading-relaxed text-prose">
-          Le rideau vient de se retirer sur cette page. C&apos;est ce
-          qu&apos;elle cachait.
-        </p>
-        <div className="mt-4 flex gap-2">
-          <span className="h-1 flex-1 bg-encre/25" />
-          <span className="h-1 flex-1 bg-encre/15" />
-          <span className="h-1 flex-1 bg-encre/10" />
-        </div>
+      {enVue ? (
+        <Loader
+          key={cle}
+          form={forme as never}
+          /* `null` : le rideau doit rejouer à chaque clic sur « rejouer ». En
+             production il ne rejoue pas dans la même session. */
+          sessionKey={null}
+          /* Plus lent que le défaut de la librairie, et volontairement : sur
+             une vraie page on traverse un rideau, sur une fiche on le REGARDE.
+             Les curseurs de la fiche passent après et gagnent. */
+          holdMs={1800}
+          exitMs={1000}
+          stepMs={340}
+          skippable={false}
+          className={cn(
+            "!absolute inset-0 !z-10",
+            lames ? "bg-transparent" : "bg-banc-haut",
+          )}
+          /* Les lames prennent le plan interne d'une scène : assez proche du
+             banc pour rester du décor, assez distinct pour qu'on voie les
+             joints filer l'un après l'autre. */
+          style={{ ["--nova-loader-color" as string]: "var(--banc-haut)" }}
+          {...reglages}
+        >
+          {/* Le voile porte un repère, pas un mot. La forme `greetings`
+              apporte elle-même son texte et n'en veut pas un second. */}
+          {forme === "greetings" ? null : <Repere />}
+        </Loader>
+      ) : null}
+      {/* Un rideau qui se lève sur du vide ne démontre pas un rideau : il faut
+          que ce qu'on découvre VAILLE d'être découvert. La planche trace la
+          courbe qui fait bouger le rideau lui-même — le seul fond qui ne
+          pouvait venir que d'ici — et se laisse lire à moitié couverte, ce
+          qu'un titre ne fait pas : il se fait hacher et on lit « Bâti… ». */}
+      <div className="absolute inset-0" ref={ref}>
+        <Plaque dense={compact} />
       </div>
     </Scene>
   );
