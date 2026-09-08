@@ -6,12 +6,10 @@
  * qu'on peut sauter, qui ne rejoue pas à chaque page, et qui n'existe pas du
  * tout pour qui a demandé moins de mouvement.
  *
- *   `blades`     un rideau de lames qui se retirent une à une (Bât-et-Verre)
- *   `greetings`  un mot d'accueil qui défile en vingt langues (portfolio)
+ *   `blades`     un rideau de lames qui se retirent une à une
+ *   `greetings`  un mot d'accueil qui défile en vingt langues
  *   `splash`     une pastille brève, réservée à l'application installée
- *                (générateur de CV)
  *   `seam`       le panneau se lève d'un bloc en laissant filer un liseré
- *                (site Champlon)
  *
  * Quatre garde-fous, tous tirés des originaux et tous non négociables :
  *

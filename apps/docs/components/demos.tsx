@@ -604,7 +604,8 @@ export function DemoCursor({ forme = "blob", compact, geometrie, nomAffiche, reg
 
 /**
  * Une forme calculée plutôt qu'une image : la démo n'a alors aucune ressource
- * à charger, et elle montre le cas qui reproduit l'œil de KaopyX.
+ * à charger, et elle montre le cas le plus intéressant du moteur : une
+ * fonction de couverture, plutôt qu'un pixel source.
  */
 function couvertureAnneau(x: number, y: number): number {
   const dx = x - 0.5;

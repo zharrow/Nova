@@ -1,8 +1,8 @@
 /**
  * Counter — compteur qui s'anime jusqu'à sa valeur.
  *
- * Fusionne les deux implémentations d'origine (portfolio via framer-motion,
- * rent_app via rAF) en une seule sans dépendance : easing explicite, formatage
+ * Fusionne deux implémentations d'origine — l'une sur framer-motion, l'autre
+ * sur un rAF nu — en une seule sans dépendance : easing explicite, formatage
  * `Intl` optionnel, déclenchement à l'entrée en vue.
  *
  * L'espace est réservé dès le montage — la valeur finale est écrite puis

@@ -6,7 +6,7 @@
  * texte, y compris quand il se casse sur trois lignes ou traverse plusieurs
  * balises.
  *
- * Porté de `PhraseHighlight` (générateur de CV). C'est un primitif rare : rien
+ * C'est un primitif rare : rien
  * dans les librairies de composants ne sait surligner un passage qu'on n'a pas
  * balisé soi-même. Il sert à annoter, à montrer un résultat de recherche, à
  * pointer ce dont une machine parle.

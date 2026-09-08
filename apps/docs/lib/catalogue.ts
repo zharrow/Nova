@@ -2,7 +2,7 @@
  * Catalogue du site — métadonnées de présentation.
  *
  * Le registry (`registry/registry.json`) reste la source de vérité de ce qui
- * s'installe ; ce fichier ne porte que ce qui se raconte : la provenance, les
+ * s'installe ; ce fichier ne porte que ce qui se raconte : l'accroche, les
  * options, l'exemple d'usage.
  */
 
@@ -47,9 +47,7 @@ export interface Fiche {
   titre: string;
   categorie: CategorieId;
   accroche: string;
-  /** D'où vient le composant dans les projets d'origine. */
-  provenance: string;
-  /** Ce que la version Nova corrige par rapport à l'original. */
+  /** Ce que la version Nova corrige par rapport aux implémentations d'origine. */
   apport: string;
   options: OptionRow[];
   usage: string;
@@ -203,7 +201,6 @@ export const catalogue: Fiche[] = [
     categorie: "defilement",
     titre: "Reveal",
     accroche: "Apparition au scroll, sans jamais rien laisser masqué.",
-    provenance: "useReveal — Bât-et-Verre 3D",
     apport:
       "Le décalage d'un groupe se calcule depuis le DOM au lieu de cloner les enfants React : un enfant enveloppé dans un autre composant participe désormais au rythme.",
     options: [
@@ -268,7 +265,6 @@ export const catalogue: Fiche[] = [
     categorie: "texte",
     titre: "Scramble Text",
     accroche: "Le texte se brouille, puis se décode lettre par lettre.",
-    provenance: "ScrambleText — portfolio (survol) · KaopyX (boucle)",
     apport:
       "Deux usages, et ils ne disent pas la même chose. Au survol, le décodage répond à un geste : c'est le lecteur qui le provoque. À intervalle, il se rejoue seul tant que le texte est à l'écran — une étiquette qui se redéchiffre, un signal de fond. Les deux se combinent, mais se demandent séparément. Côté rendu, les nœuds sont créés une fois et réutilisés, là où la version React reconstruisait quarante éléments tous les 52 ms.",
     options: [
@@ -293,12 +289,12 @@ export const catalogue: Fiche[] = [
       {
         id: "hover",
         nom: "Au survol",
-        note: "Le décodage répond à un geste : le texte est stable, c'est le lecteur qui le provoque. C'est l'usage du portfolio.",
+        note: "Le décodage répond à un geste : le texte est stable, c'est le lecteur qui le provoque. C'est l'usage d'un lien ou d'un titre : on décode ce qu'on vise.",
       },
       {
         id: "interval",
         nom: "À intervalle",
-        note: "Le décodage se rejoue seul tant que le texte est à l'écran. Il n'attend rien de personne : une étiquette qui se redéchiffre, un signal de fond. C'est l'usage de KaopyX.",
+        note: "Le décodage se rejoue seul tant que le texte est à l'écran. Il n'attend rien de personne : une étiquette qui se redéchiffre, un signal de fond. C'est l'usage d'un badge d'état ou d'un compteur qui vit tout seul.",
       },
     ],
   },
@@ -308,7 +304,6 @@ export const catalogue: Fiche[] = [
     categorie: "donnees",
     titre: "Counter",
     accroche: "Un nombre qui compte jusqu'à sa valeur, sans rien bousculer.",
-    provenance: "AnimatedCounter — portfolio et rent_app",
     apport:
       "Les deux versions d'origine fusionnées, sans framer-motion. La valeur finale est écrite dès le premier rendu : la largeur ne bouge pas pendant le comptage, et le chiffre reste juste sans JavaScript.",
     options: [
@@ -348,7 +343,6 @@ export const catalogue: Fiche[] = [
     nouveau: true,
     titre: "Text Effect",
     accroche: "Dix-sept traitements de texte animé, sur un seul primitif.",
-    provenance: "Fragments + banc /lab/texte — KaopyX",
     apport:
       "Le primitif mesure les VRAIES lignes après mise en page, et re-mesure au redimensionnement comme à l'arrivée des polices. Il expose six variables — mot, lettre continue, avancement, ligne, rang dans la ligne, éloignement du centre — qui suffisent à écrire les dix-sept effets en CSS pur. Deux corrections sur l'original : les fragments sont créés par le moteur et non par React, donc plus personne n'écrase les variables mesurées ; et les trois effets de défilement passent sous @supports, sans quoi ils laissaient le texte à 17 % d'opacité sur les navigateurs sans animation-timeline.",
     options: [
@@ -459,7 +453,6 @@ export const catalogue: Fiche[] = [
     categorie: "defilement",
     titre: "Marquee",
     accroche: "Un bandeau qui défile sans fin, à vitesse constante. Horizontal ou vertical.",
-    provenance: "Marquee — portfolio · ScrollList — KaopyX",
     apport:
       "La vitesse est en pixels par seconde, pas en durée fixe : deux bandeaux réglés pareil défilent au même rythme, quelle que soit la longueur de leur contenu. Le contenu est répété jusqu'à dépasser le conteneur — sans quoi la boucle laisse un trou, le défaut que ScrollList documentait sur l'axe vertical. Et hors écran l'animation est SUSPENDUE, pas coupée : elle reprend où elle s'était arrêtée au lieu de repartir du début.",
     options: [
@@ -509,7 +502,6 @@ export const catalogue: Fiche[] = [
     nouveau: true,
     titre: "Scroll Marquee",
     accroche: "Un bandeau que la molette entraîne.",
-    provenance: "TriadMarquee — KaopyX",
     apport:
       "Le bandeau n'a pas de vitesse propre : il a une dérive, et le défilement le pousse. Remonter le fait repartir en arrière. C'est ce qui le sort du bandeau décoratif — il ne tourne pas à côté de la page, il est entraîné par elle. Moteur distinct du Marquee parce qu'une @keyframes ne peut pas être poussée : elle a une durée, pas une vitesse.",
     options: [
@@ -537,7 +529,6 @@ export const catalogue: Fiche[] = [
     nouveau: true,
     titre: "Roll Text",
     accroche: "Un label qui pivote sur lui-même au survol.",
-    provenance: "RollText — portfolio, puis KaopyX",
     apport:
       "Le survol est lu sur l'ANCÊTRE, pas sur le mot : le label d'un bouton doit pivoter quand on survole le bouton, pas seulement les quelques pixels du texte. Ce n'est pas le même geste que l'effet roll de TextEffect, qui joue une fois à l'entrée en vue et lettre par lettre.",
     options: [
@@ -558,7 +549,6 @@ export const catalogue: Fiche[] = [
     nouveau: true,
     titre: "Spotlight",
     accroche: "Un halo de repérage qui suit le curseur dans un panneau.",
-    provenance: "RegLight — KaopyX",
     apport:
       "Le moteur ne dessine rien : il publie les coordonnées du curseur en --nova-spot-x / y, et le dessin appartient au CSS du projet. Le relevé du rectangle se fait dans l'image d'animation et non dans l'écouteur — pointermove tire des dizaines d'événements par image, chacun forcerait un calcul de mise en page. Et le halo s'allume au premier DÉPLACEMENT, pas à l'entrée : allumé à l'entrée, il apparaîtrait une image à sa position précédente.",
     options: [
@@ -579,7 +569,6 @@ export const catalogue: Fiche[] = [
     categorie: "pointeur",
     titre: "Cursor",
     accroche: "Un curseur additif, qui augmente le curseur système sans le remplacer.",
-    provenance: "Cursor — portfolio · Curseur — Bât-et-Verre 3D",
     apport:
       "Deux formes récoltées dans deux projets, et le choix n'est pas cosmétique : le disque écrase ce qu'il survole, le point ne masque rien. Le suivi du pointeur est mutualisé — un seul écouteur pour toute la page, quel que soit le nombre d'effets qui s'en servent.",
     options: [
@@ -612,7 +601,6 @@ export const catalogue: Fiche[] = [
     categorie: "effets",
     titre: "Confetti",
     accroche: "Une salve de particules, qui se nettoie derrière elle.",
-    provenance: "triggerConfetti — portfolio",
     apport:
       "Les salves en cours sont interrompues au démontage : naviguer pendant la chute ne laisse plus de particules orphelines dans le body.",
     options: [
@@ -651,7 +639,6 @@ export const catalogue: Fiche[] = [
     nouveau: true,
     titre: "Halftone",
     accroche: "Une trame d'imprimeur : la taille du module dit la valeur.",
-    provenance: "EyeO et PixelClock — KaopyX",
     apport:
       "L'écran de trame des deux dessins d'origine, sorti de leur géométrie. La source peut être une image, un canvas déjà peint, ou une fonction de couverture — c'est ce dernier cas qui reproduit l'œil. Ce n'est pas un filtre de pixellisation : un pixel garde sa taille et change de couleur, un module de trame garde sa couleur et change de taille.",
     options: [
@@ -693,7 +680,6 @@ export const catalogue: Fiche[] = [
     nouveau: true,
     titre: "Graph",
     accroche: "Un graphe dont le visuel n'est qu'une couche de présentation.",
-    provenance: "KnowledgeGraph — KaopyX",
     apport:
       "La règle centrale est conservée et fait partie du contrat : le canvas ne porte aucune information qui n'existe pas déjà en HTML. La liste rendue à côté est le contenu réel — indexable, navigable au clavier, lisible sans JavaScript — et c'est elle qui pilote le visuel. La disposition est déterministe, la simulation est déroulée à froid avant la première image, et la boucle se gare une fois la topologie posée.",
     options: [
@@ -721,7 +707,6 @@ export const catalogue: Fiche[] = [
     categorie: "defilement",
     nouveau: true,
     accroche: "Le contenu apparaît derrière des lames qui se retirent une à une.",
-    provenance: "Claustra — Bât-et-Verre",
     apport:
       "C'est un frère de Reveal, pas une de ses formes : il faut injecter des lames, les mesurer, les décaler, et personne qui veut un simple fondu ne devrait embarquer ce code. Même règle d'or que partout — en mouvement réduit, sans JavaScript, ou pour un bloc déjà à l'écran, aucune lame n'est posée du tout.",
     voie: "option",
@@ -748,7 +733,6 @@ export const catalogue: Fiche[] = [
     categorie: "texte",
     nouveau: true,
     accroche: "Un trait de marqueur derrière un mot.",
-    provenance: "BrushUnderline — générateur de CV",
     apport:
       "Le trait n'est pas une forme CSS : c'est un chemin SVG passé dans un feTurbulence et un feDisplacementMap, qui rongent ses bords au bruit fractal. Une seconde turbulence, plus fine, mange des trous dans la masse — le remplissage devient une brosse sèche, pas un aplat. Deux ajouts sur l'original : le rognage est posé sur l'enveloppe et jamais sur les chemins, sans quoi le filtre se recalcule à chaque image et les bords grésillent ; et la graine du bruit est un réglage, parce que deux traits identiques au pixel se lisent comme un tampon.",
     options: [
@@ -770,7 +754,6 @@ export const catalogue: Fiche[] = [
     categorie: "effets",
     nouveau: true,
     accroche: "Le rideau d'ouverture, en trois formes.",
-    provenance: "Loader — Bât-et-Verre · PageLoader — portfolio · AppSplash — générateur de CV · SiteLoader — Champlon",
     apport:
       "Trois rideaux récoltés dans trois projets, qui ne se ressemblent pas mais partagent tout ce qui compte. Quatre garde-fous, tous non négociables : il se saute à la première interaction, il ne rejoue pas dans la même session, il n'existe pas en mouvement réduit — pas « plus court », absent — et sans JavaScript il n'y a pas de rideau du tout, donc jamais de page bloquée derrière un voile qui ne se lèvera pas.",
     voie: "option",
@@ -800,7 +783,6 @@ export const catalogue: Fiche[] = [
     categorie: "effets",
     nouveau: true,
     accroche: "Un fantôme qui vole d'un élément vers un autre.",
-    provenance: "FindingFlightLayer — générateur de CV · VisionneuseVerre — Bât-et-Verre",
     apport:
       "Le geste qui relie deux endroits d'une page : la preuve qui part du texte et rejoint sa marge, l'article qui rejoint le panier. Deux principes tenus des originaux. Rien ne vole depuis une source hors écran — un vol qu'on ne voit pas n'a aucun sens spatial, et le résultat le signale pour qu'on replie sur autre chose. Et le fantôme est inerte : cloné sans identifiants, hors de l'ordre de tabulation, hors de l'arbre d'accessibilité, parce qu'un doublon annonçable ferait entendre deux fois la même chose.",
     options: [
@@ -822,7 +804,6 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
     categorie: "effets",
     nouveau: true,
     accroche: "Une ligne qui devient un panneau, sans que la substitution se voie.",
-    provenance: "useExpandTransition — CRM Closer",
     apport:
       "React remplace un arbre par l'autre en une image : la ligne disparaît pendant que l'en-tête apparaît, et c'est cette substitution qu'on lit comme un à-coup. Le geste tient en deux temps — la boîte s'étire et les pièces communes glissent (GSAP Flip), puis un voile se retire et TOUT LE RESTE SE DÉDUIT DE SON BORD. Un fondu du clair vers le sombre passerait par le gris : à mi-chemin le fond et le texte se retrouvent à la même valeur, et le texte disparaît. Un bord ne mélange rien. C'est aussi ce qui donne son calendrier au geste : on ne règle pas dix retards à la main, on les lit sur une règle. Un seul geste est décrit, et le repli le rejoue à l'envers — tant que les deux divergeaient, le repli ramenait un à un les défauts retirés de l'ouverture.",
     options: [
@@ -850,7 +831,6 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
     categorie: "defilement",
     nouveau: true,
     accroche: "Le défilement lissé, branché sur la boucle de Nova.",
-    provenance: "SmoothScroll — quatre projets sur huit, toujours avec Lenis",
     apport:
       "Trois différences avec un montage direct de Lenis. La boucle est celle de Nova : Lenis ouvre sa propre requestAnimationFrame par défaut, ici il partage le ticker de la librairie — une seule boucle pour le défilement, les compteurs, le curseur et les bandeaux. Le tactile reste natif : lisser un défilement au doigt lui retire l'inertie du système, celle que l'utilisateur connaît, pour la remplacer par une autre. Et rien n'est monté en mouvement réduit — pas « moins lissé », absent : le défilement natif est ce que le réglage demande.",
     options: [
@@ -871,7 +851,6 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
     categorie: "defilement",
     nouveau: true,
     accroche: "Une scène dont le défilement fournit le temps.",
-    provenance: "DataStory et SessionFlow — site Champlon",
     apport:
       "Les deux originaux calculaient la même progression, à la ligne près. Ce que le moteur ajoute, ce sont les TEMPS : un récit scrollé n'a jamais une seule progression, il en a dix, chacune sur sa portion de la traversée. Les écrire à la main donne dix clamp() en CSS, illisibles et impossibles à ajuster ; ici chaque temps est nommé et publié comme sa propre variable. Trois garde-fous : la mesure se fait dans l'image d'animation et jamais dans un écouteur de défilement, la boucle ne tourne que tant que la scène est à l'écran, et en mouvement réduit la progression est posée une fois à l'état d'arrivée — une scène figée à zéro serait une page vide.",
     options: [
@@ -897,7 +876,6 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
     categorie: "texte",
     nouveau: true,
     accroche: "Surligne un passage dans du contenu déjà rendu.",
-    provenance: "PhraseHighlight — générateur de CV",
     apport:
       "Une bande PAR LIGNE VISUELLE, pas un rectangle autour du bloc : les bandes épousent le texte, y compris quand il se casse sur trois lignes ou traverse plusieurs balises. Le passage n'a pas besoin d'être balisé — il est retrouvé dans le DOM. Deux difficultés traitées : le texte rendu n'est pas le texte source, donc on aplatit le sous-arbre en une chaîne normalisée avec une table qui ramène chaque caractère à son nœud ; et la mise en page bouge après le montage, ce que l'original relevait toutes les 800 ms — ici on écoute ce qui bouge réellement, le redimensionnement, l'arrivée des polices, et les mutations du sous-arbre.",
     options: [
@@ -922,9 +900,8 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
     categorie: "effets",
     nouveau: true,
     accroche: "Une visionneuse qui jaillit du point cliqué.",
-    provenance: "VisionneuseVerre — Bât-et-Verre",
     apport:
-      "La division est celle de la doctrine du dépôt : Radix apporte la sémantique — piège de focus, Échap, verrou du défilement, ARIA, portail, retour du focus à ce qui a ouvert — et Nova n'apporte que le geste. Rien de tout cela n'est réimplémenté. La bulle naît là où la main était, grossit en ondulant, se fige en rectangle centré, puis son contenu se résout du flou vers le net ; la fermeture rejoue le même geste à l'envers, une fois et demie plus vite. Les rayons de coin sont tirés au hasard à chaque ouverture : deux clics de suite ne donnent jamais la même déformation, et le geste garde l'air d'une matière plutôt que d'une interpolation. La voie WebGL de l'original — un shader de verre avec réfraction — n'est pas reprise : elle appartient à cette maison-là.",
+      "La division est celle de la doctrine du dépôt : Radix apporte la sémantique — piège de focus, Échap, verrou du défilement, ARIA, portail, retour du focus à ce qui a ouvert — et Nova n'apporte que le geste. Rien de tout cela n'est réimplémenté. La bulle naît là où la main était, grossit en ondulant, se fige en rectangle centré, puis son contenu se résout du flou vers le net ; la fermeture rejoue le même geste à l'envers, une fois et demie plus vite. Les rayons de coin sont tirés au hasard à chaque ouverture : deux clics de suite ne donnent jamais la même déformation, et le geste garde l'air d'une matière plutôt que d'une interpolation. La voie WebGL de l'original — un shader de verre avec réfraction — n'est pas reprise : elle tenait à la matière d'un projet précis, pas au geste.",
     options: [
       { nom: "origin", type: "{ x, y }", defaut: "—", role: "Point d'où la bulle jaillit. Relevé au clic sur la vignette." },
       { nom: "aspect", type: "number", defaut: "3 / 2", role: "Rapport du panneau final." },

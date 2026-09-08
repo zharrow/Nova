@@ -1,7 +1,7 @@
 /**
  * Marquee — bandeau défilant infini, horizontal ou vertical.
  *
- * Trois corrections par rapport aux versions d'origine (portfolio, KaopyX) :
+ * Trois corrections par rapport aux versions d'origine :
  *
  *  1. la vitesse est en pixels par seconde, pas en durée fixe. Avec une durée
  *     fixe, un bandeau court défile lentement et un bandeau long file — deux

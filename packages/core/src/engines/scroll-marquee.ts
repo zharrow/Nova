@@ -1,7 +1,7 @@
 /**
  * ScrollMarquee — bandeau entraîné par le défilement de la page.
  *
- * Porté de `TriadMarquee` (KaopyX). Le bandeau n'a pas de vitesse propre : il
+ * Le bandeau n'a pas de vitesse propre : il
  * a une DÉRIVE, et le défilement de la page le pousse. Descendre l'accélère,
  * remonter le fait repartir en arrière. C'est ce qui le sort du bandeau
  * décoratif : il ne tourne pas à côté de la page, il est entraîné par elle.

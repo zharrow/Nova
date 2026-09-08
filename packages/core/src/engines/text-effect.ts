@@ -1,8 +1,8 @@
 /**
  * TextEffect — fragmentation d'un texte et catalogue d'effets.
  *
- * Porté du banc d'essai de KaopyX (`lab/texte`), qui est de loin la meilleure
- * pièce des projets d'origine sur ce sujet. Il remplace l'ancien
+ * Porté d'un banc d'essai qui est de loin la meilleure pièce des
+ * implémentations d'origine sur ce sujet. Il remplace l'ancien
  * `createSplitText`, qui n'en faisait qu'un tiers.
  *
  * ── La structure, qui décide de tout ────────────────────────────────────────

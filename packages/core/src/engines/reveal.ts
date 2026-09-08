@@ -1,8 +1,8 @@
 /**
  * Reveal — apparition au scroll, avec garde-fous.
  *
- * Porté de `useReveal` (Bât-et-Verre 3D), qui est la meilleure version du
- * motif dans les projets d'origine. Sa règle d'or :
+ * Porté de la meilleure version du motif parmi les implémentations d'origine.
+ * Sa règle d'or :
  *
  *   l'état par défaut est VISIBLE — jamais d'`opacity: 0` orphelin.
  *

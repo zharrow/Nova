@@ -11,9 +11,9 @@ exemplaires ne sont pas des doublons.**
 
 Deux cas, tirés du dépôt tel qu'il est aujourd'hui :
 
-- **`ScrambleText` s'utilise déjà de deux façons.** Dans le portfolio, il se
+- **`ScrambleText` s'utilise déjà de deux façons.** Dans un projet, il se
   déclenche au survol : le décodage répond à un geste, c'est le lecteur qui le
-  provoque. Dans KaopyX, il se rejoue seul toutes les six secondes tant qu'il
+  provoque. Dans un autre, il se rejoue seul toutes les six secondes tant qu'il
   est à l'écran : c'est une étiquette qui se redéchiffre, un signal de fond.
   Même code, deux intentions. Les fondre en un seul réglage « par défaut »
   aurait effacé la différence.
@@ -136,58 +136,50 @@ Les formes partagent-elles le mécanisme ?
 Trois familles sont nées de la récolte elle-même, en réunissant des pièces
 écrites séparément dans des projets différents :
 
-- **`loader`** — le rideau de lames de Bât-et-Verre, les salutations du
-  portfolio, la pastille du générateur de CV. Trois rideaux qui ne se
-  ressemblent pas, et qui partagent pourtant leurs quatre garde-fous.
-- **`cursor`** — le disque du portfolio et le point-anneau de Bât-et-Verre 3D.
-  Le choix n'est pas cosmétique : le disque écrase ce qu'il survole, le point
-  ne masque rien.
-- **`flight`** — la preuve qui vole vers sa marge (générateur de CV) et
-  l'ouverture FLIP de la visionneuse (Bât-et-Verre). Deux usages du même geste.
+- **`loader`** — un rideau de lames, un mot d'accueil qui défile en vingt
+  langues, une pastille de démarrage. Trois rideaux qui ne se ressemblent pas,
+  et qui partagent pourtant leurs quatre garde-fous.
+- **`cursor`** — un disque plein d'un côté, un point suivi d'un anneau de
+  l'autre. Le choix n'est pas cosmétique : le disque écrase ce qu'il survole,
+  le point ne masque rien.
+- **`flight`** — une vignette qui vole vers sa marge, et l'ouverture FLIP d'une
+  visionneuse. Deux usages du même geste.
 
 Aucune des trois n'existait comme composant dans les projets d'origine. Elles
 n'apparaissent qu'une fois les pièces mises côte à côte — c'est l'argument le
 plus fort de la méthode.
 
-## Ce qui reste à récolter
+## Ce qui a été écarté
 
-La récolte est faite pour l'essentiel. Ce qui a été laissé, et pourquoi :
+La récolte est faite pour l'essentiel. Ce qui a été laissé de côté, et pourquoi
+— la liste vaut moins pour son inventaire que pour la frontière qu'elle trace.
 
-**Écarté — non réutilisable.** Les huit tracés SVG de `anim.css` (KPX) sont
-trop liés à leurs glyphes. `LaboCompare` (portfolio) n'est pas un comparateur,
-c'est une mise en page à deux colonnes. Les icônes `animate-ui` (CRM Closer)
-viennent d'une librairie tierce.
+**Non réutilisable.** Des tracés SVG trop liés à leurs glyphes : l'animation
+tient à la forme de la lettre, elle ne se transpose sur rien d'autre. Des icônes
+animées qui venaient déjà d'une librairie tierce — les reprendre, c'était les
+recopier.
 
-**Écarté — composition de site, pas composant.** `StatBoard`, `MissionCard`,
-`Ticker`, les en-têtes et pieds de page, `AccentSwitch`, `SignalBand`,
-`menu-capsule`, `planche-hero`, les diagrammes et les scènes Three.js de
-Bât-et-Verre 3D.
+**Composition de site, pas composant.** Cartes de mise en avant, tableaux de
+chiffres, en-têtes, pieds de page, bascules de thème, scènes 3D liées à une
+marque. Ce sont des assemblages : leur intérêt tient au contenu qu'ils portent,
+et il n'en reste rien une fois ce contenu retiré. C'est la frontière la plus
+utile de ce document — la plupart des candidats échouent ici, et il faut du
+temps pour l'admettre parce que ces pièces sont précisément les plus visibles.
 
-**Déjà couvert par une famille existante.** `text-generate-effect` et
-`assembling-title` sont la forme `blur` de `text-effect`. `AnimatedScore` est
-un usage de `counter` — une valeur qui change se réanime toute seule.
-`PageTransition` est un `reveal` monté à l'entrée. Les marquees de Bât-et-Verre
-sont `scroll-marquee` avec une inclinaison.
+**Déjà couvert par une famille existante.** Un titre qui s'assemble est la forme
+`blur` de `text-effect`. Un score animé est un usage de `counter` — une valeur
+qui change se réanime toute seule. Une transition de page est un `reveal` monté
+à l'entrée. Un bandeau incliné est un `scroll-marquee` avec une rotation. Une
+entrée pour chacun aurait gonflé le catalogue sans rien ajouter au code.
 
-**Pris depuis.** Les deux pièces qui attendaient sont entrées, avec la levée
-de la règle du zéro dépendance : `useExpandTransition` est devenu `Expand`,
-`phrase-highlight` est devenu `TextHighlight`.
+**Écarté par appartenance.** La visionneuse a été reprise sous le nom de
+`Lightbox`, branchée sur le `Dialog` de Radix pour tout ce qui n'est pas le
+geste — mais sa voie WebGL, un shader de verre avec réfraction, ne l'a pas été.
+Elle tenait à la matière d'un projet précis, pas au geste, et un shader de verre
+ne se règle pas par une prop.
 
-**Écarté à la deuxième passe.** Formly n'a rien de récupérable — ses fichiers
-animés sont des modales, des formulaires et des écrans. Le site Champlon est
-très lié à sa marque : le monogramme en pixels et la carte d'Amérique latine ne
-se généralisent pas. Mais deux de ses pièces ont donné des familles :
-`DataStory` et `SessionFlow` calculaient la même progression scrollée, devenue
-`ScrollScene` ; `SiteLoader` a donné la quatrième forme du `Loader`.
-
-**Récolte terminée.** `VisionneuseVerre` est entrée sous le nom de `Lightbox`,
-branchée sur le `Dialog` de Radix pour tout ce qui n'est pas le geste. Sa voie
-WebGL — un shader de verre avec réfraction — n'est pas reprise : elle appartient
-à Bât-et-Verre.
-
-Il ne reste rien dans les projets qui vaille une famille. Ce qui s'y trouve
-encore est soit une composition de site, soit déjà couvert. La prochaine
-récolte viendra des projets à venir, pas de ceux-là.
+Il ne reste rien, dans les projets dépouillés, qui vaille une famille. La
+prochaine récolte viendra de projets à venir.
 
 ## Conséquences pratiques
 

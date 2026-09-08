@@ -18,7 +18,7 @@
  * Les deux se combinent — une étiquette qui pulse et que le survol relance —
  * mais ils sont demandés séparément, jamais déduits l'un de l'autre.
  *
- * Porté de `ScrambleText` (portfolio pour le survol, KaopyX pour la boucle),
+ * Réunit deux implémentations — l'une pour le survol, l'autre pour la boucle —
  * avec trois différences :
  *  - les `<span>` sont créés une fois et réutilisés à chaque frame, au lieu
  *    d'être reconstruits (là où React re-rendait 40 nœuds tous les 52 ms) ;

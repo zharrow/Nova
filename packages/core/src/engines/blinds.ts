@@ -2,7 +2,7 @@
  * Blinds — le dévoilement en claustra.
  *
  * L'image apparaît derrière des lames qui se retirent une à une, comme un
- * calepinage qu'on démonte. Porté de `Claustra` (Bât-et-Verre).
+ * calepinage qu'on démonte.
  *
  * C'est un FRÈRE de `Reveal`, pas une de ses formes — voir VARIANTES.md.
  * Reveal ne fait que basculer un attribut sur un élément existant ; ici il

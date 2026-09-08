@@ -5,10 +5,10 @@
  * centré, puis son contenu se résout du flou vers le net. La fermeture rejoue
  * le même geste à l'envers, un peu plus vite.
  *
- * Porté de `VisionneuseVerre` (Bât-et-Verre). La voie WebGL de l'original —
- * un shader de verre avec réfraction — n'est pas reprise : elle appartient à
- * cette maison-là. Ce qui se généralise est le GESTE, et c'est le repli DOM de
- * l'original qui le porte.
+ * L'implémentation d'origine avait une voie WebGL — un shader de verre avec
+ * réfraction — qui n'est pas reprise : elle tenait à la matière d'un projet
+ * précis, pas au geste. Ce qui se généralise est le GESTE, et c'est le repli
+ * DOM qui le porte.
  *
  * ── Ce que le moteur fait, et ce qu'il ne fait pas ──────────────────────────
  *

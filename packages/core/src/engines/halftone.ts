@@ -6,8 +6,8 @@
  * d'un journal, pas un filtre de pixellisation — un pixel garde sa taille et
  * change de couleur, un module de trame garde sa couleur et change de taille.
  *
- * Généralisé depuis `EyeO` et `PixelClock` (KaopyX), qui appliquaient le même
- * écran à des dessins tracés à la main. Ici la source peut être n'importe
+ * Généralisé depuis deux dessins qui appliquaient le même écran à des tracés
+ * faits à la main. Ici la source peut être n'importe
  * quoi : une image, un canvas déjà peint, ou une fonction de couverture pour
  * les formes calculées — c'est ce dernier cas qui reproduit l'original.
  *

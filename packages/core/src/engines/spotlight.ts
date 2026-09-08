@@ -5,7 +5,7 @@
  * du panneau, en `--nova-spot-x` / `--nova-spot-y`. Le dessin appartient au
  * CSS du projet — un dégradé radial, une trame qui se relève, ce qu'on veut.
  *
- * Porté de `RegLight` (KaopyX), dont les deux garde-fous sont conservés :
+ * Les deux garde-fous de l'implémentation d'origine sont conservés :
  *
  *  - pointeur fin uniquement. Au doigt, `pointerenter` reste armé après le
  *    relâchement et le halo se fige au milieu du panneau ;

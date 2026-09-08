@@ -7,10 +7,11 @@
  *
  * C'est le geste qui relie deux endroits d'une page — la preuve qui part du
  * texte et rejoint sa marge, l'article qui rejoint le panier, la vignette qui
- * s'ouvre en visionneuse. Généralisé depuis `FindingFlightLayer` (générateur
- * de CV) et l'ouverture FLIP de `VisionneuseVerre` (Bât-et-Verre).
+ * s'ouvre en visionneuse. Généralisé depuis deux pièces qui faisaient ce même
+ * vol pour des raisons différentes : une annotation qui rejoint sa marge, et
+ * l'ouverture FLIP d'une visionneuse.
  *
- * Deux principes tenus de l'original :
+ * Deux principes tenus des originaux :
  *
  *  - **rien ne vole hors de l'écran.** Si la source n'est pas visible, le vol
  *    n'a aucun sens spatial : il n'apporte rien et coûte une animation. Le

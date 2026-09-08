@@ -5,8 +5,7 @@
  * une progression `t` de 0 à 1 qui court pendant la traversée. Tout le reste
  * s'écrit en CSS à partir de `t`.
  *
- * Généralisé depuis `DataStory` et `SessionFlow` (site Champlon), qui
- * calculaient exactement la même chose :
+ * Généralisé depuis deux scènes qui calculaient exactement la même chose :
  *
  *     t = -rect.top / (rect.height - innerHeight)
  *

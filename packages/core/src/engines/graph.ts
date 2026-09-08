@@ -1,8 +1,8 @@
 /**
  * Graph — graphe de connaissances sur canvas.
  *
- * Porté de `KnowledgeGraph` (KaopyX), dont la règle centrale est conservée et
- * fait partie du contrat :
+ * La règle centrale de l'implémentation d'origine est conservée, et fait
+ * partie du contrat :
  *
  *   LE CANVAS EST UNE COUCHE DE PRÉSENTATION.
  *

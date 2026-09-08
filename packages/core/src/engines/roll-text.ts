@@ -5,7 +5,7 @@
  * premier sort par le haut, le second entre par le bas. À l'arrivée, l'image
  * est identique à l'image de départ.
  *
- * Porté de `RollText` (portfolio, puis KaopyX). Ce n'est pas le même geste que
+ * Ce n'est pas le même geste que
  * l'effet `roll` de TextEffect : celui-là joue une fois à l'entrée en vue et
  * lettre par lettre, celui-ci répond au survol et fait pivoter le mot entier.
  *

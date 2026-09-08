@@ -7,8 +7,7 @@
  * rectangle arrondi. Une seconde turbulence, plus fine, mange des trous dans
  * la masse : le remplissage devient une brosse sèche, pas un aplat.
  *
- * Porté de `BrushUnderline` (générateur de CV), qui était déjà sans
- * dépendance. Deux ajouts :
+ * L'implémentation d'origine était déjà sans dépendance. Deux ajouts :
  *  - le trait se peint par un rognage posé sur l'ENVELOPPE, jamais sur les
  *    chemins. Rogner les chemins ferait re-calculer le filtre à chaque image,
  *    et les bords déchiquetés grésilleraient ;

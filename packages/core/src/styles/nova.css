@@ -704,7 +704,7 @@ html.lenis body {
    .nova-word-i qui bouge — et sur ses six variables. Aucun effet ne redéfinit
    cette structure : ils ne font que l'animer autrement.
 
-   Porté du banc d'essai KaopyX. Rien ici ne dépend d'une bibliothèque : ce
+   Rien ici ne dépend d'une bibliothèque : ce
    sont les mêmes gestes que ceux qu'on écrirait avec GSAP, en CSS parce
    qu'aucun ne demande de séquencement dynamique.
    ========================================================================== */

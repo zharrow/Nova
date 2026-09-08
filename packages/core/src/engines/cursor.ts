@@ -7,9 +7,9 @@
  * lisibles sur fond clair comme sur fond sombre.
  *
  *   `blob`      un disque unique, qui suit en retard et GROSSIT au survol des
- *               éléments interactifs (portfolio) ;
+ *               éléments interactifs ;
  *   `dot-ring`  un point posé exactement sur le pointeur, et un anneau qui
- *               TRAÎNE derrière lui (Bât-et-Verre 3D). Le point dit où l'on
+ *               TRAÎNE derrière lui. Le point dit où l'on
  *               est, l'anneau dit d'où l'on vient.
  *
  * Le choix n'est pas cosmétique : le blob écrase ce qu'il survole, le point

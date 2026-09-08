@@ -1,8 +1,7 @@
 /**
  * Expand — la substitution de deux arbres DOM, sous un voile.
  *
- * Porté de `useExpandTransition` (CRM Closer). C'est la pièce la plus
- * ambitieuse de la récolte, et celle qui a motivé l'abandon de la règle du
+ * C'est la pièce la plus ambitieuse de la récolte, et celle qui a motivé l'abandon de la règle du
  * zéro dépendance : elle repose sur GSAP Flip, et la réécrire à la main
  * coûterait plusieurs centaines de lignes et une longue liste de cas limites.
  *

@@ -1,7 +1,7 @@
 /**
  * Confetti — salve de particules.
  *
- * Porté du portfolio, avec quatre corrections :
+ * Quatre corrections par rapport à l'implémentation d'origine :
  *  - un seul conteneur en position fixe, au lieu de 50 nœuds injectés
  *    directement dans `<body>` ;
  *  - l'origine de la salve est paramétrable (par défaut le haut de l'écran,
@@ -16,7 +16,7 @@ import { isBrowser, prefersReducedMotion } from "../internal/env";
 export interface ConfettiOptions {
   /** Nombre de particules. Défaut : 50. */
   count?: number;
-  /** Palette. Défaut : la palette or/bronze du portfolio. */
+  /** Palette. Défaut : une gamme or/bronze. */
   colors?: string[];
   /** Origine de la salve, en coordonnées viewport. Défaut : haut, aléatoire en x. */
   origin?: { x: number; y: number };
