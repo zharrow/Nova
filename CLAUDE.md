@@ -1,45 +1,82 @@
 # Nova — conventions du dépôt
 
-Librairie de composants animés. Monorepo pnpm + Turborepo.
+Librairie de composants animés, récoltée dans des projets en production plutôt
+qu'écrite d'une page blanche. Monorepo pnpm + Turborepo.
+
+**21 familles, 57 formes.** Une entrée du catalogue est une famille, pas une
+pièce — voir [VARIANTES.md](VARIANTES.md).
+
+```
+packages/
+  core/     @nova-ui/core   — 21 moteurs, TypeScript, sans React
+  react/    @nova-ui/react  — 18 composants + 4 crochets
+  cli/      novaui          — copie et installe, sans dépendance
+registry/                   — manifeste + sources réécrites pour la copie
+apps/docs/                  — vitrine Next.js sur shadcn
+VARIANTES.md                — pourquoi une entrée est une famille
+DEPENDANCES.md              — quand prendre une librairie, et laquelle
+```
 
 ## Règles non négociables
 
 **L'état par défaut est visible.** Aucun moteur ne pose d'`opacity: 0`, de
-`transform` ou de `clip-path` masquant qu'il ne saurait pas retirer. Concrètement :
-en `prefers-reduced-motion`, en SSR, et pour un élément déjà à l'écran au montage
-(`isAlreadyInView`), aucune animation d'entrée ne s'arme. Toute modification qui
-casse cette règle rend possible une section invisible en production.
+`transform` ou de `clip-path` masquant qu'il ne saurait pas retirer.
+Concrètement : en `prefers-reduced-motion`, en SSR, et pour un élément déjà à
+l'écran au montage (`isAlreadyInView`), aucune animation d'entrée ne s'arme.
+Toute modification qui casse cette règle rend possible une section invisible en
+production.
 
 **Un moteur ne connaît aucun framework.** `packages/core` n'importe pas React.
-GSAP y a sa place — il anime des `HTMLElement` — mais seulement par une entrée
-séparée, pour qu'un projet qui ne prend pas le composant concerné ne l'embarque
-pas. `motion` et Radix sont React-only : ils vivent dans `packages/react`, et
-les composants qui en dépendent sont déclarés comme tels.
+GSAP et Lenis y ont leur place — ils travaillent sur des `HTMLElement` — mais
+seulement par une **entrée séparée** (`./expand`, `./smooth-scroll`, `./bloom`),
+pour qu'un projet qui ne prend pas le composant concerné ne les embarque pas.
+Vérifié : `dist/index.js` ne contient ni l'un ni l'autre. Radix est React-only :
+il vit dans `packages/react`, et les composants qui en dépendent sont déclarés
+comme tels.
 
-**On ne réinvente rien.** Radix apporte la sémantique — ARIA, clavier, focus —
-et Tailwind la mise en forme, via `cn()`. Nova n'apporte que le mouvement.
-Avant d'écrire un composant, lire [DEPENDANCES.md](DEPENDANCES.md) : l'arbre de
-décision y dit quand prendre une librairie, et laquelle.
+**On ne réinvente rien.** Radix apporte la sémantique — ARIA, clavier, focus,
+portail — et Tailwind la mise en forme, via `cn()`. Nova n'apporte que le
+mouvement. `Lightbox` est le modèle : Radix fait la modale, Nova fait la bulle.
 
 **Fusionner les options avec `mergeOptions`, jamais avec un spread.**
-`{ ...defaults, ...options }` écrase une valeur par défaut avec `undefined` quand
-la clé est présente mais vide — ce qui est le cas normal quand un adaptateur
+`{ ...defaults, ...options }` écrase une valeur par défaut avec `undefined`
+quand la clé est présente mais vide — le cas normal quand un adaptateur
 construit ses options depuis des props. Voir `internal/options.ts`.
 
-**Le JavaScript pose des attributs, le CSS anime.** Les moteurs écrivent
-`data-nova-*` et des variables `--nova-*` ; `styles/nova.css` porte les
-transitions. Cela garde l'apparence surchargeable sans forker le moteur.
+**Le JavaScript pose des attributs, le CSS anime** — partout où le CSS suffit.
+Les moteurs écrivent `data-nova-*` et des variables `--nova-*` ; `nova.css`
+porte les transitions. Cela garde l'apparence surchargeable sans forker le
+moteur. Les moteurs GSAP échappent à cette règle par nature, et paient le prix
+suivant : ils lisent `prefers-reduced-motion` **à la main, à chaque geste**,
+puisque la règle CSS ne peut rien pour du JavaScript.
+
+**Une seule boucle.** Tous les moteurs passent par `internal/ticker.ts`, qui
+s'arrête dès qu'il n'a plus d'abonné. Un moteur qui ouvre son propre
+`requestAnimationFrame` est au mauvais endroit. Même chose pour
+`IntersectionObserver` : le pool de `internal/in-view.ts` mutualise par couple
+(rootMargin, threshold).
 
 **Tout moteur se démonte proprement.** `destroy()` rend l'élément à son état de
 départ : listeners retirés, observers détachés, ticker désabonné, DOM injecté
-retiré, attributs et variables CSS supprimés. Il existe un test par moteur pour ça.
+retiré, attributs et variables CSS supprimés. Il existe un test par moteur.
 
 ## Ajouter un composant
 
-Avant tout, lire [VARIANTES.md](VARIANTES.md). La première question n'est pas
-« comment l'appeler » mais **« de quelle famille est-ce une forme ? »** — une
-option, un usage, ou un frère. Se tromper de voie fait embarquer du code
-inutile chez ceux qui ne s'en servent pas, ou efface une distinction de sens.
+Deux questions, dans cet ordre.
+
+1. **De quelle famille est-ce une forme ?** Une option, un usage, ou un frère.
+   [VARIANTES.md](VARIANTES.md) donne l'arbre de décision. Se tromper de voie
+   fait embarquer du code inutile chez ceux qui ne s'en servent pas, ou efface
+   une distinction de sens.
+2. **Faut-il une librairie ?** [DEPENDANCES.md](DEPENDANCES.md) donne l'arbre.
+   Résumé : ce qui est déjà résolu par shadcn ou Radix, on s'y branche ; le CSS
+   quand il suffit ; GSAP dès qu'il faut du séquencement, de la mesure ou du
+   FLIP ; `motion` uniquement pour animer un démontage.
+
+Une entrée du registry qui dépend d'un paquet le déclare dans `dependencies` :
+la CLI n'installe que ce qui manque, et seulement pour les composants demandés.
+Aujourd'hui — `gsap` pour `expand` et `lightbox`, `lenis` pour `smooth-scroll`,
+`radix-ui` pour `lightbox`.
 
 ## Après modification
 
@@ -49,58 +86,142 @@ registry distribue des copies figées.
 ```bash
 pnpm test && pnpm typecheck   # `test` dépend du build du paquet lui-même,
                               # sinon le test du bundle lit un dist périmé
-pnpm registry:build          # régénère registry/dist depuis les sources
-pnpm --filter novaui build   # ré-embarque le registry dans la CLI
+pnpm registry:build           # régénère registry/dist depuis les sources
+pnpm --filter novaui build    # ré-embarque le registry dans la CLI
 ```
 
 `scripts/build-registry.ts` échoue si un import vers `@nova-ui/*` subsiste après
-réécriture — c'est voulu, ne pas contourner le garde-fou.
+réécriture — c'est voulu, ne pas contourner le garde-fou. Il réécrit aussi les
+sous-chemins : `@nova-ui/core/expand` devient `<alias>/engines/expand`.
+
+### Vérifier ce que la CLI produit
+
+Le typecheck du monorepo **ne couvre pas** le code copié.
+
+```bash
+node packages/cli/dist/index.js init --yes --cwd <projet-test>
+node packages/cli/dist/index.js add <composant> --cwd <projet-test>
+cd <projet-test> && tsc --noEmit
+```
+
+C'est ce passage qui a révélé l'erreur de typage de `mergeOptions`, invisible
+autrement.
 
 ## Pièges connus
 
+Chacun a coûté un débogage. Ils sont ici pour ne pas le repayer.
+
+### Bundling et frontière serveur
+
 - **`"use client"` disparaît au bundling.** esbuild supprime le prologue de
   directive quand il fusionne des modules ; l'option `banner` de tsup n'y change
-  rien. `packages/react/scripts/add-use-client.mjs` la repose après le build.
-  Sans elle, importer le paquet depuis un Server Component casse le build
-  consommateur. `test/bundle.test.ts` vérifie la directive dans le `dist` : ce
-  test existe parce que l'étape a déjà été contournée en silence par un `dist`
-  restauré du cache Turbo, et que l'erreur ne se voyait qu'au build du site.
+  rien. `packages/react/scripts/add-use-client.mjs` la repose après le build, et
+  `test/bundle.test.ts` le vérifie. Ce test existe parce que l'étape a déjà été
+  contournée en silence par un `dist` restauré du cache Turbo, et que l'erreur
+  ne se voyait qu'au build du site consommateur, avec un message pointant vers
+  React.
 - **Un objet exporté d'un module `"use client"` ne traverse pas la frontière
-  serveur.** L'indexer côté serveur renvoie `undefined`. Voir `apps/docs/components/demos.tsx` :
-  la table nom → composant reste dans le module client, exposée via `<Demo nom />`.
+  serveur.** Il arrive côté serveur en référence opaque, et l'indexer renvoie
+  `undefined`. Voir `apps/docs/components/demos.tsx` : la table nom → composant
+  reste dans le module client, exposée via `<Demo nom />`.
+
+### React et Radix
+
+- **Le portail de Radix ne rend son contenu qu'au commit suivant.** Il attend
+  d'avoir un conteneur, qu'il pose lui-même dans un effet. À l'image où l'état
+  passe à vrai, il n'y a encore aucun nœud : une `useRef` reste nulle, et
+  l'effet ne se rejoue jamais puisque ses dépendances n'ont plus bougé. Tenir le
+  nœud dans un **état** (`const [n, setN] = useState<T | null>(null)` passé en
+  `ref`) provoque un rendu quand il arrive. Voir `components/lightbox.tsx`.
+- **Ne jamais écrire à la main dans un attribut `style` que React possède.** Il
+  le réapplique au premier re-rendu et efface tout ce qu'on y a ajouté. Les
+  moteurs de Nova créent eux-mêmes les nœuds qu'ils animent, ce qui évite le
+  problème par construction — c'est le bug documenté dans `engines/text-effect.ts`.
+
+### GSAP
+
+- **`border-radius` s'écrit en quatre propriétés longues.**
+  `clearProps: "borderRadius"` ne les efface pas : un panneau rouvert repartait
+  du `50 %` de la bulle précédente. Les nommer une par une. Voir
+  `engines/bloom.ts`.
+- **`gsap.set` sur une liste vide écrit un avertissement** dans la console du
+  consommateur. Ne viser que ce qui existe.
+- **Une timeline n'applique son premier `set` qu'à sa première image.** Elle est
+  planifiée, pas exécutée à la construction. Conséquence pour les tests : lire
+  les styles tout de suite ne montre rien.
+
+### CSS
+
+- **La feuille de style de Nova est chargée APRÈS celle du projet.** À
+  spécificité égale, elle gagne. Ne jamais y poser de dimension, de marge ou de
+  couleur de fond sur un élément que l'appelant habille : `width: 100%` sur le
+  canvas de la trame écrasait silencieusement les classes utilitaires. Le socle
+  ne pose que du structurel — `display`, `overflow`, `position`.
 - **Un état de repos sous `animation-timeline` doit être sous `@supports`.**
   `animation-timeline: view()` n'existe pas partout (Firefox notamment). Poser
-  `opacity: 0.17` en dehors de la garde laisse le texte illisible sur ces
-  navigateurs, puisque rien ne vient jamais lever l'état de repos. C'est le
-  défaut de l'implémentation d'origine des effets de lecture.
+  `opacity: 0.17` hors de la garde laisse le texte illisible sur ces
+  navigateurs, puisque rien ne vient jamais lever l'état de repos.
+
+### Mesure
+
 - **Une mesure de mise en page peut valoir zéro, et c'est un cas réel.**
   Conteneur en `display: none`, panneau replié, appel avant la première mise en
   page. Toute boucle du type `while (copies < ceil(taille / mesure))` doit
   renoncer quand la mesure est nulle : sinon la division vaut l'infini et le
   navigateur se fige. Voir la garde dans `engines/scroll-marquee.ts`.
-- **La feuille de style de Nova est chargée APRÈS celle du projet.** À
-  spécificité égale, elle gagne. Ne jamais y poser de dimension, de marge ou de
-  couleur de fond sur un élément que l'appelant habille : `width: 100%` sur le
-  canvas de la trame écrasait silencieusement les classes utilitaires. Le socle
-  ne pose que ce qui est structurel — `display`, `overflow`, `position`.
-- **Le pool d'`IntersectionObserver` est global au module** et survit d'un test à
-  l'autre. Les doublures de test ne remettent pas `instances` à zéro, c'est
-  volontaire.
+- **Mesurer dans l'image d'animation, jamais dans l'écouteur.** `scroll` et
+  `pointermove` tirent des dizaines d'événements par image, et chacun forcerait
+  un calcul de mise en page. Voir `engines/scroll-scene.ts` et
+  `engines/spotlight.ts`.
 
-## Vérifier ce que la CLI produit
+## Tests
 
-Le typecheck du monorepo ne couvre pas le code copié. Pour le tester vraiment :
+`packages/core/test/setup.ts` fournit les doublures que jsdom n'a pas :
+`IntersectionObserver` (pilotable via `MockIntersectionObserver.fire`),
+`ResizeObserver`, `matchMedia` (avec `setReducedMotion` / `setFinePointer`),
+`Element.animate`, `scrollTo`, et un **contexte 2D enregistreur** mémorisé par
+canvas — il enregistre les appels de dessin, ce qui permet de vérifier ce qui
+est réellement peint plutôt que de constater que rien n'a planté.
 
-```bash
-node packages/cli/dist/index.js init --yes --cwd <projet-test>
-node packages/cli/dist/index.js add reveal --cwd <projet-test>
-```
+Deux conventions :
 
-puis `tsc --noEmit` dans le projet cible. C'est ce passage qui a révélé l'erreur
-de typage de `mergeOptions`, invisible autrement.
+- **le pool d'`IntersectionObserver` est global au module** et survit d'un test
+  à l'autre. Les doublures ne remettent pas `instances` à zéro, c'est
+  volontaire : c'est son fonctionnement en production.
+- **jsdom ne recompose pas le raccourci `border-radius`** depuis ses propriétés
+  longues. Lire `style.borderTopLeftRadius`.
+
+Un test qui mesure une valeur en cours d'animation dépend de la charge de la
+machine. Soit on porte la durée à une valeur qui rend la mesure déterministe,
+soit on assume une tolérance et on l'écrit.
+
+## Vitrine
+
+`apps/docs` est un catalogue à barre latérale : filtre, navigation par
+catégorie, page « Tout parcourir » avec recherche, fiches avec sélecteur de
+formes. Les démonstrations sont **vivantes** — le vrai composant, les vraies
+options.
+
+- Elle est bâtie sur **shadcn**. Ses jetons (`--background`, `--primary`…) sont
+  mappés sur la palette de Nova dans `globals.css` : il n'y a qu'une palette, et
+  les composants shadcn s'y conforment.
+- Le **curseur additif n'y est pas monté**. C'est un composant de la librairie,
+  essayable sur sa fiche, pas une signature imposée à chaque page.
+- Une démonstration porte un bouton « rejouer » dès qu'il y a quelque chose à
+  rejouer. Le rejeu passe par un **remontage** : retirer puis reposer une classe
+  ne suffit pas, React regroupe les deux mises à jour et l'animation ne repart
+  jamais.
+- Les composants dont l'effet EST le geste du visiteur — `RollText`,
+  `Spotlight`, `Cursor`, `Halftone` — n'ont pas de bouton rejouer. Ce serait une
+  commande morte.
 
 ## Langue
 
 Code, commentaires et documentation en français. Noms de symboles en anglais
-pour l'API publique (`createReveal`, `RevealOptions`), en français pour le site
-vitrine (`catalogue`, `Fiche`, `trouverFiche`).
+pour l'API publique (`createReveal`, `RevealOptions`), en français pour la
+vitrine (`catalogue`, `Fiche`, `trouverFiche`) et pour les variables internes
+des moteurs.
+
+Les commentaires disent **pourquoi**, pas quoi. Un commentaire qui paraphrase la
+ligne suivante est du bruit ; un commentaire qui explique le cas limite qui a
+imposé cette ligne vaut dix minutes à la prochaine lecture.
