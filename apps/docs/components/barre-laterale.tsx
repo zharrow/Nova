@@ -75,7 +75,7 @@ export function BarreLaterale({
       </div>
 
       <div>
-        <p className="cote cote-separateur mb-2.5">Démarrer</p>
+        <p className="cote cote-signal mb-2.5">Démarrer</p>
         <ul className="space-y-0.5">
           <LienNav href="/composants" actif={chemin === "/composants"}>
             Tout parcourir
@@ -88,7 +88,7 @@ export function BarreLaterale({
 
       {visibles.map((groupe) => (
         <div key={groupe.id}>
-          <p className="cote cote-separateur mb-2.5">{groupe.label}</p>
+          <p className="cote cote-signal mb-2.5">{groupe.label}</p>
           <ul className="space-y-0.5">
             {groupe.entrees.map((entree) => (
               <LienNav

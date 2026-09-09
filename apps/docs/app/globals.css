@@ -299,18 +299,17 @@ body,
   color: var(--sourdine);
 }
 
-/* La cote qui SÉPARE au lieu de légender.
+/* Une cote en bleu : l'INTERTITRE d'une liste où l'on choisit, le menu du
+   téléphone et la barre latérale.
 
-   Dans une liste où l'on choisit — le menu du téléphone, la barre latérale —
-   l'intertitre de catégorie et les noms qu'il coiffe étaient au même gris. La
-   casse et la chasse fixe ne suffisent pas : à la lecture rapide, on voit une
-   colonne d'entrées uniformes, et la structure disparaît.
+   L'intertitre de catégorie et les noms qu'il coiffe étaient au même gris. La
+   casse et la chasse fixe ne suffisent pas : à la lecture rapide on voit une
+   colonne uniforme, et la structure disparaît. Les entrées, elles, restent
+   neutres — c'est ce qui rend l'ossature lisible.
 
-   Le bleu la rend. C'est le même emploi que les numéros de section de
-   l'affiche : il marque l'OSSATURE d'une surface de navigation, jamais un lien
-   — les liens de ces listes-là restent neutres, et c'est précisément ce qui
-   rend l'ossature lisible. */
-.cote-separateur {
+   Elle existe parce que `.cote` fixe déjà `color` hors de toute couche : un
+   `text-signal` de Tailwind posé à côté ne gagnerait pas de façon fiable. */
+.cote-signal {
   color: var(--signal);
 }
 
