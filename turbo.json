@@ -31,8 +31,12 @@
       "inputs": [
         "scripts/build-registry.ts",
         "registry/registry.json",
+        "apps/docs/lib/catalogue.ts",
         "packages/core/src/**",
         "packages/react/src/**"
+      ],
+      "env": [
+        "NOVA_REGISTRY_TOUT"
       ],
       "outputs": [
         "registry/dist/**"
