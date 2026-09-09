@@ -35,11 +35,11 @@ describe("composants React", () => {
   });
 
   it("TextEffect découpe un titre en gardant sa sémantique", () => {
-    const { container } = render(<TextEffect as="h1" text="Bâtir en verre" />);
+    const { container } = render(<TextEffect as="h1" text="Nova en mouvement" />);
     const heading = container.querySelector("h1")!;
     expect(heading.querySelectorAll(".nova-word")).toHaveLength(3);
     // Le titre reste annoncé d'une seule traite.
-    expect(heading.querySelector(".nova-sr")?.textContent).toBe("Bâtir en verre");
+    expect(heading.querySelector(".nova-sr")?.textContent).toBe("Nova en mouvement");
   });
 
   it("TextEffect change de grain quand l'effet l'exige", () => {

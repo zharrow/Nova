@@ -7,25 +7,36 @@ tombe. La marche à suivre pour changer quelque chose est en dernière section.
 ## Le point fixe
 
 **Le mouvement est l'objet.** Tout s'efface pour la démonstration. La seule chose
-vivante et colorée à l'écran doit être le composant qui bouge.
+vivante à l'écran doit être le composant qui bouge.
 
-C'est déjà ce que l'ancienne feuille de style prétendait faire sans y parvenir, et il
-vaut la peine de comprendre pourquoi : la page était `#ffffff`, la scène `#f7f7f8`. La
-démonstration était donc **plus sombre que son environnement**, à 1,03:1 contre son
-fond, pendant qu'un titre tenait 18:1 juste à côté. L'œil va au contraste maximal.
-Effacer le décor, ce n'est pas l'éclaircir, c'est le **baisser**.
+La règle qui rend ce principe vérifiable n'est pas une couleur, c'est un ÉCART : la
+scène doit être le plan le plus contrasté de la page, et le chrome le moins. La toute
+première version du site échouait à l'inverse — page `#ffffff`, scène `#f7f7f8`, soit
+une démonstration à 1,03:1 contre son fond pendant qu'un titre tenait 18:1 juste à
+côté. C'est cet écart-là qu'on tient, et il se tient dans les deux modes.
 
 ## Thèse
 
-**Un banc d'essai : un atelier éteint, mat, réglé au filet, sur lequel une seule pièce
-est sous la lampe à la fois.** Le site est l'établi, jamais le spectacle.
+**Un banc d'essai posé sur un plan de travail clair : l'atelier est en ordre, éclairé,
+et une seule pièce est sous la loupe à la fois.** Le site est l'établi, jamais le
+spectacle.
 
-On garde la filiation « instrument de mesure » de l'ancienne direction — elle était
-juste — mais on en inverse la valeur. Un instrument ne se lit pas sur du papier blanc
-éclairé au néon ; il se lit sur un plan sombre où l'aiguille est la seule chose
-lumineuse.
+Le clair est **canonique**, et c'est un renversement assumé de la première direction.
+Celle-ci tenait un argument juste mais mal appliqué : sur fond sombre une animation peut
+émettre, sur fond clair elle ne peut que s'assombrir. Vrai — pour les cinq familles qui
+rayonnent (Halftone, Confetti, Spotlight, Cursor, Loader). Les dix-huit autres n'émettent
+rien : elles déplacent, dévoilent, brouillent, défilent, réorganisent du CONTENU. Or un
+contenu se lit, il n'irradie pas, et il se lit sur le fond qu'il aura chez celui qui
+copie le composant.
 
-Humeur : nuit d'atelier, pas nuit de startup. Énergie : immobile, sauf un point.
+C'est le vrai critère : la question que se pose un visiteur devant une scène n'est pas
+« est-ce beau ici », c'est **« est-ce que ça tiendra chez moi »**. Une librairie qui se
+copie doit se montrer sur le sol le plus fréquent, et ce sol est clair. Le sombre reste
+un mode COMPLET — pas un repli — et la bascule par scène (voir « Mise en scène ») existe
+pour que les cinq familles qui émettent puissent se montrer sur leur meilleur fond sans
+qu'on quitte la page.
+
+Humeur : atelier de jour, pas landing de startup. Énergie : immobile, sauf un point.
 
 ## Barre de qualité
 
@@ -61,7 +72,7 @@ ajouté parce que la place était vide.
 ## Contexte
 
 - **Ce que c'est** : la vitrine de documentation d'une librairie de composants animés
-  en TypeScript. 21 familles, 57 formes. Modèle shadcn — la source se copie dans le
+  en TypeScript. Modèle shadcn — la source se copie dans le
   projet de l'appelant.
 - **Pour qui** : développeurs React francophones.
 - **Type** : catalogue + documentation de référence.
@@ -79,26 +90,51 @@ ne la porte pas.
 
 ## Couleur
 
-Deux modes réels. **Le sombre est canonique** — c'est celui dans lequel la direction
-est dessinée, et celui qui donne au mouvement une direction de contraste que le blanc
-lui interdit : sur fond clair une animation ne peut que s'assombrir, sur fond sombre
-elle peut émettre.
+Deux modes réels. **Le clair est canonique** — c'est celui dans lequel la direction est
+dessinée, et celui sur lequel un composant copié atterrira le plus souvent. Le sombre
+est un mode complet, dessiné aussi, et c'est le meilleur fond des cinq familles qui
+émettent.
 
-Un jeton est un **rôle**, pas un hexadécimal. `--signal` ne vaut pas la même valeur
-dans les deux modes, et c'est correct.
+Un jeton est un **rôle**, pas un hexadécimal. `--signal` ne vaut pas la même valeur dans
+les deux modes, et c'est correct.
 
-### Sombre — canonique
+### Clair — canonique
 
 ```css
 :root {
-  --nuit:       #0B0B0C;  /* page */
-  --plan:       #101013;  /* plan ENFONCÉ : code, tableaux */
-  --banc:       #1A1A20;  /* plan SURÉLEVÉ : scène de démonstration */
-  --banc-haut:  #24242B;  /* surface interne à une scène */
-  --filet:      #26262C;
-  --filet-vif:  #3C3C46;  /* filet actif, bord de scène survolée */
+  --nuit:       #FCFCFB;  /* page. Un blanc cassé, jamais #ffffff */
+  --plan:       #F4F4F1;  /* plan ENFONCÉ : code, tableaux */
+  --banc:       #FFFFFF;  /* plan SURÉLEVÉ : scène. Le seul blanc pur */
+  --banc-haut:  #F7F7F4;  /* surface interne à une scène */
+  --filet:      #E6E6E1;
+  --filet-vif:  #C9C9C1;  /* filet actif, bord de scène survolée */
 
-  --encre:      #F2F2EF;  /* 17,0:1 sur --nuit */
+  --encre:      #16161A;  /* 16,8:1 sur --nuit */
+  --prose:      #3D3D45;  /* 10,1:1 */
+  --second:     #5E5E68;  /*  6,1:1 */
+  --sourdine:   #74747E;  /*  4,6:1 */
+
+  --signal:     #1B4FD8;  /*  6,0:1 */
+}
+```
+
+Le nom `--nuit` est resté celui de la page dans les deux modes. Il est devenu faux en
+clair, et le renommer coûterait une passe sur chaque fichier pour un gain nul : ce qui
+compte est qu'il désigne LE FOND DE PAGE, ce qu'il fait toujours. Noté ici pour que la
+prochaine lecture ne le prenne pas pour un reste.
+
+### Sombre — mode complet, pas un repli
+
+```css
+[data-theme="nuit"] {
+  --nuit:       #0B0B0C;
+  --plan:       #101013;
+  --banc:       #1A1A20;  /* la scène MONTE, au lieu d'être le seul blanc */
+  --banc-haut:  #24242B;
+  --filet:      #26262C;
+  --filet-vif:  #3C3C46;
+
+  --encre:      #F2F2EF;  /* 17,0:1 */
   --prose:      #C3C3C9;  /* 11,1:1 */
   --second:     #9A9AA3;  /*  6,9:1 */
   --sourdine:   #7C7C86;  /*  4,7:1 */
@@ -107,40 +143,25 @@ dans les deux modes, et c'est correct.
 }
 ```
 
-### Clair — mode complet, pas un repli
+L'inversion est volontaire : en clair la scène est le seul **blanc pur**, en sombre elle
+est le plan qui **monte**. Dans les deux cas elle est le point le plus haut de la page,
+et c'est cet écart-là que le point fixe demande.
 
-```css
-[data-theme="clair"] {
-  --nuit:       #F4F4F0;  /* papier, jamais #ffffff */
-  --plan:       #EBEBE4;
-  --banc:       #FFFFFF;  /* le SEUL blanc pur du site : la scène */
-  --banc-haut:  #F7F7F3;
-  --filet:      #DCDCD4;
-  --filet-vif:  #B4B4A9;
-
-  --encre:      #121214;  /* 17,0:1 */
-  --prose:      #3A3A42;  /* 10,3:1 */
-  --second:     #5A5A64;  /*  6,2:1 */
-  --sourdine:   #6B6B75;  /*  4,8:1 */
-
-  --signal:     #1B4FD8;  /*  6,0:1 */
-}
-```
-
-L'inversion est volontaire : en sombre la scène est le plan qui **monte**, en clair
-elle est le seul **blanc pur**. Dans les deux cas elle est le point le plus haut de la
-page.
+**Le sombre est adressable par attribut, pas seulement par la racine.** `[data-theme="nuit"]`
+et `[data-theme="clair"]` fonctionnent tous deux sur un conteneur quelconque : c'est ce
+qui permet à une scène de fiche d'être retournée seule, sur une page qui ne bouge pas.
+Sans cette symétrie, la bascule ne marchait que dans un sens.
 
 ### Budget de contraste
 
-La règle qui rend la thèse vérifiable en relecture de différence, au lieu de la
-laisser en commentaire :
+La règle qui rend la thèse vérifiable en relecture de différence, au lieu de la laisser
+en commentaire :
 
 > **Aucun élément de chrome ne dépasse 7:1. Aucun contenu de scène ne descend sous 12:1.**
 
-- Cotes, légendes, métadonnées, navigation : 4,7 à 7:1.
+- Cotes, légendes, métadonnées, navigation : 4,6 à 7:1.
 - Prose : 10 à 11:1.
-- Titres : 17:1, mais courts et jamais dans le même écran qu'une scène active.
+- Titres : 17:1, mais courts.
 - Intérieur de scène : 17:1.
 
 **Exception, décidée à l'usage** : le panneau de télémétrie est du **contenu de scène**,
@@ -158,6 +179,12 @@ Tout ce qui le portait hors scène passe à `--sourdine` ou disparaît : compte 
 flèches, losange du bandeau, jeton de forme actif (qui devient `--filet-vif` + encre
 pleine).
 
+Le rationnement survit au passage au clair, et il y devient plus important, pas moins :
+sur fond sombre une tache de couleur se lit comme une lueur, sur fond clair elle se lit
+comme un bouton. Une page claire tolère donc MOINS d'accents qu'une page sombre, pas
+davantage — c'est le piège du mode clair, et la raison pour laquelle la plupart des
+vitrines claires finissent violettes.
+
 ### Coloration syntaxique
 
 Le bloc de code est le seul endroit où plusieurs teintes cohabitent, et il est sur le
@@ -167,16 +194,8 @@ plan **enfoncé**. Rampe chaude, aucun néon, aucun violet.
 dans le code se lirait comme du signal, et le rationnement à deux occurrences par écran
 n'aurait plus de sens. L'écart de température rend le signal non ambigu.
 
-```css
---code-cle:    #FF9E6B;  /* mots-clés, balises JSX */
---code-type:   #8FB6CF;  /* types, noms de composants */
---code-chaine: #8FBF9F;
---code-nombre: #E2C48D;
---code-comm:   #6B6B74;
---code-ponct:  #7C7C86;
-```
-
 En clair : `#9A3412` · `#28607F` · `#2F6B45` · `#8A6423` · `#8A8A93` · `#6B6B75`.
+En sombre : `#FF9E6B` · `#8FB6CF` · `#8FBF9F` · `#E2C48D` · `#6B6B74` · `#7C7C86`.
 
 ### Correspondance shadcn
 
@@ -189,54 +208,64 @@ Une seule palette. `--background → --nuit` · `--card → --plan` · `--popove
 
 ## Typographie
 
-Trois familles, trois registres qui ne se croisent jamais. Chargées par
-`next/font/google`, variables, sous-ensemble `latin` + `latin-ext`, `display: swap`.
+**Deux familles, et une seule règle de partage : les mots d'un côté, les nombres de
+l'autre.**
 
-### Bricolage Grotesque — titres
+C'est une simplification décidée après relevé. La direction précédente en tenait trois —
+Bricolage Grotesque pour les titres, Instrument Sans pour la prose, Spline Sans Mono
+pour la mesure — et la troisième voix ne payait pas son coût : sur un catalogue de
+un catalogue entier de fiches, un grotesque expressif à quelques pixels d'une démonstration
+concurrence exactement ce qu'il est censé annoncer. Le document le pressentait déjà, en
+« point de vigilance ». Le point de vigilance est devenu la décision.
 
-Axes `opsz 12–96`, `wdth 75–100`, `wght 200–800`. Un grotesque au dessin reconnaissable,
-qui n'est pas neutre. Rôle : titres de page, titres de fiche, titres de section, nom de
-famille sur la scène.
+### Instrument Sans — tout ce qui est un mot
 
-### Instrument Sans — prose et interface
+Axes `wdth 75–100`, `wght 400–700`. Titres, prose, navigation, libellés, boutons. Un
+grotesque au dessin propre et discret, qui tient de 11 px à 60 px.
 
-Axes `wdth 75–100`, `wght 400–700`. Rôle : toutes les phrases, la navigation, les
-libellés, les boutons. Discret par construction, pour ne pas fatiguer sur 21 fiches.
+**Pourquoi pas Inter**, qui est la réponse évidente et celle du site qui a servi de
+référence : c'est précisément parce qu'elle est la réponse évidente. Inter est la police
+par défaut de la moitié des interfaces livrées depuis cinq ans ; la choisir ne se lit pas
+comme un choix. Instrument Sans donne le même calme — c'est un grotesque neutre, à
+l'oeil comparable — sans dire « réglage d'usine ». Le repos typographique était l'objectif,
+pas Inter.
 
-### Spline Sans Mono — mesure
+### Spline Sans Mono — tout ce qui est un nombre
 
-`wght 300–700`. Rôle : cotes, code, valeurs, télémétrie, noms d'API, compteurs.
+`wght 300–700`. Cotes, code, valeurs, télémétrie, noms d'API, compteurs.
 
-### Règles de séparation
-
-- Un titre est **toujours** en Bricolage Grotesque.
-- Une phrase est **toujours** en Instrument Sans.
-- Un chiffre est **toujours** en Spline Sans Mono, `font-variant-numeric: tabular-nums`.
-- Bricolage Grotesque ne descend jamais sous 1,25rem. En petit, son dessin devient du
-  bruit.
+Elle survit à la simplification alors que Bricolage tombe, et pour une raison précise :
+elle ne décore pas, elle DISTINGUE. Dans un catalogue technique, savoir d'un coup d'oeil
+qu'un fragment est une valeur littérale et non de la prose vaut une famille entière. La
+règle `font-variant-numeric: tabular-nums` s'applique partout où elle porte des chiffres,
+sinon une colonne de valeurs danse sous un curseur.
 
 ### Échelle
 
-| Rôle | Police | Taille | Graisse / axes | Interligne | Approche |
+Modérée, et c'est le second changement. Les titres descendent : un titre de fiche à
+2,6 rem au-dessus d'une scène lui disputait l'écran.
+
+L'affiche de l'accueil se cale sur `3.4vw` et non `5vw`, parce qu'elle vit dans **5
+colonnes sur 12** : une taille indexée sur la fenêtre y produisait cinq lignes de titre
+là où la colonne en supporte trois. Une échelle typographique se règle sur la mesure qui
+la contient, pas sur celle de l'écran.
+
+| Rôle | Police | Taille | Graisse | Interligne | Approche |
 |---|---|---|---|---|---|
-| Affiche (accueil) | Bricolage | `clamp(3rem, 7vw, 6.5rem)` | 700 / opsz 96, wdth 88 | 0.96 | −0.03em |
-| Titre de fiche | Bricolage | `clamp(1.9rem, 4vw, 2.6rem)` | 600 / opsz 96, wdth 92 | 1.03 | −0.022em |
-| Titre de section | Bricolage | `1.5rem` | 600 / opsz 40 | 1.15 | −0.015em |
-| Nom de famille sur scène | Bricolage | `1.05rem` | 600 | 1.2 | −0.02em |
-| Accroche | Instrument Sans | `1.25rem` | 400 | 1.45 | 0 |
-| Prose | Instrument Sans | `1rem` | 400 | 1.62 | 0 |
-| Interface, nav, boutons | Instrument Sans | `0.875rem` | 500 | 1.4 | 0 |
+| Affiche (accueil) | Instrument | `clamp(2rem, 3.4vw, 3rem)` | 600 / wdth 92 | 1.04 | −0.025em |
+| Titre de fiche | Instrument | `clamp(1.5rem, 2.4vw, 1.875rem)` | 600 | 1.15 | −0.02em |
+| Titre de section | Instrument | `1.25rem` | 600 | 1.3 | −0.01em |
+| Nom de famille sur scène | Instrument | `0.9375rem` | 600 | 1.2 | −0.01em |
+| Accroche | Instrument | `1.0625rem` | 400 | 1.5 | 0 |
+| Prose | Instrument | `1rem` | 400 | 1.6 | 0 |
+| Interface, nav, boutons | Instrument | `0.875rem` | 500 | 1.4 | 0 |
 | Cote (libellé technique) | Spline Mono | `0.6875rem` | 500, capitales | 1.2 | 0.09em |
 | Code | Spline Mono | `0.8125rem` | 400 | 1.7 | 0 |
 | Valeurs, télémétrie | Spline Mono | `0.75rem` | 400, tabular | 1.5 | 0.02em |
 
-### Point de vigilance
-
-Bricolage Grotesque est la plus expressive des options envisagées. Sur les grands
-titres, loin de la scène, elle ne gêne pas. **À surveiller sur les étiquettes de
-vignette du catalogue**, où le nom est à quelques pixels du mouvement : si le dessin des
-titres se met à concurrencer la démonstration, la réponse est de descendre l'étiquette
-en Instrument Sans, pas de changer de police.
+Une seule famille pour les mots supprime la règle « un titre est toujours en X » : il n'y
+a plus rien à séparer. Ce qui distingue un titre est sa TAILLE et sa GRAISSE, pas sa
+voix — c'est moins spectaculaire, et c'est ce qu'on cherche.
 
 ---
 
@@ -270,15 +299,17 @@ Trois niveaux, jamais plus. La scène **monte** (`--banc`), le code **descend**
 
 Le cœur du sujet.
 
-1. **Trois hauteurs, pas une.** L'ancienne `h-52` fixe imposait 208px à 21 mouvements
-   dont la géométrie *est* le contenu. La hauteur devient une propriété de la famille,
-   déclarée dans `lib/catalogue.ts` :
-   - `bande` — 180 à 240px : ce qui défile (Marquee, ScrollMarquee, TextEffect,
-     TextHighlight, BrushUnderline, SmoothScroll)
-   - `bloc` / `carre` — 260 à 320px : Reveal, Blinds, Loader, Graph, ScrollScene,
-     Expand, Lightbox, Halftone, Cursor, Spotlight, Confetti, Counter, ScrambleText,
-     RollText, Flight
-   - `champ` — `clamp(300px, 52vh, 560px)` : la scène d'une fiche
+1. **Deux hauteurs : la case et le champ.** 224px dans la grille, `clamp(300px, 52vh,
+   560px)` sur une fiche. La géométrie déclarée par chaque famille dans
+   `lib/catalogue.ts` — `bande`, `bloc`, `carre` — survit et pilote la MISE EN PAGE
+   INTERNE de la scène, plus sa hauteur : ce qui défile reste bas et large dans son
+   cadre, ce qui rayonne reste centré.
+
+   Elle pilotait la hauteur, et trois hauteurs différentes faisaient remonter les
+   étiquettes d'une rangée à l'autre — la grille se lisait en dents de scie. Voir « Le
+   catalogue ». L'ancienne `h-52` fixe de la toute première version reste écartée pour
+   la raison inverse : elle imposait 208px à une scène de fiche, dont la géométrie *est*
+   le contenu.
 2. **Pas de centrage réflexe.** Défaut : aligné à gauche, centré verticalement. **On
    centre ce qui rayonne** (Halftone, Confetti, Loader, Lightbox), **on aligne à gauche
    ce qui se lit** (texte, marquee, compteur, highlight).
@@ -286,7 +317,7 @@ Le cœur du sujet.
    (« survolez le mot »), à droite le rejeu, ou rien.
 4. **« Rejouer » n'est pas un bouton.** Un mot en mono, souligné d'un filet qui se
    dessine depuis la gauche au survol. Un bouton encadré dans le coin de chaque scène
-   réintroduirait 21 objets de chrome identiques.
+   réintroduirait un objet de chrome identique par case.
 5. **Le survol d'une scène ne fait qu'une chose** : les deux filets passent `--filet →
    --filet-vif` en 220ms. C'est le seul retour de survol du catalogue, donc il signifie
    « celle-ci est vivante ».
@@ -294,6 +325,22 @@ Le cœur du sujet.
    prétexte. Les mires sont **calculées** (rayures, trames de points) — aucune ressource
    à charger. Les six carrés gris de `DemoReveal` et les `from-neutral-800` de Lightbox
    et Blinds partent.
+
+### Retourner la scène, sans retourner la page
+
+Sur une fiche, un bouton du fil d'Ariane bascule le thème de la SEULE scène. La page ne
+bouge pas.
+
+C'est ce qui rend soutenable d'avoir un mode canonique : les cinq familles qui rayonnent
+— Halftone, Confetti, Spotlight, Cursor, Loader — se montrent au mieux sur fond sombre,
+et jusqu'ici la seule façon de les y voir était de basculer tout le site, donc de perdre
+la scène de vue le temps que l'oeil se réhabitue. Comparer deux états demande de les voir
+l'un après l'autre au même endroit.
+
+Sur les FICHES uniquement, comme la télémétrie : le catalogue en porterait un par case, et
+la section « Mise en scène » interdit d'y remettre une rangée d'objets de chrome
+identiques. Une fiche n'a qu'une scène, donc un bouton — et il est dans le fil d'Ariane,
+pas dans la scène, dont le plancher porte déjà le nom de la famille et le rejeu.
 
 ### Télémétrie du moteur
 
@@ -358,23 +405,126 @@ couleur d'accent système ferait une troisième occurrence de signal par écran.
 
 ### Le catalogue
 
-Grille de **6 colonnes**, `gap: 10px`, cases bordées au rayon de plan (14 px).
-L'ensemble se lit comme un plan disséqué, pas comme 21 objets flottants. L'emprise vient
-de la **géométrie du mouvement**, pas de l'importance : `bande` sur 6 colonnes, `bloc`
-sur 3, `carre` sur 2.
+**Un index par SECTIONS, pas une grille unique.** Une grille d'un seul tenant forme un
+mur qu'on parcourt sans repère : on ne sait ni où l'on est, ni ce qui reste. Rangées par
+catégorie — chaque section avec son titre et une phrase qui dit ce qu'elle rassemble —
+les mêmes cases deviennent six listes courtes, et chacune se lit d'un regard.
 
-**Flux dense obligatoire** (`grid-auto-flow: dense`). Sans lui, une bande de six colonnes
-qui ne tient pas dans le reste d'une rangée laisse un trou au lieu de reculer, et l'ordre
-du catalogue creuse la grille. Constaté à l'implémentation.
+Le filtre par catégorie disparaît avec ce changement : les sections SONT les catégories,
+et un menu qui refait ce que la page montre déjà est du chrome. Seule la recherche
+textuelle reste, parce qu'elle traverse les sections. Une section vidée par la recherche
+disparaît — un titre au-dessus de rien est pire qu'une section absente.
 
-Le rythme n'est donc pas imposé à la main : il tombe de la géométrie déclarée par chaque
-famille dans `lib/catalogue.ts`, et le flux dense s'occupe du reste.
 
-La démonstration occupe 100% de la case. L'étiquette est **dans** la case, en bas, sur
-un filet qui traverse toute sa largeur. Il n'y a donc aucun chrome hors scène.
+**Une case est un CADRE, et son étiquette est SOUS le cadre.**
 
-Sous 900px : une colonne. Les `bande` survivent à pleine qualité et deviennent la
-respiration. Rien ne devient une grille de trois.
+C'est le changement le plus visible de la refonte, et il vient d'un relevé : la version
+précédente posait l'étiquette DANS la case, sur un filet interne, pour qu'il n'y ait
+« aucun chrome hors scène ». L'intention était juste, l'effet ne l'était pas — chaque
+vignette devenait un objet composite qu'il faut décoder, et une pleine grille en fait
+un mur. Sorti du cadre, le nom redevient une légende, le cadre redevient une image, et la
+grille se lit d'un balayage.
+
+Trois conséquences, dans cet ordre :
+
+1. **Le cadre porte un fond neutre et une bordure, rien d'autre.** Il ne montre que la
+   démonstration, à sa taille réelle, sans mise à l'échelle. Un composant réduit ment sur
+   ce qu'il sera.
+2. **L'étiquette est une ligne de nom + une ligne de compte**, en dessous, sur le fond de
+   la page. Le compte est EXPLICITE — « 7 formes », « aucune dépendance » — parce que
+   c'est l'information qui manque quand on choisit, et qu'elle ne coûte rien à afficher.
+3. **La carte entière est le lien**, cadre compris. Une zone cliquable de la taille
+   d'un mot au bas d'un objet de trois cents pixels est une cible qu'il faut viser ;
+   la carte est celle qu'on vise déjà.
+
+   Cela ne se décrète pas : une ancre qui enveloppe un bouton imbrique deux éléments
+   interactifs, ce que HTML interdit et qui rendrait ces boutons inatteignables au
+   clavier. Or les démonstrations portent leurs propres commandes — un « rejouer », un
+   bouton qui tire des confettis. La contrepartie est donc le régime INERTE ci-dessous,
+   et elle se paie : le catalogue présente les composants, il ne les manipule plus.
+
+Grille de **3 colonnes**, `gap: 16px`, aperçus de **proportion 1,92** — un rectangle
+paysage, jamais une hauteur en pixels : la carte donne la mesure, la scène la remplit.
+
+Trois et non quatre, parce que la page porte une barre latérale de 248 px : à quatre
+colonnes le cadre tombe à 215 px de large, et les démonstrations denses y débordent — le
+nuage de mots de Spotlight se faisait couper en plein milieu d'un mot. Le nombre de
+colonnes n'est pas une préférence, il est plafonné par la plus exigeante des scènes. La
+quatrième colonne revient au-delà de 1536 px, où la place existe.
+
+La proportion 1,92 impose une contrainte aux démonstrations, et c'est une bonne
+contrainte : elle a fait tomber trois cartes au relevé — Reveal, Graph, Scroll Scene —
+dont le contenu avait été dessiné pour un cadre presque carré. La réponse n'est pas de
+détendre le cadre mais de retirer ce qui ne sert pas l'aperçu : Reveal montre un rang de
+pastilles au lieu de deux, Scroll Scene renonce à son relevé de `t`. Une case n'a pas à
+tout dire — la fiche est là pour ça. L'emprise
+variable de la version précédente — bande sur six colonnes, bloc sur trois, carré sur
+deux — composait un rythme de plan disséqué qui avait sa beauté, et qui échouait au test
+de la lisibilité. Une grille régulière se parcourt ; une grille en pavage se contemple.
+
+La hauteur uniforme est venue après coup, au relevé : on avait d'abord gardé une hauteur
+de scène par famille, et une bande de 180 px à côté d'un bloc de 250 px fait remonter son
+étiquette — la rangée se lit alors en dents de scie. Sur une grille qu'on parcourt,
+l'alignement des légendes vaut plus que l'annonce de la géométrie par la forme du cadre.
+La géométrie du mouvement survit donc à l'INTÉRIEUR du cadre, où une bande reste basse et
+large et un carré reste centré ; elle ne déforme plus la grille qui l'entoure.
+
+Sous 1280 px : deux colonnes. Sous 640 px : une.
+
+### Le régime inerte du catalogue
+
+**Une case présente le composant, elle ne le manipule plus.** La démonstration reste
+MONTÉE — ce n'est pas une capture — et perd ses prises : plus de rejeu, plus de raccourci
+`F`, plus de pointeur. Ce qui bouge tout seul continue de bouger ; ce qui répondait au
+geste montre son état de repos, qui est exactement ce qu'il montrerait sans curseur
+dessus.
+
+Deux raisons, dans cet ordre.
+
+1. **La carte entière doit être cliquable**, et cela exclut tout élément interactif à
+   l'intérieur. C'est le point 3 ci-dessus.
+2. **Une image figée coûterait plus et dirait moins.** Vingt-trois captures à produire et
+   à regénérer à chaque retouche, contre une vitrine d'animation dont le catalogue serait
+   immobile — le seul argument du produit, retiré de la page qui doit le porter.
+
+Les légendes des scènes disparaissent avec l'interaction, et il le faut : la moitié sont
+des invitations — « survolez pour suspendre », « promenez le curseur » — qui mentiraient
+sur une case qui ne répond plus. Le cadre ne montre alors que le composant, ce qui est
+aussi la bonne réponse visuelle : une légende sous chaque cadre
+redoublerait l'étiquette posée juste en dessous.
+
+La vraie démonstration — manipulable, réglable, avec son rejeu et sa télémétrie — est
+sur la fiche. C'est ce qui donne au clic une raison d'exister.
+
+### Aucun compte global n'est écrit
+
+Ni dans l'interface, ni dans la prose, ni dans les commentaires. Le catalogue grossit à
+chaque récolte : une phrase qui cite « vingt-trois familles » se périme à la ligne
+suivante, et l'on passe plus de temps à la remettre à jour qu'elle n'apprend au lecteur.
+Le relevé du 9 septembre 2026 en a trouvé trente-six occurrences dans le dépôt, dont
+plusieurs déjà fausses.
+
+Deux comptes survivent, et ils ont chacun leur raison :
+
+- **le nombre de formes d'UNE famille**, sur sa carte et sa fiche : c'est une propriété
+  de cette famille, pas du catalogue, et elle aide à choisir ;
+- **le résultat d'une recherche** (« 4 sur 23 ») : il répond à ce qu'on vient de taper.
+
+Tout le reste s'écrit sans nombre — « le catalogue », « toutes les formes », « une par
+case ». `TOTAL_FORMES` reste exporté et juste, pour la prochaine surface qui aura une
+vraie raison de compter.
+
+### Densité
+
+**Généreuse.** Les sections respirent à `96px` de haut et de bas sur les pages
+d'affiche, `64px` dans la documentation ; la grille du catalogue passe de `gap: 10px` à
+`gap: 20px`.
+
+La densité serrée était cohérente avec un atelier sombre où l'on cherche à faire tenir
+l'établi entier dans le champ. Elle ne l'est plus avec un plan de travail clair : sur
+fond clair, le blanc entre deux objets EST une séparation, alors que sur fond sombre il
+faut un filet pour la même chose. Serrer une grille claire produit du bruit là où serrer
+une grille sombre produisait de la matière.
 
 ### La fiche
 
@@ -430,6 +580,19 @@ illustration — les seules images du site sont les composants eux-mêmes, des f
 calculées, et **la marque** ; `system-ui` en police d'affichage ou de texte ; Inter,
 Geist, Space Grotesk.
 
+L'interdiction d'Inter **survit au passage au clair**, et c'est là qu'elle compte le
+plus. Le mode clair est la pente vers laquelle glisse toute vitrine de composants :
+blanc, Inter, un violet d'accent, des cartes à ombre douce. Chacun de ces choix est
+raisonnable isolément, et leur somme est un gabarit. Deux d'entre eux sont écartés ici
+par une raison écrite — Inter par le paragraphe de typographie, le violet par le
+rationnement du signal — et les ombres par la section « Formes ». Ce qui reste doit
+gagner sa place autrement : par le cadrage, par la mesure affichée, par le mouvement.
+
+Une trame de repérage en filigrane derrière chaque vignette — traits de coupe, croix
+d'imprimeur — est un **trope** au sens de la barre de qualité, et elle est interdite
+malgré son efficacité apparente. Elle donne à une grille l'air d'un plan technique sans
+qu'aucune mesure ne soit faite : c'est de la crédibilité empruntée.
+
 La marque est la seule ressource graphique du site, et elle est posée en **masque**,
 jamais en `<img>` : le fichier livré est un raster noir sur transparent, seul son canal
 alpha est lu, et la couleur vient de `currentColor`. Un fichier, les deux modes, et la
@@ -467,6 +630,20 @@ Ce document sert à éviter que chaque écran soit redécidé à la main, pas à
 
 | Date | Décision | Raison |
 |---|---|---|
+| 2026-09-08 | **Clair canonique, sombre complet** — renversement de la première décision | La grande majorité des familles déplacent du CONTENU au lieu d'émettre de la lumière, et un contenu se lit sur le fond qu'il aura chez celui qui copie le composant. La question du visiteur n'est pas « est-ce beau ici » mais « est-ce que ça tiendra chez moi ». Le sombre reste dessiné, et la bascule par scène existe pour les cinq familles qui rayonnent. |
+| 2026-09-08 | Deux familles typographiques au lieu de trois, Bricolage Grotesque retirée | Le « point de vigilance » du document se vérifiait : un grotesque expressif à quelques pixels d'une démonstration lui dispute l'écran, et un catalogue en aligne une par case. Ce qui distingue un titre redevient sa taille et sa graisse. |
+| 2026-09-08 | Instrument Sans pour les mots, et non Inter | Inter donne le même calme et reste interdite : elle est la police par défaut de la moitié des interfaces livrées depuis cinq ans, donc la choisir ne se lit pas comme un choix. Le repos typographique était l'objectif, pas Inter. |
+| 2026-09-08 | Titres redescendus (fiche : 2,6 rem → 1,875 rem) | Un titre de fiche au-dessus d'une scène lui disputait l'écran, ce que le point fixe interdit. |
+| 2026-09-09 | Le catalogue devient un index PAR SECTIONS, une par catégorie | Une grille d'un seul tenant est un mur qu'on parcourt sans repère. Six listes courtes, chacune avec une phrase qui dit ce qu'elle rassemble, se lisent d'un regard. Le filtre par catégorie tombe avec : les sections sont les catégories. |
+| 2026-09-09 | Aperçu de proportion 1,92, la carte donne la mesure | Une hauteur en pixels dans la scène entrait en conflit avec la carte qui la contient. La contrainte a fait tomber trois démonstrations dessinées pour un cadre presque carré — la réponse est de retirer ce qui ne sert pas l'aperçu, pas de détendre le cadre. |
+| 2026-09-09 | Aucun compte global écrit nulle part | Trente-six occurrences relevées dans le dépôt, dont plusieurs déjà fausses. Le catalogue grossit à chaque récolte : la phrase se périme à la ligne suivante, et on passe plus de temps à la corriger qu'elle n'apprend. Seuls survivent le compte de formes d'une famille et le résultat d'une recherche. |
+| 2026-09-09 | La carte entière devient le lien, et la démonstration du catalogue devient inerte | Une zone cliquable de la taille d'un mot sous un objet de trois cents pixels est une cible qu'il faut viser. La rendre entière exclut tout élément interactif dans le cadre — HTML interdit une ancre qui enveloppe un bouton. Le régime inerte est le prix, et il est préférable à une capture par famille : la démonstration reste montée, elle perd seulement ses prises. |
+| 2026-09-09 | Légende de carte en sans, pas en mono capitale | La règle « un chiffre est toujours en mono » sert les valeurs qu'on compare. Une légende capitale et espacée sous chaque cadre fabriquait une rangée de plaques signalétiques là où on veut une légende qu'on lit une fois. |
+| 2026-09-08 | Étiquette du catalogue SOUS le cadre, cases régulières, `gap` 10 → 20 px | Dans la case, l'étiquette faisait de chaque vignette un objet composite à décoder, et une pleine grille en fait un mur. L'emprise variable composait un pavage qui se contemple au lieu de se parcourir. Sur fond clair le blanc sépare déjà : serrer produit du bruit là où, sur fond sombre, cela produisait de la matière. |
+| 2026-09-08 | Le sombre devient adressable par attribut, pas seulement par `:root` | Sans cette symétrie, une scène pouvait passer en clair sur une page sombre mais pas l'inverse : la bascule par scène ne marchait que dans un sens. |
+| 2026-09-08 | Le bloc d'usage suit la scène (forme + réglages) | Le panneau de réglages affiche le nom réel de chaque prop pour apprendre quoi écrire ; il ne montrait pas quoi lui donner. On pouvait pousser une durée à 2000 ms, voir la scène ralentir, et lire `duration={700}` trois écrans plus bas. |
+| 2026-09-08 | Fiches servies aussi en markdown, et `llms.txt` | Nova s'installe par copie, et la copie est de plus en plus faite par un agent : une page rendue est du bruit pour ce lecteur-là, et rien de ce qui compte n'y est structuré. |
+| 2026-09-08 | Palette ⌘K, dont le résultat sélectionné JOUE | Une palette est un trope. Sa torsion est la seule liste du site où descendre d'un cran change ce qu'on regarde — ce qu'un catalogue d'animations devrait faire. |
 | 2026-09-08 | Sombre canonique, clair complet | Le mouvement se lit comme une variation de luminance : sur blanc une animation ne peut que s'assombrir, sur sombre elle peut émettre. Relevé : les concurrents directs sont tous blancs, les deux sites dont le sujet est le mouvement sont tous les deux sombres. |
 | 2026-09-08 | Budget de contraste chrome ≤ 7:1 / scène ≥ 12:1 | Rend la thèse vérifiable en relecture de différence au lieu de la laisser en commentaire. |
 | 2026-09-08 | Télémétrie classée contenu de scène, pas chrome | À `--sourdine` elle était illisible, ce qui vidait de son sens la seule pièce qui prouve la doctrine du dépôt. |
@@ -477,8 +654,8 @@ Ce document sert à éviter que chaque écran soit redécidé à la main, pas à
 | 2026-09-08 | Suppression du badge « New » | Porté par 15 fiches sur 21, il n'informait plus. Remplacé par un traitement de filet plafonné à 4 entrées. |
 | 2026-09-08 | Catalogue en `gap: 10px` avec cases bordées, et non `gap: 1px` | Le `gap: 1px` sur fond filet suppose des cases sans arrondi. Les arrondis 8/14 ayant été retenus, les deux étaient incompatibles : c'est la version rendue et validée à l'œil qui fait foi. |
 | 2026-09-08 | Flux dense sur la grille du catalogue | Constaté à l'implémentation : sans lui, une bande de six colonnes qui ne tient pas dans le reste d'une rangée laisse un trou au lieu de reculer. |
-| 2026-09-08 | « Rejouer » n'apparaît qu'au survol dans le catalogue | Posé en permanence, il chevauchait le contenu des bandes et remettait vingt-et-un objets de chrome dans une direction qui vise à les retirer. |
-| 2026-09-08 | Panneau de réglages en direct sous la scène, 18 familles sur 21 | Pendant de la télémétrie : elle montre ce que le moteur écrit, les réglages changent ce qu'on lui donne. Roll Text, Spotlight et Scroll Scene n'exposent aucune option numérique qui change visiblement le mouvement — leur panneau serait vide, il est donc absent. |
+| 2026-09-08 | « Rejouer » n'apparaît qu'au survol dans le catalogue | Posé en permanence, il chevauchait le contenu des bandes et remettait un objet de chrome par case dans une direction qui vise à les retirer. |
+| 2026-09-08 | Panneau de réglages en direct sous la scène, la plupart des familles | Pendant de la télémétrie : elle montre ce que le moteur écrit, les réglages changent ce qu'on lui donne. Roll Text, Spotlight et Scroll Scene n'exposent aucune option numérique qui change visiblement le mouvement — leur panneau serait vide, il est donc absent. |
 | 2026-09-08 | Rangées du catalogue composées par tri, `grid-auto-flow: dense` retiré | Dans une grille de 6, `3 + 2` fait 5 et laisse un trou. Le flux dense rebouchait au hasard : il cassait l'ordre de lecture SANS supprimer les trous. Le tri compose des rangées pleines et répartit les bandes au lieu de les empiler. |
 | 2026-09-08 | Le filet de tête part du bord du banc, pas du bord de l'écran | Tiré sur toute la largeur, il barrait le titre comme un texte rayé. Le geste d'affiche ne vaut rien s'il abîme la ligne qu'il doit aligner. |
 | 2026-09-08 | Rayons nommés par leur rôle (`presse` / `plan`), `rounded-nova` retiré du code applicatif | L'ancien nom valait 2 px et pointait désormais sur 8 px : il rendait, mais ne disait plus ce qu'il faisait. La pointe de l'infobulle garde un rayon propre de 2 px, sinon elle devient un disque. |

@@ -14,24 +14,24 @@ afterEach(() => setReducedMotion(false));
 
 describe("createTextEffect", () => {
   it("découpe en mots sans coller les espaces", () => {
-    const element = mount("Bâtir en verre");
+    const element = mount("Nova en mouvement");
     createTextEffect(element);
 
     const mots = element.querySelectorAll(".nova-word");
     expect(Array.from(mots).map((m) => m.textContent)).toEqual([
-      "Bâtir",
+      "Nova",
       "en",
-      "verre",
+      "mouvement",
     ]);
     // Les blancs restent de vrais nœuds texte : sans eux le copier-coller
     // recollerait les mots et la sélection à la souris casserait.
-    expect(element.querySelector(".nova-text")?.textContent).toBe("Bâtir en verre");
+    expect(element.querySelector(".nova-text")?.textContent).toBe("Nova en mouvement");
   });
 
   it("garde le texte annoncé d'une seule traite", () => {
-    const element = mount("Bâtir en verre");
+    const element = mount("Nova en mouvement");
     createTextEffect(element);
-    expect(element.querySelector(".nova-sr")?.textContent).toBe("Bâtir en verre");
+    expect(element.querySelector(".nova-sr")?.textContent).toBe("Nova en mouvement");
     expect(element.querySelector(".nova-text")?.getAttribute("aria-hidden")).toBe(
       "true",
     );
@@ -145,16 +145,16 @@ describe("createTextEffect", () => {
     // La garantie la plus forte : sans attribut, aucune règle du catalogue ne
     // s'applique, donc aucun état de repos ne peut cacher le texte.
     setReducedMotion(true);
-    const element = mount("Bâtir en verre");
+    const element = mount("Nova en mouvement");
     createTextEffect(element, { effect: "blur" });
 
-    expect(element.textContent).toBe("Bâtir en verre");
+    expect(element.textContent).toBe("Nova en mouvement");
     expect(element.dataset.novaText).toBeUndefined();
     expect(element.querySelectorAll(".nova-word")).toHaveLength(0);
   });
 
   it("joue à l'entrée en vue, et pas avant", () => {
-    const element = mount("Bâtir en verre");
+    const element = mount("Nova en mouvement");
     createTextEffect(element, { effect: "line", trigger: "view" });
     expect(element.dataset.novaPlay).toBeUndefined();
 
@@ -165,7 +165,7 @@ describe("createTextEffect", () => {
   it("affiche d'emblée un texte déjà à l'écran", () => {
     // Même garde-fou que Reveal : un titre déjà lu ne se cache pas pour
     // s'animer aussitôt.
-    const element = mount("Bâtir en verre", 100);
+    const element = mount("Nova en mouvement", 100);
     createTextEffect(element, { effect: "line" });
     expect(element.dataset.novaPlay).toBe("true");
   });
@@ -178,10 +178,10 @@ describe("createTextEffect", () => {
   });
 
   it("restaure le texte brut après destroy", () => {
-    const element = mount("Bâtir en verre");
+    const element = mount("Nova en mouvement");
     createTextEffect(element, { effect: "wave" }).destroy();
     expect(element.querySelectorAll("span")).toHaveLength(0);
-    expect(element.textContent).toBe("Bâtir en verre");
+    expect(element.textContent).toBe("Nova en mouvement");
     expect(element.dataset.novaText).toBeUndefined();
   });
 

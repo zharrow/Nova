@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useRaccourciRejeu } from "./raccourci-rejeu";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  catalogue,
+  familles,
+  CATEGORIES,
+  libelleCategorie,
+  type CategorieId,
+} from "@/lib/catalogue";
 import { Plaque, Repere } from "./plaque";
 import {
   Reveal,
@@ -29,6 +36,7 @@ import {
   TextHighlight,
   Lightbox,
   DatePicker,
+  useFlipList,
 } from "@nova-ui/react";
 import { fr } from "react-day-picker/locale";
 
@@ -89,17 +97,63 @@ export interface PropsDemo {
 /**
  * Géométrie d'une scène. Elle vient du MOUVEMENT, pas de l'importance de la
  * famille : un marquee est une bande, un halftone est un carré. Enfermer les
- * vingt-et-un dans le même rectangle de 208 px effaçait précisément ce qui
+ * toutes dans le même rectangle de 208 px effaçait précisément ce qui
  * les distingue. Voir DESIGN.md.
  */
 export type Geometrie = "bande" | "bloc" | "carre" | "champ";
 
+/**
+ * En grille, les trois géométries partagent la MÊME hauteur.
+ *
+ * Elles ne la partageaient pas, et le relevé au navigateur a tranché : une
+ * bande de 180 px à côté d'un bloc de 250 px fait remonter son étiquette, et la
+ * rangée se lit en dents de scie. Sur une grille régulière — celle qu'on
+ * parcourt — l'alignement des légendes vaut plus que l'annonce de la géométrie
+ * par la forme du cadre.
+ *
+ * La géométrie du mouvement n'est pas perdue : elle vit à l'INTÉRIEUR du cadre,
+ * où une bande reste basse et large et un carré reste centré. Ce qui change est
+ * qu'elle ne déforme plus la grille qui l'entoure.
+ */
+const HAUTEUR_GRILLE = "h-[224px]";
+
 const HAUTEURS: Record<Geometrie, string> = {
-  bande: "h-[180px]",
-  bloc: "h-[250px]",
-  carre: "h-[250px]",
+  bande: HAUTEUR_GRILLE,
+  bloc: HAUTEUR_GRILLE,
+  carre: HAUTEUR_GRILLE,
   champ: "min-h-[clamp(300px,52vh,560px)]",
 };
+
+/**
+ * Une démonstration INERTE : présentée, pas manipulable.
+ *
+ * C'est le régime des cases du catalogue depuis que la carte entière est un
+ * lien. Une carte cliquable et une démonstration interactive s'excluent : une
+ * ancre qui enveloppe un bouton imbrique deux éléments interactifs, ce que HTML
+ * interdit et qui rend le bouton inatteignable au clavier.
+ *
+ * Plutôt qu'une image figée — une capture par famille, à produire et à regénérer à
+ * chaque retouche — la démonstration reste MONTÉE et perd seulement ses prises :
+ * plus de rejeu, plus de raccourci `F`, plus de pointeur. Ce qui bouge tout seul
+ * continue de bouger, ce qui répondait au geste montre son état de repos — qui
+ * est exactement ce qu'il montrerait sans curseur dessus.
+ *
+ * Une vitrine d'animation dont le catalogue serait immobile se priverait de son
+ * seul argument. La vraie démonstration, manipulable et réglable, reste sur la
+ * fiche.
+ *
+ * Les légendes des scènes disparaissent avec l'interaction, et il le faut : la
+ * moitié sont des INVITATIONS — « survolez pour suspendre », « promenez le
+ * curseur » — qui mentiraient sur une case qui ne répond plus. Le cadre ne
+ * montre alors que le composant, ce qui est aussi la bonne réponse visuelle :
+ * une légende sous chaque cadre redoublerait l'étiquette qui
+ * se trouve déjà juste en dessous.
+ *
+ * Un contexte plutôt qu'une prop : la faire traverser toutes les fonctions de
+ * démonstration pour n'être lue que par `Scene` serait autant de signatures
+ * modifiées pour un seul lecteur.
+ */
+const ContexteInerte = createContext(false);
 
 /**
  * Le banc : la mise en scène d'une démonstration.
@@ -107,7 +161,7 @@ const HAUTEURS: Record<Geometrie, string> = {
  * UN PLAN, PAS UNE BOÎTE. Filet haut, filet bas, aucun filet vertical, aucun
  * rayon — les bords verticaux fabriquent une carte, les retirer fabrique une
  * bande. C'est l'écart principal de la direction, et le seul geste qui retire
- * l'apparence de carte à vingt-et-un éléments d'un coup.
+ * l'apparence de carte à toutes les scènes d'un coup.
  *
  * En mode `compact` (une case du catalogue), le banc est NU : la case fournit
  * déjà le cadre et l'étiquette, un second cadre à l'intérieur ferait deux
@@ -136,11 +190,15 @@ function Scene({
      raccourci doit se refaire quand le nœud arrive, et une `useRef` ne
      provoque aucun rendu. Même mécanique que la télémétrie. */
   const [noeud, setNoeud] = useState<HTMLDivElement | null>(null);
+  const inerte = useContext(ContexteInerte);
   /* En mode `nu`, c'est l'appelant qui possède le rejeu — le banc remonte la
      démonstration entière par sa clé. S'inscrire quand même ferait DEUX
      scènes inscrites sur le banc : aucune ne serait unique, et la touche ne
-     viserait plus rien. */
-  useRaccourciRejeu(nu ? null : noeud, onRejouer);
+     viserait plus rien.
+
+     En mode inerte, la scène n'a plus de rejeu à offrir : l'inscrire ferait
+     répondre la touche `F` à une commande que la case n'affiche pas. */
+  useRaccourciRejeu(nu || inerte ? null : noeud, onRejouer);
 
   const aire = (
     <div
@@ -154,15 +212,22 @@ function Scene({
         nu
           ? "h-full w-full"
           : compact
-            ? `${HAUTEURS[geometrie]} p-5`
+            ? // Une case du catalogue est INERTE, et c'est sa carte qui donne
+              // la hauteur : l'aperçu y est un rectangle de proportion fixe.
+              // Une hauteur en pixels ici entrerait en conflit avec elle. Le
+              // mode compact NON inerte — la palette ⌘K — n'a pas de conteneur
+              // dimensionné et garde donc la hauteur déclarée.
+              `${inerte ? "h-full" : HAUTEURS[geometrie]} p-5`
             : `${HAUTEURS.champ} px-6 sm:px-12`,
         className ?? "",
       ].join(" ")}
     >
       {children}
       {/* En grille, le rejeu n'a pas de plancher où se poser : il flotte au
-          coin, mais reste un mot souligné et non un bouton encadré. */}
-      {compact && onRejouer ? (
+          coin, mais reste un mot souligné et non un bouton encadré. Il
+          disparaît quand la case est inerte : un mot « rejouer » qui ne
+          répond pas est pire que pas de rejeu du tout. */}
+      {compact && onRejouer && !inerte ? (
         <button
           type="button"
           onClick={onRejouer}
@@ -258,7 +323,7 @@ function Touche() {
  * Vrai dès que le nœud est entré dans la vue, et le reste.
  *
  * Le rideau d'ouverture est la seule famille dont la démonstration ne peut pas
- * jouer au montage. Sur la grille, les vingt-deux démos sont montées d'un
+ * jouer au montage. Sur la grille, toutes les démos sont montées d'un
  * coup : le rideau faisait sa seconde et demie pendant que le visiteur était
  * encore en haut de page, et on n'arrivait jamais que sur l'APRÈS — une scène
  * découverte, sans avoir vu ce qui la couvrait. C'était le premier symptôme
@@ -321,7 +386,10 @@ export function DemoReveal({ forme = "slide-up", compact, geometrie, nomAffiche,
             confond avec un simple fondu. La mire donne au bord du masque de
             quoi se voir passer, et aux variantes `slide-*` de quoi trahir leur
             direction. */}
-        {[1, 2, 3, 4, 5, 6].map((index) => (
+        {/* Un rang en aperçu, deux sur la fiche : six pastilles sur deux
+            rangs ne tiennent pas dans un cadre de proportion 1,92, et trois
+            suffisent à montrer le DÉCALAGE, qui est tout le sujet. */}
+        {(compact ? [1, 2, 3] : [1, 2, 3, 4, 5, 6]).map((index) => (
           <div
             key={index}
             className="relative flex aspect-square items-center justify-center overflow-hidden rounded-presse border border-filet bg-banc-haut"
@@ -468,20 +536,25 @@ export function DemoTextEffect({ forme = "line", compact, geometrie, nomAffiche,
           key={cle}
           as="p"
           {...reglages}
-          /* « Bâtir en verre » faisait trois mots : sur un effet dont la
-             matière EST le décalage entre les grains, trois mots ne montrent
-             rien. Une phrase entière rend le `stagger` lisible, et la
-             différence entre un grain mot et un grain lettre devient visible
-             au lieu d'être une note de bas de page. */
-          /* Le texte du visiteur gagne, s'il y en a un. L'étalement des
+          /* UNE PHRASE, PAS TROIS MOTS. Sur un effet dont la matière EST le
+             décalage entre les grains, trois mots ne montrent rien : il faut
+             assez de mots pour que le `stagger` se lise et que la différence
+             entre grain mot et grain lettre devienne visible.
+
+             La phrase dit la doctrine du dépôt et rien d'autre. Aucune ne doit
+             parler d'un métier, d'une marque ou d'un client — c'est de la
+             provenance, et DESIGN.md dit que la vitrine n'en parle pas.
+
+             Le texte du visiteur gagne, s'il y en a un. L'étalement des
              réglages est AVANT cette ligne : sans le `??`, la phrase codée en
              dur écraserait le champ et il ne servirait à rien. Les formes de
              défilement gardent leur paragraphe — une phrase de titre ne
              démontre pas un effet qui se joue sur toute une hauteur. */
           text={
             defilement
-              ? "Le conseil que nous vendons, nous le pratiquons d'abord sur nous-mêmes."
-              : ((reglages?.text as string) ?? "Bâtir en verre, tenir la lumière")
+              ? "Un mouvement réussi ne se remarque pas : on sent le geste, jamais l'effet."
+              : ((reglages?.text as string) ??
+                "Le texte reste lisible, puis il s'anime")
           }
           effect={forme as never}
           trigger={defilement ? undefined : "mount"}
@@ -553,7 +626,7 @@ export function DemoMarquee({ forme = "left", compact, geometrie, nomAffiche, re
             pauseOnHover
             className="py-2"
           >
-            {["ATELIER", "VERRE", "MÉTAL", "LUMIÈRE", "TRAME"].map((mot) => (
+            {["MOUVEMENT", "MESURE", "RYTHME", "MATIÈRE", "REPOS"].map((mot) => (
               <span
                 key={mot}
                 className="mr-10 font-mono text-lg tracking-[0.18em] text-sourdine"
@@ -577,7 +650,7 @@ export function DemoScrollMarquee({ compact, geometrie, nomAffiche, reglages, nu
     <Scene onRejouer={rejouer} compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="w-full">
         <ScrollMarquee key={cle} drift={40} gap="1.5rem" className="py-2" {...reglages}>
-          {["PRÉVOIR", "SÉCURISER", "LIBÉRER"].map((mot) => (
+          {["OBSERVER", "MESURER", "RÉGLER"].map((mot) => (
             <span
               key={mot}
               className="mr-6 inline-flex items-center gap-6 font-mono text-lg tracking-[0.16em] text-sourdine"
@@ -752,7 +825,10 @@ const ARETES: [string, string][] = [
 export function DemoGraph({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu();
   return (
-    <div className="relative">
+    /* `h-full` : Graph est la seule démonstration qui ne passe pas par
+       `Scene`, donc rien ne lui transmet la hauteur du cadre. Sans elle, son
+       canevas gardait ses 208 px et débordait de l'aperçu de la carte. */
+    <div className="relative h-full">
       <Graph
         key={cle}
         nodes={NOEUDS}
@@ -785,10 +861,10 @@ export function DemoGraph({ compact, geometrie, nomAffiche, reglages, nu }: Prop
         settleVisible={70}
         padding={56}
         canvasClassName={[
-          compact ? "h-52" : "h-56",
+          compact ? "h-full" : "h-56",
           "w-full rounded-plan border border-filet bg-banc",
         ].join(" ")}
-        className="[&_[data-nova-graph-legend]]:mt-5 [&_[data-nova-graph-legend]]:grid [&_[data-nova-graph-legend]]:grid-cols-3 [&_[data-nova-graph-legend]]:gap-5 [&_h4]:mb-2 [&_h4]:font-mono [&_h4]:text-[10px] [&_h4]:uppercase [&_h4]:tracking-[0.14em] [&_h4]:text-sourdine [&_button]:text-[13px] [&_button]:text-sourdine hover:[&_button]:text-encre [&_[data-nova-graph-degree]]:font-mono [&_[data-nova-graph-degree]]:text-[11px] [&_[data-nova-graph-degree]]:opacity-60"
+        className="h-full [&_[data-nova-graph-legend]]:mt-5 [&_[data-nova-graph-legend]]:grid [&_[data-nova-graph-legend]]:grid-cols-3 [&_[data-nova-graph-legend]]:gap-5 [&_h4]:mb-2 [&_h4]:font-mono [&_h4]:text-[10px] [&_h4]:uppercase [&_h4]:tracking-[0.14em] [&_h4]:text-sourdine [&_button]:text-[13px] [&_button]:text-sourdine hover:[&_button]:text-encre [&_[data-nova-graph-degree]]:font-mono [&_[data-nova-graph-degree]]:text-[11px] [&_[data-nova-graph-degree]]:opacity-60"
       />
       <button
         type="button"
@@ -1111,10 +1187,15 @@ export function DemoScrollScene({ compact, geometrie, nomAffiche, reglages, nu }
   return (
     <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
       <div className="w-full max-w-sm">
-        <div className="flex items-baseline justify-between">
-          <span className="cote">--nova-t</span>
-          <span className="font-mono text-sm tabular-nums">{t.toFixed(3)}</span>
-        </div>
+        {/* Le relevé de `t` est de la LECTURE, pas de la scène : en aperçu il
+            prend vingt pixels sur les cent quatorze disponibles pour montrer
+            un nombre que personne ne peut plus faire bouger. */}
+        {!compact ? (
+          <div className="flex items-baseline justify-between">
+            <span className="cote">--nova-t</span>
+            <span className="font-mono text-sm tabular-nums">{t.toFixed(3)}</span>
+          </div>
+        ) : null}
         <input
           type="range"
           min={0}
@@ -1194,8 +1275,8 @@ export function DemoTextHighlight({ compact, geometrie, nomAffiche, reglages, nu
             compact ? "text-sm" : "text-base",
           )}
         >
-          Le conseil que nous vendons, nous le pratiquons d&apos;abord sur
-          nous-mêmes.
+          Un mouvement réussi ne se remarque pas : on sent le geste, jamais
+          l&apos;effet.
         </span>
       </TextHighlight>
     </Scene>
@@ -1354,6 +1435,126 @@ export function DemoDatePicker({ forme = "day", compact, geometrie, nomAffiche, 
   );
 }
 
+
+/**
+ * Flip List — le reflux d'une liste, sur la matière du dépôt.
+ *
+ * Ce qu'on filtre ici est LE CATALOGUE LUI-MÊME, rangé par catégorie. C'est le seul contenu qui passe le test de la nécessité — une
+ * grille de rectangles gris aurait illustré n'importe quelle librairie, et du
+ * faux texte aurait illustré du faux texte. Ici, la démonstration montre
+ * exactement le geste pour lequel le moteur existe, sur les données de la page
+ * qui l'héberge.
+ *
+ * PAS DE BOUTON REJOUER, et c'est la même règle que RollText, Spotlight et
+ * Cursor : l'effet EST le geste du visiteur. Rejouer un filtre qu'on vient de
+ * choisir soi-même serait une commande morte.
+ *
+ * En grille, il n'y a la place ni pour les jetons ni pour la lecture : la
+ * catégorie tourne alors toute seule, parce qu'une vignette de catalogue doit
+ * bouger sans qu'on la vise.
+ */
+function DemoFlipList({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
+  const groupes = ["tout", ...CATEGORIES.map((c) => c.id)];
+  const [actif, setActif] = useState<string>("tout");
+
+  /* La matière est le catalogue PUBLIÉ. Tant que rien ne l'est, la liste
+     serait vide et la démonstration ne montrerait pas le geste qu'elle existe
+     pour montrer : on retombe alors sur les familles déclarées. Le cas ne se
+     produit que sur le banc — une fiche en ligne suppose au moins une famille
+     publiée, donc aucun nom en attente ne transparaît sur la vitrine. */
+  const matiere = catalogue.length > 0 ? catalogue : familles;
+
+  const visibles = matiere.filter(
+    (fiche) => actif === "tout" || fiche.categorie === actif,
+  );
+
+  const { ref, capture } = useFlipList<HTMLUListElement>(actif, {
+    duration: 0.45,
+    stagger: 0.02,
+    ...reglages,
+  });
+
+  /* En vignette, la catégorie tourne seule. La capture précède le changement
+     d'état ici aussi : c'est le même contrat qu'au clic, et l'oublier
+     supprimerait le mouvement que la vignette est censée montrer. */
+  useEffect(() => {
+    if (!compact) return;
+    const minuteur = setInterval(() => {
+      capture();
+      setActif((courant) => {
+        const rang = groupes.indexOf(courant);
+        return groupes[(rang + 1) % groupes.length]!;
+      });
+    }, 1800);
+    return () => clearInterval(minuteur);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compact, capture]);
+
+  function choisir(id: string) {
+    capture();
+    setActif(id);
+  }
+
+  const etiquette = (id: string) =>
+    id === "tout" ? "tout" : libelleCategorie(id as CategorieId).toLowerCase();
+
+  return (
+    <Scene
+      compact={compact}
+      geometrie={geometrie}
+      nom={nomAffiche}
+      nu={nu}
+      className="items-start"
+    >
+      <div className="w-full">
+        {!compact ? (
+          <div className="mb-4 flex flex-wrap gap-1.5">
+            {groupes.map((id) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => choisir(id)}
+                aria-pressed={actif === id}
+                className={cn(
+                  "valeur rounded-presse border px-2.5 py-1 text-[11px] transition-colors",
+                  actif === id
+                    ? "border-filet-vif text-encre"
+                    : "border-filet text-second hover:border-filet-vif hover:text-encre",
+                )}
+              >
+                {etiquette(id)}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <ul
+          ref={ref}
+          className={cn(
+            "grid gap-1.5",
+            compact ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4",
+          )}
+        >
+          {visibles.map((fiche) => (
+            <li
+              key={fiche.nom}
+              className="truncate rounded-presse border border-filet bg-banc-haut px-2.5 py-2 text-[11px] text-second"
+            >
+              <span className="valeur">{fiche.titre}</span>
+            </li>
+          ))}
+        </ul>
+
+        {compact ? (
+          <p className="cote mt-3">
+            {etiquette(actif)} · {visibles.length}
+          </p>
+        ) : null}
+      </div>
+    </Scene>
+  );
+}
+
 const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   reveal: DemoReveal,
   blinds: DemoBlinds,
@@ -1377,6 +1578,7 @@ const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   lightbox: DemoLightbox,
   "date-picker": DemoDatePicker,
   "smooth-scroll": DemoSmoothScroll,
+  "flip-list": DemoFlipList,
 };
 
 /**
@@ -1395,6 +1597,7 @@ export function Demo({
   nomAffiche,
   reglages,
   nu,
+  inerte,
 }: {
   nom: string;
   forme?: string;
@@ -1403,10 +1606,16 @@ export function Demo({
   nomAffiche?: string;
   reglages?: Record<string, unknown>;
   nu?: boolean;
+  /**
+   * Présentée, pas manipulable — le régime des cases du catalogue, dont la
+   * carte entière est un lien. Voir `ContexteInerte`.
+   */
+  inerte?: boolean;
 }) {
   const Composant = demos[nom];
   if (!Composant) return null;
-  return (
+
+  const rendu = (
     <Composant
       forme={forme}
       compact={compact}
@@ -1415,5 +1624,20 @@ export function Demo({
       reglages={reglages}
       nu={nu}
     />
+  );
+
+  if (!inerte) return rendu;
+
+  return (
+    <ContexteInerte.Provider value>
+      {/* `pointer-events: none` sur le conteneur suffit à neutraliser tout ce
+          qui est dedans, boutons compris — inutile de le répéter dans chaque
+          démonstration. `aria-hidden` va avec : ce qui n'est pas atteignable
+          au pointeur ne doit pas non plus l'être au lecteur d'écran, sinon la
+          navigation clavier traverse autant de commandes mortes. */}
+      <div className="demo-inerte h-full pointer-events-none select-none" aria-hidden>
+        {rendu}
+      </div>
+    </ContexteInerte.Provider>
   );
 }

@@ -7,7 +7,7 @@ type Inscrit = { noeud: HTMLElement; rejouer: () => void };
 /**
  * Les scènes qui acceptent le raccourci, à l'échelle du module.
  *
- * Un écouteur par scène ferait vingt-et-un écouteurs sur la page catalogue,
+ * Un écouteur par scène en ferait autant que de cases sur le catalogue,
  * qui se déclencheraient tous ensemble. On garde donc un seul écouteur pour
  * tout le monde, et on choisit la cible au moment de la frappe — même logique
  * que le ticker et le pool d'observers du cœur : on mutualise, et on se
@@ -36,7 +36,7 @@ function saisieEnCours(cible: EventTarget | null): boolean {
  *
  * Trois règles, dans cet ordre. Le focus d'abord — un utilisateur au clavier a
  * désigné explicitement où il est. Le pointeur ensuite, pour la page catalogue
- * où vingt-et-une scènes coexistent. Et si une seule scène est inscrite, c'est
+ * où toutes les scènes coexistent. Et si une seule scène est inscrite, c'est
  * forcément celle-là : sur une fiche ou sur le banc, le raccourci marche donc
  * sans rien viser.
  */

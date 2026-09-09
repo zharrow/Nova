@@ -69,7 +69,7 @@ export function BarreLaterale({
           type="search"
           value={filtre}
           onChange={(event) => setFiltre(event.target.value)}
-          placeholder={`Filtrer ${total} composants…`}
+          placeholder="Filtrer le catalogue…"
           className="h-9 text-[13px]"
         />
       </div>
@@ -120,8 +120,13 @@ export function BarreLaterale({
       ))}
 
       {visibles.length === 0 ? (
+        /* Deux vides qui ne disent pas la même chose : une recherche sans
+           réponse, et un catalogue dont rien n'est encore publié. Le second
+           message ne doit pas ressembler à une erreur de frappe. */
         <p className="text-[13px] text-sourdine">
-          Rien sous ce nom. Le catalogue en compte {total}.
+          {groupes.length === 0
+            ? "Rien de publié pour l'instant."
+            : "Rien sous ce nom."}
         </p>
       ) : null}
     </nav>

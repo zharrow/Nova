@@ -4,7 +4,7 @@ import { setReducedMotion } from "./setup";
 
 function monter(): HTMLElement {
   const element = document.createElement("div");
-  element.innerHTML = "<p>Bât &amp; Verre</p>";
+  element.innerHTML = "<p>Le rideau &amp; la page</p>";
   document.body.appendChild(element);
   return element;
 }
@@ -26,7 +26,7 @@ describe("createLoader", () => {
     expect(element.dataset.novaLoader).toBe("blades");
     expect(element.querySelectorAll(".nova-loader__blade")).toHaveLength(5);
     expect(element.querySelector(".nova-loader__content")?.textContent).toContain(
-      "Bât & Verre",
+      "Le rideau & la page",
     );
   });
 
@@ -199,7 +199,7 @@ describe("createLoader", () => {
   it("rend le contenu d'origine après destroy", () => {
     const element = monter();
     createLoader(element, { sessionKey: null }).destroy();
-    expect(element.innerHTML).toBe("<p>Bât &amp; Verre</p>");
+    expect(element.innerHTML).toBe("<p>Le rideau &amp; la page</p>");
     expect(element.dataset.novaLoader).toBeUndefined();
   });
 });
