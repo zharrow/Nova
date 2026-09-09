@@ -314,6 +314,31 @@ body,
   color: var(--signal);
 }
 
+/* La page où l'on se trouve, dans une liste de navigation.
+
+   Un filet bleu de 2 px sur le bord GAUCHE, et le texte ne bouge pas d'un
+   pixel. C'est la raison du pseudo-élément plutôt qu'une bordure : une bordure
+   entre dans la boîte et décale le mot de deux pixels, ce qui suffit à faire
+   tanguer la colonne d'une page à l'autre — le repère se déplacerait avec ce
+   qu'il repère.
+
+   Il est posé sur le bord que l'œil suit déjà en descendant la liste, et
+   retiré de 4 px en haut et en bas : un filet qui touche les deux bords de sa
+   ligne se lit comme une bordure de bloc, pas comme une marque. */
+.page-courante {
+  position: relative;
+}
+.page-courante::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--signal);
+}
+
 /* Ce que le doigt ne peut pas faire, et ce qu'il est seul à faire.
 
    Une vitrine d'animation dit sans arrêt « survolez », « ↑ ↓ parcourir »,
