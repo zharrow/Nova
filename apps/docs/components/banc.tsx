@@ -5,7 +5,7 @@ import { Demo, type Geometrie } from "./demos";
 import { Telemetrie } from "./telemetrie";
 import { Reglages, valeursParDefaut, type Valeurs } from "./reglages";
 import { useRaccourciRejeu } from "./raccourci-rejeu";
-import { catalogue, reglagesDe } from "@/lib/catalogue";
+import { familles, reglagesDe } from "@/lib/catalogue";
 import { BROUILLONS } from "@/brouillons";
 
 type Plan = "nuit" | "plan" | "banc" | "banc-haut";
@@ -49,6 +49,11 @@ const CADRES: Record<Cadre, string> = {
  *    `packages/core` s'essaie ici avant qu'on lui écrive un moteur, une
  *    entrée de registry et une fiche. Voir `brouillons/index.tsx`.
  *
+ * C'est aussi le seul endroit où l'on voit une famille NON VALIDÉE. Le site et
+ * la CLI ne servent que ce qui porte `valide: true` dans `lib/catalogue.ts` ;
+ * le banc, lui, rend `familles` — sans quoi il faudrait valider pour juger,
+ * c'est-à-dire décider avant d'avoir regardé.
+ *
  * Ce n'est PAS une page de la vitrine : elle n'est liée depuis aucune
  * navigation et porte `noindex`. Elle suit quand même DESIGN.md — un outil
  * qu'on regarde tous les jours mérite le même soin.
@@ -56,12 +61,16 @@ const CADRES: Record<Cadre, string> = {
 export function Banc() {
   const sujets = useMemo(
     () => [
-      ...catalogue.map((f) => ({
+      /* `familles`, et non `catalogue` : le banc montre AUSSI ce qui n'est pas
+         validé — c'est ici qu'on juge un candidat avant de le laisser sortir.
+         La page est absente de la production, donc rien n'en fuit. */
+      ...familles.map((f) => ({
         genre: "famille" as const,
         nom: f.nom,
         titre: f.titre,
         note: f.accroche,
         geometrie: (f.geometrie ?? "carre") as Geometrie,
+        valide: f.valide === true,
       })),
       ...BROUILLONS.map((b) => ({
         genre: "brouillon" as const,
@@ -69,6 +78,7 @@ export function Banc() {
         titre: b.titre,
         note: b.note,
         geometrie: "carre" as Geometrie,
+        valide: false,
       })),
     ],
     [],
@@ -154,8 +164,7 @@ export function Banc() {
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <h1 className="titre text-3xl">Banc de test</h1>
         <p className="cote">
-          {catalogue.length} familles · {BROUILLONS.length} brouillon
-          {BROUILLONS.length > 1 ? "s" : ""}
+          {BROUILLONS.length} brouillon{BROUILLONS.length > 1 ? "s" : ""}
         </p>
       </div>
       <p className="mt-3 max-w-[62ch] leading-relaxed text-prose">
@@ -179,15 +188,19 @@ export function Banc() {
                 s.nom === nom
                   ? "border-filet-vif text-encre"
                   : "border-filet text-second hover:border-filet-vif hover:text-encre",
-                // Un brouillon se distingue à l'œil : ce n'est pas encore un
-                // composant de la librairie, et le confondre ferait écrire une
-                // documentation pour quelque chose qui n'existe pas.
-                s.genre === "brouillon" ? "border-dashed" : "",
+                // Le trait discontinu dit « ne sort pas ». Un brouillon n'est
+                // pas encore un composant de la librairie ; une famille non
+                // validée en est un, mais que personne ne peut installer. Les
+                // confondre avec le reste ferait écrire une documentation pour
+                // quelque chose qui n'existe pas encore pour le visiteur.
+                s.valide ? "" : "border-dashed",
               ].join(" ")}
             >
               {s.nom}
               {s.genre === "brouillon" ? (
                 <span className="ml-1.5 text-sourdine">brouillon</span>
+              ) : !s.valide ? (
+                <span className="ml-1.5 text-sourdine">en attente</span>
               ) : null}
             </button>
           ))}

@@ -8,9 +8,10 @@ type Theme = "nuit" | "clair";
 /**
  * Bascule sombre / clair.
  *
- * Le sombre est le mode CANONIQUE : c'est celui dans lequel la direction est
- * dessinée, et celui qui donne au mouvement une direction de contraste que le
- * blanc lui interdit. Le clair est un mode complet, pas un repli.
+ * Le clair est le mode CANONIQUE : c'est celui dans lequel la direction est
+ * dessinée, et celui sur lequel un composant copié atterrira le plus souvent.
+ * Le sombre est un mode complet, pas un repli — c'est le meilleur fond des
+ * cinq familles qui rayonnent. Voir DESIGN.md.
  *
  * L'état initial est posé par le script inline du `layout` AVANT la première
  * peinture — sans lui, une page rendue en sombre clignoterait en clair le
@@ -22,16 +23,16 @@ export function BasculeTheme() {
 
   useEffect(() => {
     const pose = document.documentElement.getAttribute("data-theme");
-    setTheme(pose === "clair" ? "clair" : "nuit");
+    setTheme(pose === "nuit" ? "nuit" : "clair");
   }, []);
 
   function basculer() {
     const suivant: Theme = theme === "clair" ? "nuit" : "clair";
     setTheme(suivant);
-    // `nuit` est le défaut : on retire l'attribut au lieu de l'écrire, pour
-    // que le CSS n'ait qu'un seul cas à couvrir.
-    if (suivant === "clair") {
-      document.documentElement.setAttribute("data-theme", "clair");
+    // `clair` est le défaut : on retire l'attribut au lieu de l'écrire, pour
+    // qu'une racine sans attribut soit toujours le mode canonique.
+    if (suivant === "nuit") {
+      document.documentElement.setAttribute("data-theme", "nuit");
     } else {
       document.documentElement.removeAttribute("data-theme");
     }

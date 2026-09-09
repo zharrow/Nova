@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Marquee } from "@nova-ui/react";
-import { catalogue, TOTAL_FORMES, libelleCategorie } from "@/lib/catalogue";
-import { Demo } from "@/components/demos";
+import { catalogue, libelleCategorie } from "@/lib/catalogue";
+import { CarteFamille, carteDe } from "@/components/carte-famille";
 import { BlocCode } from "@/components/bloc-code";
 import { Button } from "@/components/ui/button";
 
@@ -61,28 +61,31 @@ export default function Accueil() {
  * ci-dessous, qui est lui-même un composant du catalogue. Voir DESIGN.md.
  */
 function Heros() {
+  /* Halftone est la pièce de l'affiche : elle RAYONNE au lieu de se lire, donc
+     elle ne concurrence pas le titre posé juste à côté. */
+  const affiche = catalogue.find((fiche) => fiche.nom === "halftone");
+
   return (
     <section className="relative overflow-hidden border-b border-filet">
-      <div className="trame pointer-events-none absolute inset-0 opacity-60" aria-hidden />
       {/* Asymétrique 5/7, rien de centré. Le banc de droite occupait, avant,
           la moitié vide de l'écran : une affiche a besoin d'un poids en face
           de son texte, et ici ce poids est une démonstration. */}
-      <Section numero="00" className="relative py-20 sm:py-24">
+      <Section numero="00" className="relative py-24 sm:py-28">
       <div className="grid items-start gap-12 lg:grid-cols-[5fr_7fr] lg:gap-16">
         <div className="min-w-0">
           <p className="cote">Librairie de composants · TypeScript</p>
 
-          <h1 className="titre-affiche mt-6 text-[clamp(2.25rem,4.4vw,3.6rem)]">
+          <h1 className="titre-affiche mt-6 text-[clamp(2rem,3.4vw,3rem)]">
             Des composants animés
             <br />
             <span className="text-second">qui se démontent proprement.</span>
           </h1>
 
           <p className="mt-7 max-w-[52ch] text-lg leading-[1.5] text-prose">
-            {catalogue.length} familles, {TOTAL_FORMES} formes. Une seule boucle
-            d&apos;animation pour toute la page, l&apos;état par défaut toujours
-            visible, et un <code className="valeur text-encre">destroy()</code>{" "}
-            qui rend l&apos;élément exactement comme il était.
+            Une seule boucle d&apos;animation pour toute la page, l&apos;état
+            par défaut toujours visible, et un{" "}
+            <code className="valeur text-encre">destroy()</code> qui rend
+            l&apos;élément exactement comme il était.
           </p>
 
           {/* L'action principale est la COMMANDE, pas un bouton qui mène à une
@@ -93,9 +96,7 @@ function Heros() {
 
           <div className="mt-6 flex flex-wrap items-center gap-5">
             <Button asChild size="lg" className="rounded-presse">
-              <Link href="/composants">
-                Parcourir les {catalogue.length} familles
-              </Link>
+              <Link href="/composants">Parcourir le catalogue</Link>
             </Button>
             <Link
               href="/installation"
@@ -116,15 +117,15 @@ function Heros() {
 
             Le décalage est calculé, pas mesuré en JavaScript : hauteur de la
             cote, plus sa marge, plus la hauteur d'œil du titre. Le 0.78em est
-            la distance du haut de la ligne à la ligne de base pour Bricolage
-            Grotesque — une approximation, assumée, qui suit le `clamp` du
-            titre à toutes les largeurs. */}
+            la distance du haut de la ligne à la ligne de base pour Instrument
+            Sans — une approximation, assumée, qui suit le `clamp` du titre à
+            toutes les largeurs. */}
         <div
           className="relative min-w-0 lg:mt-[var(--pose-banc)]"
           style={
             {
               "--pose-banc":
-                "calc(0.825rem + 1.5rem + 0.78 * clamp(2.25rem, 4.4vw, 3.6rem))",
+                "calc(0.825rem + 1.5rem + 0.80 * clamp(2rem, 3.4vw, 3rem))",
             } as React.CSSProperties
           }
         >
@@ -139,18 +140,15 @@ function Heros() {
             className="pointer-events-none absolute left-0 top-0 hidden h-px w-screen bg-filet lg:block"
             aria-hidden
           />
-          <div className="overflow-hidden rounded-plan border border-filet bg-banc">
-            <Demo nom="halftone" compact geometrie="bloc" />
-            <div className="flex items-baseline justify-between gap-3 border-t border-filet px-4 py-2.5">
-              <Link
-                href="/composants/halftone"
-                className="lien text-sm font-semibold text-second hover:text-encre"
-              >
-                Halftone
-              </Link>
-              <span className="cote">Rendu · 2 formes</span>
-            </div>
-          </div>
+          {/* EXACTEMENT la carte du catalogue, pas une variante. Trois
+              traitements pour le même objet à trois endroits du site
+              apprendraient au visiteur qu'il regarde trois choses
+              différentes. */}
+          {affiche ? (
+            <CarteFamille
+              carte={carteDe(affiche, { legende: libelleCategorie(affiche.categorie) })}
+            />
+          ) : null}
         </div>
       </div>
       </Section>
@@ -191,36 +189,29 @@ function EnTete() {
     catalogue.find((fiche) => fiche.nom === nom),
   ).filter((fiche) => fiche !== undefined);
 
+  /* Les trois de tête sont choisies à la main, et une famille non validée
+     n'est pas dans `catalogue` : la section peut donc être vide. On la retire
+     entièrement plutôt que de laisser son numéro et son filet orphelins —
+     une marge de numérotation devant du rien se lit comme une page cassée. */
+  if (fiches.length === 0) return null;
+
   return (
-    <Section numero="01" className="py-20">
-      <div className="grid gap-2.5 md:grid-cols-3">
+    <Section numero="01" className="py-24">
+      {/* La catégorie plutôt que le compte de formes : ces trois-là sont
+          sorties de leur section, et c'est de savoir d'où elles viennent qu'on
+          a besoin ici. */}
+      <div className="grid gap-4 md:grid-cols-3">
         {fiches.map((fiche) => (
-          // `min-w-0` : sans lui la colonne de grille prend la largeur
-          // MIN-CONTENT de son contenu, et la piste d'un marquee (flex,
-          // nowrap) n'en a pas de raisonnable. Elle pousse la colonne, le
-          // moteur relit un conteneur plus large, duplique encore — la page
-          // finissait à 33 000 px de large sous 1024 px.
-          <article
+          <CarteFamille
             key={fiche.nom}
-            className="group flex min-w-0 flex-col overflow-hidden rounded-plan border border-filet bg-banc transition-colors hover:border-filet-vif"
-          >
-            <div className="min-w-0 flex-1">
-              <Demo nom={fiche.nom} compact geometrie={fiche.geometrie ?? "carre"} />
-            </div>
-            <Link
-              href={`/composants/${fiche.nom}`}
-              className="flex items-baseline justify-between gap-3 border-t border-filet px-4 py-2.5 transition-colors group-hover:border-filet-vif"
-            >
-              <span className="truncate text-sm font-semibold text-second transition-colors group-hover:text-encre">
-                {fiche.titre}
-              </span>
-              <span className="cote shrink-0">
-                {fiche.formes && fiche.formes.length > 1
-                  ? `${fiche.formes.length} formes`
-                  : libelleCategorie(fiche.categorie)}
-              </span>
-            </Link>
-          </article>
+            carte={carteDe(fiche, {
+              legende: `${libelleCategorie(fiche.categorie)}${
+                fiche.formes && fiche.formes.length > 1
+                  ? ` · ${fiche.formes.length} formes`
+                  : ""
+              }`,
+            })}
+          />
         ))}
       </div>
     </Section>
@@ -237,9 +228,14 @@ function Familles() {
     (fiche) => (fiche.formes?.length ?? 1) > 1,
   );
 
+  /* Même raison qu'au-dessus : la liste est le sujet de la section, et une
+     liste vide n'est qu'un rectangle gris — le fond de la grille est le
+     filet, et ce sont les cellules qui le recouvrent. */
+  if (declinees.length === 0) return null;
+
   return (
     <section className="border-t border-filet">
-      <Section numero="02" className="py-20">
+      <Section numero="02" className="py-24">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
           <div>
             <p className="cote">Le principe</p>
@@ -264,7 +260,7 @@ function Familles() {
               href="/composants"
               className="lien mt-6 inline-block text-sm text-encre"
             >
-              Voir les {TOTAL_FORMES} formes →
+              Voir toutes les formes →
             </Link>
           </div>
 

@@ -3,13 +3,15 @@
 Librairie de composants animés, récoltée dans des projets en production plutôt
 qu'écrite d'une page blanche. Monorepo pnpm + Turborepo.
 
-**22 familles, 60 formes.** Une entrée du catalogue est une famille, pas une
-pièce — voir [VARIANTES.md](VARIANTES.md).
+Une entrée du catalogue est une **famille**, pas une pièce — voir
+[VARIANTES.md](VARIANTES.md). Les comptes ne sont écrits nulle part : ils
+changent à chaque récolte, et une phrase qui les cite se périme à la ligne
+suivante. Ce qui est affiché est CALCULÉ depuis `lib/catalogue.ts`.
 
 ```
 packages/
-  core/     @nova-ui/core   — 22 moteurs, TypeScript, sans React
-  react/    @nova-ui/react  — 19 composants + 4 crochets
+  core/     @nova-ui/core   — les moteurs, TypeScript, sans React
+  react/    @nova-ui/react  — les composants et les crochets
   cli/      novaui          — copie et installe, sans dépendance
 registry/                   — manifeste + sources réécrites pour la copie
 apps/docs/                  — vitrine Next.js sur shadcn
@@ -75,9 +77,38 @@ Deux questions, dans cet ordre.
 
 Une entrée du registry qui dépend d'un paquet le déclare dans `dependencies` :
 la CLI n'installe que ce qui manque, et seulement pour les composants demandés.
-Aujourd'hui — `gsap` pour `expand` et `lightbox`, `lenis` pour `smooth-scroll`,
-`radix-ui` pour `lightbox` et `date-picker`, `react-day-picker` pour
-`date-picker`.
+Aujourd'hui — `gsap` pour `expand`, `lightbox` et `flip-list`, `lenis` pour
+`smooth-scroll`, `radix-ui` pour `lightbox` et `date-picker`,
+`react-day-picker` pour `date-picker`.
+
+## Publier un composant
+
+**Rien ne sort sans `valide: true`.** Une famille écrite, testée, dotée d'une
+fiche et d'une entrée de registry n'est toujours PAS disponible : le drapeau
+`valide` sur sa fiche, dans `apps/docs/lib/catalogue.ts`, est ce qui la publie.
+Il est absent par défaut, et c'est le sens de la règle — on ne devient pas
+disponible en accumulant des étapes, quelqu'un décide.
+
+Ce drapeau porte les deux surfaces d'un coup :
+
+- `catalogue` est `familles` filtré dessus. Toutes les surfaces publiques
+  lisent `catalogue` — l'index, la barre, `/composants/<nom>`, la recherche,
+  `llms.txt`, le markdown des agents. Une famille en attente n'y est pas, et sa
+  page répond 404 : il n'y a pas d'adresse par laquelle elle sortirait quand
+  même.
+- `scripts/build-registry.ts` lit la MÊME liste et n'écrit dans `registry/dist`
+  que les validées. `npx novaui add <nom>` répond « introuvable » pour le
+  reste. Le script refuse aussi de construire si une famille validée n'a pas
+  d'entrée dans `registry.json` — sinon la fiche serait en ligne avec une
+  commande d'installation qui échoue.
+
+Une seule liste, donc, et non deux à tenir en phase : la divergence se paierait
+exactement là, entre une page publiée et une commande qui ne connaît pas son
+composant.
+
+Ce qui n'est pas validé reste sur `/banc`, marqué d'un trait discontinu et d'un
+« en attente », au même titre qu'un brouillon. C'est là qu'on juge — valider
+pour pouvoir regarder serait décider avant d'avoir vu.
 
 ## Après modification
 
@@ -89,6 +120,11 @@ pnpm build                    # registry, core, react, CLI, docs
 pnpm test && pnpm typecheck   # `test` dépend du build du paquet lui-même,
                               # sinon le test du bundle lit un dist périmé
 ```
+
+Exception déclarée dans `turbo.json` : `@nova-ui/docs#test` ne dépend PAS du build
+de la vitrine. Ses tests sont du calcul pur — les invariants du catalogue — et ne
+lisent aucun `dist` ; les faire attendre une compilation Next ferait payer trente
+secondes à sept assertions instantanées.
 
 `novaui#build` dépend de la tâche racine `registry:build` dans `turbo.json` :
 `pnpm build` régénère le registry puis le ré-embarque dans la CLI. Avant cette
@@ -246,7 +282,7 @@ options.
   commande morte.
 - La touche **`F`** double chaque commande de rejeu, et le badge est écrit à
   côté : un raccourci qu'on ne peut pas deviner n'existe pas. Un seul écouteur
-  pour toute la page — vingt-et-un écouteurs sur le catalogue partiraient
+  pour toute la page — un écouteur par case partirait
   ensemble — et la cible est choisie à la frappe : le focus d'abord, le
   pointeur ensuite, et à défaut la scène unique de la page. Voir
   `components/raccourci-rejeu.ts`. Deux gardes non négociables : rien ne se
@@ -266,6 +302,11 @@ laissait la page en 404 mais expédiait quand même l'établi.
 Trois usages qu'une fiche ne couvre pas : régler un composant **au-delà** des options curées
 de sa fiche (éditeur de props JSON), le voir changer de plan, de hauteur,
 d'alignement et de largeur sans toucher au code, et essayer un **brouillon**.
+
+C'est aussi le seul endroit où l'on voit une famille **en attente** — écrite,
+mais pas encore publiée. Le banc rend `familles` là où le site rend
+`catalogue` ; sans ça, il faudrait publier pour regarder. Voir « Publier un
+composant ».
 
 Un brouillon est un candidat qui n'est pas encore dans `packages/core`. Il vit
 dans `apps/docs/brouillons/`, apparaît sur le banc au même titre qu'une famille,

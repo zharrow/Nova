@@ -1,29 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  Bricolage_Grotesque,
-  Instrument_Sans,
-  Spline_Sans_Mono,
-} from "next/font/google";
+import { Instrument_Sans, Spline_Sans_Mono } from "next/font/google";
 import { BasculeTheme } from "@/components/bascule-theme";
 import { Marque } from "@/components/marque";
+import { Palette } from "@/components/palette";
 import "./globals.css";
 
 /**
- * Trois familles, trois registres qui ne se croisent jamais — voir DESIGN.md.
- * Un titre est TOUJOURS en Bricolage Grotesque, une phrase TOUJOURS en
- * Instrument Sans, un chiffre TOUJOURS en Spline Sans Mono.
+ * DEUX familles, et une seule règle de partage : les mots d'un côté, les
+ * nombres de l'autre — voir DESIGN.md.
+ *
+ * Bricolage Grotesque tenait les titres et a été retirée. Le « point de
+ * vigilance » du document se vérifiait : un grotesque expressif à quelques
+ * pixels d'une démonstration lui dispute l'écran, et le catalogue en aligne
+ * une par case. Ce qui distingue un titre redevient sa taille et sa graisse.
+ *
+ * Instrument Sans porte donc aussi les titres : `--font-titre` pointe sur elle
+ * dans `globals.css`, les classes du site continuent de nommer un rôle, et
+ * l'écart entre titre et prose se joue sur la graisse, pas sur la famille.
+ * Une seule fonte chargée pour deux rôles — deux appels à `next/font`
+ * produiraient deux requêtes pour le même fichier.
  *
  * `latin-ext` n'est pas décoratif : « œil », « nœud » et « cœur » vivent
  * en U+0153, hors du sous-ensemble latin de base.
  */
-const policeTitre = Bricolage_Grotesque({
-  subsets: ["latin", "latin-ext"],
-  axes: ["opsz", "wdth"],
-  variable: "--police-titre",
-  display: "swap",
-});
-
 const policeSans = Instrument_Sans({
   subsets: ["latin", "latin-ext"],
   axes: ["wdth"],
@@ -56,11 +56,11 @@ export const metadata: Metadata = {
 /**
  * Pose le thème AVANT la première peinture.
  *
- * Sans ce script, une page dont le visiteur a choisi le clair s'afficherait
- * d'abord en sombre — le mode canonique — puis basculerait à l'hydratation.
+ * Sans ce script, une page dont le visiteur a choisi le sombre s'afficherait
+ * d'abord en clair — le mode canonique — puis basculerait à l'hydratation.
  * Il tourne en synchrone dans le `head`, donc avant tout rendu.
  */
-const SCRIPT_THEME = `try{if(localStorage.getItem("nova-theme")==="clair")document.documentElement.setAttribute("data-theme","clair")}catch(e){}`;
+const SCRIPT_THEME = `try{if(localStorage.getItem("nova-theme")==="nuit")document.documentElement.setAttribute("data-theme","nuit")}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -70,7 +70,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${policeTitre.variable} ${policeSans.variable} ${policeMono.variable}`}
+      className={`${policeSans.variable} ${policeMono.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -95,12 +95,16 @@ function Entete() {
         <Link href="/" className="flex shrink-0 items-center gap-2.5 text-encre">
           {/* La marque, et le nom dans la police du site. Le lettrage du kit
               est un grotesque géométrique arrondi : posé ici, il mettrait une
-              seconde voix typographique dans le bandeau, à côté de Bricolage
-              Grotesque. Le symbole n'a pas ce problème — il n'a pas de voix. */}
+              seconde voix typographique dans un bandeau qui n'en tient qu'une.
+              Le symbole n'a pas ce problème — il n'a pas de voix. */}
           <Marque className="h-[27px] w-[27px]" />
           <span
             className="titre text-[1.05rem] font-bold"
-            style={{ fontVariationSettings: '"opsz" 40, "wdth" 92' }}
+            /* `opsz` appartenait à Bricolage Grotesque, qui a été retirée :
+               Instrument Sans n'a que l'axe de chasse. Laisser l'ancien réglage
+               serait silencieux — le navigateur ignore un axe absent — mais il
+               ferait croire à une intention qui n'existe plus. */
+            style={{ fontVariationSettings: '"wdth" 92' }}
           >
             Nova
           </span>
@@ -125,6 +129,7 @@ function Entete() {
           >
             Source
           </a>
+          <Palette />
           <BasculeTheme />
         </nav>
       </div>

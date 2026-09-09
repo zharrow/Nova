@@ -29,26 +29,66 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Les rôles. Le SOMBRE est canonique — c'est le mode dans lequel la direction
-   est dessinée, et celui qui donne au mouvement une direction de contraste
-   que le blanc lui interdit : sur fond clair une animation ne peut que
-   s'assombrir, sur fond sombre elle peut émettre.
+   Les rôles. Le CLAIR est canonique — c'est le mode dans lequel la direction
+   est dessinée, et celui sur lequel un composant copié atterrira le plus
+   souvent. La grande majorité des familles déplacent du CONTENU au lieu
+   d'émettre de la lumière, et un contenu se lit sur le fond qu'il aura chez
+   celui qui copie le composant.
+
+   Le sombre reste un mode COMPLET, dessiné aussi : c'est le meilleur fond des
+   cinq familles qui rayonnent — Halftone, Confetti, Spotlight, Cursor, Loader.
 
    Un jeton est un RÔLE, pas un hexadécimal : `--signal` ne vaut pas la même
-   valeur dans les deux modes, et c'est correct.
+   valeur dans les deux modes, et c'est correct. `--nuit` désigne le fond de
+   page dans les deux — le nom est devenu faux en clair, le renommer coûterait
+   une passe sur chaque fichier pour un gain nul. Voir DESIGN.md.
    -------------------------------------------------------------------------- */
 
-:root {
+:root,
+[data-theme="clair"] {
+  color-scheme: light;
+
+  --nuit: #fcfcfb;        /* page. Un blanc cassé, jamais #ffffff */
+  --plan: #f4f4f1;        /* plan ENFONCÉ : code, tableaux */
+  --banc: #ffffff;        /* plan SURÉLEVÉ : scène. Le seul blanc pur du site */
+  --banc-haut: #f7f7f4;   /* surface interne à une scène */
+  --filet: #e6e6e1;
+  --filet-vif: #c9c9c1;   /* filet actif, bord de scène survolée */
+
+  --encre: #16161a;       /* 16,8:1 sur --nuit */
+  --prose: #3d3d45;       /* 10,1:1 */
+  --second: #5e5e68;      /*  6,1:1 */
+  --sourdine: #74747e;    /*  4,6:1 */
+
+  --signal: #1b4fd8;      /*  6,0:1 */
+
+  /* Rampe du code. CHAUDE parce que le signal est froid : un bleu dans le
+     code se lirait comme du signal, et le rationnement à deux occurrences
+     par écran n'aurait plus de sens. */
+  --code-cle: #9a3412;
+  --code-type: #28607f;
+  --code-chaine: #2f6b45;
+  --code-nombre: #8a6423;
+  --code-comm: #8a8a93;
+  --code-ponct: #6b6b75;
+
+  --radius: 8px;
+}
+
+/* Le sombre est adressable par ATTRIBUT, jamais par la seule racine : une
+   scène de fiche peut être retournée seule, sur une page qui ne bouge pas.
+   Sans cette symétrie, la bascule ne marchait que dans un sens. */
+[data-theme="nuit"] {
   color-scheme: dark;
 
-  --nuit: #0b0b0c;        /* page */
-  --plan: #101013;        /* plan ENFONCÉ : code, tableaux */
-  --banc: #1a1a20;        /* plan SURÉLEVÉ : scène de démonstration */
-  --banc-haut: #24242b;   /* surface interne à une scène */
+  --nuit: #0b0b0c;
+  --plan: #101013;
+  --banc: #1a1a20;        /* la scène MONTE, au lieu d'être le seul blanc */
+  --banc-haut: #24242b;
   --filet: #26262c;
-  --filet-vif: #3c3c46;   /* filet actif, bord de scène survolée */
+  --filet-vif: #3c3c46;
 
-  --encre: #f2f2ef;       /* 17,0:1 sur --nuit */
+  --encre: #f2f2ef;       /* 17,0:1 */
   --prose: #c3c3c9;       /* 11,1:1 */
   --second: #9a9aa3;      /*  6,9:1 */
   --sourdine: #7c7c86;    /*  4,7:1 */
@@ -56,42 +96,12 @@
   /* Une nova est une étoile, et le bleu-blanc en est l'extrémité chaude. */
   --signal: #4da3ff;      /*  7,3:1 sur --nuit · 6,6:1 sur --banc */
 
-  /* Rampe du code. CHAUDE parce que le signal est froid : un bleu dans le
-     code se lirait comme du signal, et le rationnement à deux occurrences
-     par écran n'aurait plus de sens. */
   --code-cle: #ff9e6b;
   --code-type: #8fb6cf;
   --code-chaine: #8fbf9f;
   --code-nombre: #e2c48d;
   --code-comm: #6b6b74;
   --code-ponct: #7c7c86;
-
-  --radius: 8px;
-}
-
-[data-theme="clair"] {
-  color-scheme: light;
-
-  --nuit: #f4f4f0;        /* papier, jamais #ffffff */
-  --plan: #ebebe4;
-  --banc: #ffffff;        /* le SEUL blanc pur du site : la scène */
-  --banc-haut: #f7f7f3;
-  --filet: #dcdcd4;
-  --filet-vif: #b4b4a9;
-
-  --encre: #121214;       /* 17,0:1 */
-  --prose: #3a3a42;       /* 10,3:1 */
-  --second: #5a5a64;      /*  6,2:1 */
-  --sourdine: #6b6b75;    /*  4,8:1 */
-
-  --signal: #1b4fd8;      /*  6,0:1 */
-
-  --code-cle: #9a3412;
-  --code-type: #28607f;
-  --code-chaine: #2f6b45;
-  --code-nombre: #8a6423;
-  --code-comm: #8a8a93;
-  --code-ponct: #6b6b75;
 }
 
 /* --------------------------------------------------------------------------
@@ -108,6 +118,7 @@
    -------------------------------------------------------------------------- */
 
 :root,
+[data-theme="nuit"],
 [data-theme="clair"] {
   --background: var(--nuit);
   --foreground: var(--encre);
@@ -185,7 +196,10 @@
   --radius-lg: 14px;
   --radius-xl: 14px;
 
-  --font-titre: var(--police-titre), ui-sans-serif, system-ui, sans-serif;
+  /* Le RÔLE survit, la famille a changé : les titres sont en Instrument Sans
+     comme la prose. Voir DESIGN.md — ce qui distingue un titre est sa taille
+     et sa graisse, plus sa voix. */
+  --font-titre: var(--police-sans), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--police-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--police-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
@@ -220,25 +234,32 @@ body,
 }
 
 /* --------------------------------------------------------------------------
-   Typographie. Trois registres qui ne se croisent jamais :
-   un titre est TOUJOURS en Bricolage Grotesque, une phrase TOUJOURS en
-   Instrument Sans, un chiffre TOUJOURS en Spline Sans Mono.
+   Typographie. DEUX registres, une seule règle de partage : les mots d'un
+   côté, les nombres de l'autre.
+
+   Un titre et une phrase partagent désormais la même famille. Ce qui les
+   distingue est la GRAISSE et la TAILLE, pas la voix — voir DESIGN.md. La
+   troisième famille ne payait pas son coût : un grotesque expressif à quelques
+   pixels d'une démonstration lui dispute l'écran, et le catalogue en aligne
+   une par case.
    -------------------------------------------------------------------------- */
 
 .titre {
   font-family: var(--font-titre);
-  letter-spacing: -0.022em;
+  letter-spacing: -0.02em;
   font-weight: 600;
 }
 
-/* Bricolage Grotesque ne descend jamais sous 1.25rem : en petit, son dessin
-   devient du bruit. Les libellés d'interface passent en Instrument Sans. */
+/* L'affiche de l'accueil, seul endroit où la typographie a le droit d'être
+   grande — il n'y a pas de scène à côté d'elle sur cette ligne. Elle reste en
+   deçà de l'ancienne : 0.96 d'interligne sur un grotesque neutre serre les
+   jambages, là où le dessin de Bricolage l'absorbait. */
 .titre-affiche {
   font-family: var(--font-titre);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 0.96;
-  font-variation-settings: "opsz" 96, "wdth" 88;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.04;
+  font-variation-settings: "wdth" 92;
 }
 
 /* Libellé technique : petite capitale en chasse fixe.
@@ -353,13 +374,13 @@ body,
   }
 }
 
-/* Fond quadrillé discret — la trame de l'instrument. */
-.trame {
-  background-image:
-    linear-gradient(to right, var(--filet) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--filet) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+/* Une démonstration INERTE — une case du catalogue — perd ses légendes.
+   La moitié sont des invitations (« survolez pour suspendre », « promenez le
+   curseur ») qui mentiraient sur une carte qui ne répond plus au pointeur, et
+   les autres redoubleraient l'étiquette posée juste sous le cadre. Le cadre ne
+   montre que le composant. Voir `ContexteInerte` dans `components/demos.tsx`. */
+.demo-inerte .cote {
+  display: none;
 }
 
 /* Le lien qui se souligne depuis la gauche. */
