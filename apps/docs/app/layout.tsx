@@ -93,11 +93,16 @@ function Entete() {
     <header className="sticky top-0 z-50 border-b border-filet bg-fond/85 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2.5 text-encre">
+          {/* Le symbole est BLEU, le nom reste en encre. La marque est le seul
+              endroit du chrome où la couleur ne signale pas une action : c'est
+              une identité, et une nova est une étoile bleu-blanc. Le nom en
+              bleu par-dessus ferait un logotype de startup ; le symbole seul
+              fait une marque. */}
           {/* La marque, et le nom dans la police du site. Le lettrage du kit
               est un grotesque géométrique arrondi : posé ici, il mettrait une
               seconde voix typographique dans un bandeau qui n'en tient qu'une.
               Le symbole n'a pas ce problème — il n'a pas de voix. */}
-          <Marque className="h-[27px] w-[27px]" />
+          <Marque className="h-[27px] w-[27px] text-signal" />
           <span
             className="titre text-[1.05rem] font-bold"
             /* `opsz` appartenait à Bricolage Grotesque, qui a été retirée :
@@ -123,18 +128,27 @@ function Entete() {
             au pied de page, qui n'avait rien à porter. La recherche, elle,
             reste : au doigt, c'est ELLE la navigation entre familles. */}
         <nav className="flex items-center gap-4 text-sm sm:gap-7">
-          <Link href="/composants" className="lien text-second hover:text-encre">
+          {/* Sous 640 px, c'est le déclencheur de la palette qui porte le mot
+              « Composants » : il ouvre le menu du catalogue, là où ce lien ne
+              mène qu'à son index. Deux commandes du même nom côte à côte
+              feraient hésiter sans rien ajouter — et la barre n'a de toute
+              façon pas la place des deux. Le menu, lui, garde un accès à
+              l'index en tête de liste. */}
+          <Link
+            href="/composants"
+            className="lien lien-menu hidden sm:inline"
+          >
             Composants
           </Link>
           <Link
             href="/installation"
-            className="lien hidden text-second hover:text-encre sm:inline"
+            className="lien lien-menu hidden sm:inline"
           >
             Installation
           </Link>
           <a
             href="https://github.com/zharrow/Nova"
-            className="lien hidden text-second hover:text-encre sm:inline"
+            className="lien lien-menu hidden sm:inline"
           >
             Source
           </a>
@@ -159,15 +173,15 @@ function PiedDePage() {
             portait qu'une devise et une licence était de la place tenue pour
             rien. */}
         <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <Link href="/composants" className="lien cote hover:text-encre">
+          <Link href="/composants" className="lien lien-menu cote">
             Composants
           </Link>
-          <Link href="/installation" className="lien cote hover:text-encre">
+          <Link href="/installation" className="lien lien-menu cote">
             Installation
           </Link>
           <a
             href="https://github.com/zharrow/Nova"
-            className="lien cote hover:text-encre"
+            className="lien lien-menu cote"
           >
             Source
           </a>

@@ -168,22 +168,47 @@ en commentaire :
 pas du chrome. À `--sourdine` il devenait illisible, ce qui vidait de son sens la seule
 pièce qui prouve la doctrine. Libellés à `--second`, valeurs à `--encre`.
 
-### Rationnement du signal
+### Le bleu est la couleur primaire
 
-`--signal` est autorisé à **deux occurrences par écran**, et à deux emplois :
+**Décision renversée le 2026-09-09.** Le signal était rationné à deux occurrences par
+écran — l'anneau de focus et l'intérieur d'une scène — et tout le reste passait en
+sourdine. L'argument tenait : sur fond clair, une tache de couleur se lit comme un
+bouton, et la plupart des vitrines claires finissent violettes pour l'avoir oublié.
 
-1. l'anneau de focus ;
-2. l'intérieur d'une scène de démonstration.
+Il tenait trop bien. Le résultat était une page grise où la marque n'apparaissait nulle
+part, et où un bouton noir sur fond blanc n'appartenait à personne. Une nova est une
+étoile bleu-blanc : ce bleu est l'IDENTITÉ, pas un accent qu'on économise.
 
-Tout ce qui le portait hors scène passe à `--sourdine` ou disparaît : compte de formes,
-flèches, losange du bandeau, jeton de forme actif (qui devient `--filet-vif` + encre
-pleine).
+`--signal` porte donc **tout ce qui agit**, et cela ne se négocie plus au cas par cas :
 
-Le rationnement survit au passage au clair, et il y devient plus important, pas moins :
-sur fond sombre une tache de couleur se lit comme une lueur, sur fond clair elle se lit
-comme un bouton. Une page claire tolère donc MOINS d'accents qu'une page sombre, pas
-davantage — c'est le piège du mode clair, et la raison pour laquelle la plupart des
-vitrines claires finissent violettes.
+| Ce qui est bleu | Ce qui ne l'est pas |
+|---|---|
+| Boutons primaires (`--primary`) | Les titres, la prose, les cotes |
+| Liens — le mot et le trait | **Les liens de navigation** : barre, pied, barre latérale |
+| L'anneau de focus | L'intérieur d'une démonstration, sauf ce que le composant colore |
+| La page courante dans la barre latérale | Les libellés d'une scène |
+| Le symbole de la marque, les numéros de section, les losanges du bandeau | Le nom « Nova », qui reste en encre |
+
+La ligne qui reste, et c'est la seule qui compte : **le bleu marque ce qui agit ou ce
+qui identifie, jamais ce qui décore.** Trois liens bleus dans une barre de navigation ne
+signalent plus une action, ils peignent le chrome — d'où l'exception des menus, où le
+trait bleu au survol suffit.
+
+Le budget de contraste continue de valoir, avec une exception nommée : la couleur
+primaire n'est pas du chrome et n'est pas tenue au plafond de 7:1. Elle est à 6,5:1 en
+clair et 7,5:1 en sombre.
+
+### Les neutres sont froids
+
+Une couleur de marque ne vit pas que dans ses accents, elle vit dans ses gris. Tous les
+neutres portent donc la teinte du signal — 264° en OKLCH — à un chroma de 0,008 à 0,018.
+Le résultat ne se lit jamais comme du bleu ; il se lit comme un papier qui n'est pas
+gris. Les clartés sont inchangées et les contrastes documentés le restent à un dixième
+près : refroidir n'a rien coûté à la lisibilité.
+
+`--banc` reste le blanc pur en clair. La scène est la seule surface qui ne se teinte
+pas : un fond de démonstration doit ressembler au fond que le composant aura chez celui
+qui le copie, et sur une page légèrement froide ce blanc ressort au lieu de disparaître.
 
 ### Coloration syntaxique
 
@@ -191,8 +216,15 @@ Le bloc de code est le seul endroit où plusieurs teintes cohabitent, et il est 
 plan **enfoncé**. Rampe chaude, aucun néon, aucun violet.
 
 **Chaude parce que le signal est froid.** Si le code employait des bleus, un jeton bleu
-dans le code se lirait comme du signal, et le rationnement à deux occurrences par écran
-n'aurait plus de sens. L'écart de température rend le signal non ambigu.
+dans le code se lirait comme une action. L'écart de température rend le bleu de la
+marque non ambigu, et c'est ce qui permet à celui-ci d'être partout ailleurs.
+
+**La ligne de commande est colorisée elle aussi.** `npx novaui add reveal` passait aux
+règles du TSX, n'y déclenchait rien, et sortait en gris uniforme : la ligne qu'on vient
+copier était la seule sans couleur de la page. Quatre rôles, dans l'ordre où on les
+lit — le lanceur en sourdine (c'est de la tuyauterie), l'outil en mot-clé (c'est le nom
+du produit), la sous-commande en type (ce qu'elle fait), les arguments en chaîne (les
+seules valeurs qu'on remplace).
 
 En clair : `#9A3412` · `#28607F` · `#2F6B45` · `#8A6423` · `#8A8A93` · `#6B6B75`.
 En sombre : `#FF9E6B` · `#8FB6CF` · `#8FBF9F` · `#E2C48D` · `#6B6B74` · `#7C7C86`.
@@ -643,6 +675,19 @@ site est le sujet. « Installation » et « Source » descendent au pied de page
 portait qu'une devise et une licence. La recherche reste en tête : au doigt, c'est ELLE
 la navigation entre familles, et elle fait mieux qu'un tiroir puisqu'elle cherche.
 
+**Sous 640 px, la palette EST le menu.** La barre latérale n'existe pas là, et une
+loupe seule ne remplace pas une navigation : elle annonce « cherchez », c'est-à-dire
+« sachez d'abord ce que vous voulez », précisément ce qu'un visiteur qui découvre un
+catalogue ne sait pas. Le déclencheur porte donc son nom — « Composants » — et un
+chevron qui dit qu'il ouvre au lieu d'emmener. Derrière, la même palette, avec trois
+changements qui la font passer d'outil de recherche à menu : la liste sans requête est
+rangée PAR CATÉGORIE (la règle de l'index vaut ici, vingt-trois noms d'affilée forment
+un mur), le clavier virtuel ne s'ouvre pas — le focus va sur le panneau, pas sur le
+champ, sinon le clavier recouvre la liste qu'on vient ouvrir pour la parcourir — et le
+panneau prend 70 vh au lieu de 46. La pastille de la rangée choisie disparaît au doigt :
+elle marque la position des flèches et la famille que la scène joue, deux choses qui
+n'existent pas là, et elle se lirait comme un choix que personne n'a fait.
+
 **La référence se lit en blocs, la comparaison en tableau.** Sous 640 px, chaque option
 devient un bloc — nom, type, `DÉFAUT` étiqueté, rôle en pleine largeur. Le tableau à
 quatre colonnes revient au-dessus, où comparer une colonne d'un bout à l'autre est
@@ -719,3 +764,8 @@ Ce document sert à éviter que chaque écran soit redécidé à la main, pas à
 | 2026-09-09 | Chaque invitation de scène existe en deux versions | « Survolez le mot » sous une scène qui ne répondra jamais fait conclure que le composant est cassé — le contraire de ce qu'une vitrine prouve. Quand le tactile n'a pas d'équivalent, la version tactile le dit ; quand il en a un, c'est le composant qui s'adapte (`RollText` pivote à la pression). |
 | 2026-09-09 | Les options en blocs sous 640 px, en tableau au-dessus | Dans 300 px, le tableau coupait `false` en `fals` et gardait la colonne « rôle » — la seule qui explique — hors du champ, sans rien signaler qu'on pouvait la chercher du doigt. Une référence qu'il faut deviner ne référence rien. |
 | 2026-09-09 | La barre mobile garde un lien, le pied de page prend le reste | Trois liens, une marque et deux boutons ne tiennent pas dans 390 px. La recherche est la navigation tactile du site — elle cherche, là où un tiroir ne fait que déplier. |
+| 2026-09-09 | Sous 640 px, la palette est le menu du site | Il n'y avait aucune navigation claire sur téléphone : la barre latérale disparaît, et il restait une loupe qui n'annonce pas qu'elle liste tout. Plutôt qu'un tiroir — le trope, et une seconde navigation à tenir — le déclencheur prend son nom et la palette prend des sections, de la hauteur, et cesse d'appeler le clavier. |
+| 2026-09-09 | Le bleu devient la couleur primaire, le rationnement est levé | Le rationnement à deux occurrences par écran protégeait d'une page violette et produisait une page grise, où la marque n'apparaissait nulle part et où un bouton noir n'appartenait à personne. La règle qui le remplace tient en une ligne : le bleu marque ce qui agit ou ce qui identifie, jamais ce qui décore. |
+| 2026-09-09 | Les liens de navigation restent neutres | Trois liens bleus dans une barre, vingt-trois dans une colonne, ne signalent plus une action : ils peignent le chrome, et le bleu perd ce qu'il vient de gagner ailleurs. Une navigation se lit à sa position. |
+| 2026-09-09 | Les neutres portent la teinte du signal à chroma minuscule | Une couleur de marque vit dans les gris autant que dans les accents. Clartés inchangées, contrastes identiques à un dixième près. |
+| 2026-09-09 | La ligne de commande est colorisée | Passée aux règles du TSX elle ne déclenchait rien : la ligne qu'on vient copier était la seule sans couleur de la page. |
