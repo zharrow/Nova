@@ -447,11 +447,28 @@ même taille et l'étoile est une tache), un cœur qui sature un disque minuscul
 de choc modulée en angle, et **dix-sept rais** de matière projetée. Sans les rais, des
 cercles concentriques : un astre calme, jamais une explosion.
 
-**Elle éclôt une fois, puis s'arrête.** Toute la figure part à 9 % de sa taille et
-grandit d'un coup : les premières images sont un point. Ce n'est pas une boucle —
-« énergie : immobile, sauf un point », et ce point reste le bandeau. Ensuite l'étoile ne
-bouge plus, elle RÉPOND : les modules gonflent sous le curseur. En mouvement réduit,
-aucune éclosion — elle naît finie, comme l'exige l'état par défaut visible.
+**Elle éclôt, puis elle tourne.** Toute la figure part à 9 % de sa taille et grandit
+d'un coup : les premières images sont un point. Ensuite les deux coquilles tournent,
+**chacune à sa cadence et en sens opposé** — deux parois qui tournent du même pas
+restent solidaires et la figure se lit comme un dessin qu'on fait pivoter ; des cadences
+différentes donnent du volume, on voit deux surfaces glisser l'une sur l'autre. Les
+rapports ne sont pas entiers, donc le motif ne se répète jamais.
+
+C'est la SECONDE exception à « énergie : immobile, sauf un point », après le bandeau, et
+elle est assumée : l'affiche est une scène, et une scène a le droit de bouger. Le prix
+est réel — la trame est ré-échantillonnée à chaque image, huit mille cellules — d'où le
+plafond à quarante images par seconde et l'arrêt automatique quand la scène sort de
+l'écran.
+
+**Le survol est directionnel, pas de proximité.** Le moteur propose `pointerBoost`, qui
+gonfle les modules sous le curseur ; il est laissé à zéro. La paroi s'allume du côté d'où
+l'on regarde, comme une lumière rasante : sur un objet en perspective, c'est la réponse
+qui dit qu'il est dans l'espace et pas sur le papier. L'angle se rejoint par le plus
+court chemin, sinon la lumière fait le tour du disque quand le pointeur passe de +179° à
+−179°.
+
+En mouvement réduit, ni éclosion ni rotation — elle naît finie et se tient tranquille,
+comme l'exige l'état par défaut visible.
 
 L'éclosion passe par `onTick`, la boucle partagée de la librairie, et non par un
 `requestAnimationFrame` à elle. La vitrine se tient à la règle qu'elle vend.
@@ -797,3 +814,4 @@ Ce document sert à éviter que chaque écran soit redécidé à la main, pas à
 | 2026-09-09 | Les neutres portent la teinte du signal à chroma minuscule | Une couleur de marque vit dans les gris autant que dans les accents. Clartés inchangées, contrastes identiques à un dixième près. |
 | 2026-09-09 | La ligne de commande est colorisée | Passée aux règles du TSX elle ne déclenchait rien : la ligne qu'on vient copier était la seule sans couleur de la page. |
 | 2026-09-09 | Une supernova calculée remplace la case du catalogue sur l'affiche | La case répétait le catalogue au lieu de porter la page : un cadre, une étiquette, un lien. Une affiche montre la chose, pas sa fiche. `Halftone` par sa fonction de couverture prouve « aucune ressource chargée » à l'échelle de l'écran, au lieu de l'affirmer. |
+| 2026-09-09 | Les coquilles de l'affiche tournent, à cadences différentes | Seconde exception à « immobile, sauf un point », demandée et assumée : l'affiche est une scène. Cadences opposées et non entières, sinon les parois restent solidaires et l'objet se lit comme un dessin qui pivote. Le survol devient DIRECTIONNEL — la paroi s'allume du côté d'où l'on regarde — parce que c'est la réponse qui dit qu'un objet est dans l'espace. |

@@ -69,7 +69,12 @@ const AZIMUT = -0.52;
  * disque rond sort ovale — et ici l'ovale doit venir de la PERSPECTIVE, pas
  * d'un accident de grille.
  */
-function novaA(t: number, ratio: number) {
+function novaA(
+  t: number,
+  ratio: number,
+  temps: number,
+  regard: { angle: number; force: number },
+) {
   /* UNE SEULE ÉCHELLE pour toute la figure : tout part à 9 % et grandit
      ensemble, donc les premières images sont un point et c'est ce point qui
      explose. Des rayons aux départs séparés donnaient un fondu. */
@@ -124,16 +129,48 @@ function novaA(t: number, ratio: number) {
        dominant de la référence : la matière est partie en plusieurs fois, et
        chaque front s'est figé à sa distance. La plus lointaine est la plus
        fine et la plus vive — c'est le bord qu'on voit briller. */
-    /* La paroi n'est pas parfaitement lisse, mais à peine : au-delà de
-       quelques pour cent, l'ellipse cesse d'être une ellipse et la figure
-       redevient une tache. */
-    const filament = 1 + 0.045 * bruitAngulaire(theta);
-    const coquille = (rayon: number, epaisseur: number, force: number) => {
+    /* CHAQUE COQUILLE TOURNE À SA CADENCE.
+    
+       C'est ce qui distingue une rotation d'une image qui pivote : deux
+       parois qui tournent du même pas restent solidaires, et l'objet se lit
+       comme un dessin qu'on fait tourner. Des cadences différentes — et de
+       sens opposé — donnent du VOLUME : on voit deux surfaces glisser l'une
+       sur l'autre, donc on voit qu'il y en a deux.
+    
+       La rotation ne se voit que parce que la paroi n'est pas lisse. Le
+       filament, presque nul jusqu'ici, est ce qui rend le mouvement visible :
+       une ellipse parfaite qui tourne ne montre rien. Il reste faible — au-delà
+       de quelques pour cent, l'ellipse cesse d'être une ellipse.
+    
+       L'ORIENTATION DU POINTEUR éclaire le secteur qu'elle vise. Ce n'est pas
+       un survol de proximité — le moteur en propose un, `pointerBoost`, qui
+       gonfle les modules SOUS le curseur — mais un survol de DIRECTION : la
+       paroi s'allume du côté d'où l'on regarde, comme une lumière rasante. Sur
+       un objet en perspective, c'est la réponse qui dit qu'il est dans
+       l'espace et pas sur le papier. */
+    const coquille = (
+      rayon: number,
+      epaisseur: number,
+      force: number,
+      cadence: number,
+    ) => {
+      const phase = theta - temps * cadence;
+      const filament = 1 + 0.075 * bruitAngulaire(phase);
       const e = (rd - rayon * echelle * filament) / (epaisseur * echelle);
-      return force * Math.exp(-(e * e));
+      /* Modulation angulaire propre à la coquille : c'est elle qu'on voit
+         défiler. Elle reste au-dessus de zéro, sinon la paroi se coupe en
+         morceaux au lieu de tourner. */
+      const densite = 0.72 + 0.28 * Math.cos(3 * phase);
+      /* Le regard. `force` tombe à zéro quand le pointeur quitte la scène, et
+         la lumière rasante s'éteint avec lui. */
+      const eclaire =
+        1 + regard.force * 0.42 * Math.cos(theta - regard.angle);
+      return force * densite * eclaire * Math.exp(-(e * e));
     };
-    v += coquille(0.235, 0.024, 0.66);
-    v += coquille(0.445, 0.014, 1.05) * t;
+    /* Sens opposés, rapports non entiers : les deux parois ne se retrouvent
+       jamais dans la même position, donc le motif ne se répète pas. */
+    v += coquille(0.235, 0.024, 0.66, 0.19);
+    v += coquille(0.445, 0.014, 1.05, -0.11) * t;
 
     /* PAS DE BRAS SPIRAUX ici, et c'est une soustraction délibérée.
     
@@ -167,7 +204,6 @@ const ECLOSION = 1600;
 
 export function Supernova({ className }: { className?: string }) {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
-  const moteur = useRef<ReturnType<typeof createHalftone> | null>(null);
 
   useEffect(() => {
     if (!canvas) return;
@@ -175,40 +211,87 @@ export function Supernova({ className }: { className?: string }) {
     const ratio = canvas.clientWidth / Math.max(1, canvas.clientHeight);
     const reduit = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    /* LE REGARD — l'orientation du pointeur autour du centre, lissée.
+    
+       `cible` est ce que le pointeur demande, `regard` ce que la figure a
+       rejoint. Sans ce lissage, la lumière saute d'un secteur à l'autre dès
+       que la souris traverse le centre, où l'angle est instable. */
+    const cible = { angle: 0, force: 0 };
+    const regard = { angle: 0, force: 0 };
+
+    function surPointeur(evenement: PointerEvent) {
+      const boite = canvas!.getBoundingClientRect();
+      const px = (evenement.clientX - boite.left) / boite.width - 0.5;
+      const py = (evenement.clientY - boite.top) / boite.height - 0.5;
+      cible.angle = Math.atan2(py, px * ratio);
+      cible.force = 1;
+    }
+    function surSortie() {
+      cible.force = 0;
+    }
+
     const instance = createHalftone(canvas, {
-      /* En mouvement réduit, l'étoile naît finie. C'est la règle du dépôt :
-         l'état par défaut est visible, aucune animation d'entrée ne s'arme. */
-      source: novaA(reduit ? 1 : 0, ratio),
+      /* En mouvement réduit, la figure naît finie et ne tourne pas : c'est la
+         règle du dépôt, l'état par défaut est visible et aucune animation ne
+         s'arme. */
+      source: novaA(reduit ? 1 : 0, ratio, 0, regard),
       cols: COLONNES,
       /* La grille suit le rapport du canevas, sinon les cellules ne sont pas
-         carrées et l'étoile sort ovale. */
+         carrées et le disque sort ovale pour la mauvaise raison. */
       rows: Math.max(8, Math.round(COLONNES / ratio)),
       steps: 6,
       bleed: 1,
       gamma: 0.85,
       floor: 0.05,
       shape: "circle",
-      /* Elle RÉPOND au curseur une fois posée. C'est le seul mouvement qui
-         reste après l'éclosion, et il appartient au visiteur. */
-      pointerBoost: 0.55,
-      pointerRadius: 0.16,
+      /* `pointerBoost` du moteur est laissé à zéro : il gonfle les modules
+         SOUS le curseur, et cette figure répond autrement — par la DIRECTION
+         d'où on la regarde. Deux réponses au même geste se disputeraient la
+         lecture. */
+      pointerBoost: 0,
     });
-    moteur.current = instance;
 
     if (reduit) return () => instance.destroy();
 
+    canvas.addEventListener("pointermove", surPointeur, { passive: true });
+    canvas.addEventListener("pointerleave", surSortie, { passive: true });
+
     const depart = performance.now();
+    let derniere = 0;
+
     const stop = onTick(() => {
-      const t = Math.min(1, (performance.now() - depart) / ECLOSION);
-      /* La courbe signature de Nova, en sortie : l'onde part vite et se pose.
-         Une éclosion linéaire donne un ballon qui se gonfle. */
+      const maintenant = performance.now();
+
+      /* LA TRAME EST RÉÉCHANTILLONNÉE À CHAQUE IMAGE — huit mille cellules.
+         On plafonne donc à ~40 images par seconde : la rotation est lente, la
+         différence ne se voit pas, et le coût baisse d'un tiers. Le moteur
+         suspend déjà tout quand la scène sort de l'écran. */
+      if (maintenant - derniere < 24) return;
+      derniere = maintenant;
+
+      const t = Math.min(1, (maintenant - depart) / ECLOSION);
+      /* La courbe signature en sortie : l'onde part vite et se pose. Une
+         éclosion linéaire donne un ballon qui se gonfle. */
       const e = 1 - Math.pow(1 - t, 3);
-      instance.update({ source: novaA(e, ratio) });
-      if (t >= 1) stop();
+
+      /* Rattrapage du regard. L'angle se rejoint par le PLUS COURT CHEMIN,
+         sinon la lumière fait le tour du disque quand le pointeur passe de
+         +179° à −179°. */
+      let ecart = cible.angle - regard.angle;
+      while (ecart > Math.PI) ecart -= 2 * Math.PI;
+      while (ecart < -Math.PI) ecart += 2 * Math.PI;
+      regard.angle += ecart * 0.16;
+      regard.force += (cible.force - regard.force) * 0.09;
+
+      instance.update({
+        source: novaA(e, ratio, maintenant / 1000, regard),
+      });
     });
 
     return () => {
       stop();
+      canvas.removeEventListener("pointermove", surPointeur);
+      canvas.removeEventListener("pointerleave", surSortie);
       instance.destroy();
     };
   }, [canvas]);
