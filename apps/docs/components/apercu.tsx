@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Demo } from "./demos";
 import { Telemetrie } from "./telemetrie";
-import { reglagesDe, type Forme } from "@/lib/catalogue";
-import { Reglages, valeursParDefaut, type Valeurs } from "./reglages";
+import { reglagesDe } from "@/lib/catalogue";
+import { Reglages } from "./reglages";
+import { useSceneFiche } from "./scene-fiche";
 import { cn } from "@/lib/utils";
 
 const VOIES: Record<string, { titre: string; explication: string }> = {
@@ -38,19 +39,23 @@ const VOIES: Record<string, { titre: string; explication: string }> = {
  * de montrer qu'une entrée du catalogue est une FAMILLE et non une pièce
  * unique — voir VARIANTES.md. Il porte donc aussi le nom de la voie et ce
  * qu'elle implique.
+ *
+ * L'état — forme choisie, valeurs des réglages — vit dans `SceneFiche` et non
+ * ici : le bloc d'usage, tout en bas de la page, doit lire les mêmes valeurs
+ * pour afficher le code de ce qu'on regarde.
  */
-export function Apercu({
-  nom,
-  titre,
-  voie,
-  formes,
-}: {
-  nom: string;
-  titre: string;
-  voie?: "option" | "usage" | "frere";
-  formes?: Forme[];
-}) {
-  const [active, setActive] = useState(formes?.[0]?.id);
+export function Apercu() {
+  const {
+    fiche,
+    formeActive,
+    choisirForme,
+    valeurs,
+    reglerValeur,
+    reinitialiser,
+    themeScene,
+  } = useSceneFiche();
+  const { nom, titre, voie, formes } = fiche;
+
   /**
    * La scène est tenue dans un ÉTAT, pas dans une ref : la télémétrie doit se
    * rebrancher quand le nœud arrive, et une `useRef` ne provoque aucun rendu.
@@ -58,7 +63,6 @@ export function Apercu({
    */
   const [scene, setScene] = useState<HTMLDivElement | null>(null);
   const reglages = reglagesDe(nom);
-  const [valeurs, setValeurs] = useState<Valeurs>(() => valeursParDefaut(reglages));
 
   /**
    * Rejeu après réglage.
@@ -83,16 +87,25 @@ export function Apercu({
     const minuteur = setTimeout(() => setTour((n) => n + 1), 220);
     return () => clearTimeout(minuteur);
   }, [valeurs]);
-  const courante = formes?.find((forme) => forme.id === active);
+  const courante = formes?.find((forme) => forme.id === formeActive);
   const entete = voie ? VOIES[voie] : undefined;
 
   return (
     <div>
-      <div ref={setScene} className="relative">
+      {/* Le thème local est posé ICI et non sur la scène elle-même : les
+          jetons sont déclarés sur `[data-theme]`, et un conteneur qui les
+          redéclare suffit à retourner tout ce qu'il contient — filet du
+          plancher et légende comprises. Sans attribut, la scène hérite de la
+          page, ce qui reste le cas normal. */}
+      <div
+        ref={setScene}
+        className="relative"
+        data-theme={themeScene ?? undefined}
+      >
         <Demo
           key={tour}
           nom={nom}
-          forme={active}
+          forme={formeActive}
           nomAffiche={titre}
           reglages={valeurs}
         />
@@ -102,10 +115,8 @@ export function Apercu({
       <Reglages
         reglages={reglages}
         valeurs={valeurs}
-        onChange={(cle, valeur) =>
-          setValeurs((precedent) => ({ ...precedent, [cle]: valeur }))
-        }
-        onReinit={() => setValeurs(valeursParDefaut(reglages))}
+        onChange={reglerValeur}
+        onReinit={reinitialiser}
       />
 
       {formes && formes.length > 1 ? (
@@ -126,14 +137,14 @@ export function Apercu({
               <button
                 key={forme.id}
                 type="button"
-                onClick={() => setActive(forme.id)}
-                aria-pressed={active === forme.id}
+                onClick={() => choisirForme(forme.id)}
+                aria-pressed={formeActive === forme.id}
                 className={cn(
                   "valeur rounded-presse border px-3 py-1.5 text-[11px] transition-colors",
                   // Le jeton actif se marque au FILET et à l'encre pleine, pas
                   // au signal : celui-ci est rationné à deux occurrences par
                   // écran, et la scène en consomme déjà. Voir DESIGN.md.
-                  active === forme.id
+                  formeActive === forme.id
                     ? "border-filet-vif text-encre"
                     : "border-filet text-second hover:border-filet-vif hover:text-encre",
                 )}

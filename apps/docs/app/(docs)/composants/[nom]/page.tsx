@@ -5,18 +5,16 @@ import {
   trouverFiche,
   libelleCategorie,
   nombreDeFormes,
+  dependancesDe,
 } from "@/lib/catalogue";
 import { Apercu } from "@/components/apercu";
-import { BlocCode } from "@/components/bloc-code";
+import { SceneFiche } from "@/components/scene-fiche";
+import { UsageVivant } from "@/components/usage-vivant";
+import { MenuCopier } from "@/components/menu-copier";
+import { BasculeThemeScene } from "@/components/bascule-theme-scene";
+import { PucesDependances } from "@/components/puces-dependances";
 import { CommandeInstall } from "@/components/commande-install";
 import { Separator } from "@/components/ui/separator";
-
-/** Ce que la CLI installe en plus, par composant. Voir DEPENDANCES.md. */
-const DEPENDANCES: Record<string, string[]> = {
-  expand: ["gsap"],
-  lightbox: ["gsap", "radix-ui"],
-  "smooth-scroll": ["lenis"],
-};
 
 export function generateStaticParams() {
   return catalogue.map((fiche) => ({ nom: fiche.nom }));
@@ -55,9 +53,10 @@ export default async function PageComposant({
   const precedente = catalogue[(index - 1 + catalogue.length) % catalogue.length]!;
   const suivante = catalogue[(index + 1) % catalogue.length]!;
   const formes = nombreDeFormes(fiche);
-  const deps = DEPENDANCES[fiche.nom] ?? [];
+  const deps = dependancesDe(fiche.nom);
 
   return (
+    <SceneFiche fiche={fiche}>
     <article>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pb-4">
         <Link href="/composants" className="cote lien">
@@ -65,22 +64,22 @@ export default async function PageComposant({
         </Link>
         <span className="cote">/</span>
         <span className="cote">{libelleCategorie(fiche.categorie)}</span>
+        {/* Le menu pousse à droite : c est un outil, pas une étape du fil. */}
+        <div className="ml-auto flex items-center gap-1">
+          <BasculeThemeScene />
+          <MenuCopier nom={fiche.nom} titre={fiche.titre} />
+        </div>
       </div>
 
       {/* ZONE 1 — la scène. Premier et plus grand élément de la page, sur
           toute la largeur de la colonne de contenu. */}
-      <Apercu
-        nom={fiche.nom}
-        titre={fiche.titre}
-        voie={fiche.voie}
-        formes={fiche.formes}
-      />
+      <Apercu />
 
       {/* ZONE 2 — la prose. Jamais plus de 62 caractères. */}
       <div className="mt-12 gap-12 xl:flex">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="titre text-[clamp(1.9rem,4vw,2.6rem)] leading-[1.03]">
+            <h1 className="titre text-[clamp(1.5rem,2.4vw,1.875rem)] leading-[1.15]">
               {fiche.titre}
             </h1>
             {formes > 1 ? (
@@ -90,6 +89,12 @@ export default async function PageComposant({
           <p className="mt-3 max-w-[58ch] text-xl leading-[1.45] text-prose">
             {fiche.accroche}
           </p>
+          {/* Ce que la famille embarque, AVANT la prose et non dans le rail :
+              « on ne réinvente rien » est un argument du dépôt, et il se lisait
+              sous la ligne de flottaison. La question « qu est-ce que ça tire
+              dans mon paquet » se pose en arrivant, pas après trois écrans. */}
+          <PucesDependances deps={deps} />
+
           <p className="mt-4 max-w-[62ch] leading-relaxed text-prose">
             {fiche.apport}
           </p>
@@ -106,9 +111,15 @@ export default async function PageComposant({
               vous la modifiez.
             </p>
 
-            <p className="cote mt-9">Usage</p>
+            <div className="mt-9 flex items-baseline justify-between gap-4">
+              <p className="cote">Usage</p>
+              {/* Dire que le code suit la scène, sinon personne ne le
+                  remarque : un bloc qui bouge tout seul passe pour un rendu
+                  instable si rien ne l annonce. */}
+              <p className="cote">réglé sur la scène</p>
+            </div>
             <div className="mt-3">
-              <BlocCode code={fiche.usage} />
+              <UsageVivant />
             </div>
 
             <p className="cote mt-9" id="options">
@@ -171,20 +182,6 @@ export default async function PageComposant({
               ) : null}
             </ul>
 
-            <p className="cote mt-7">Dépendances</p>
-            {deps.length > 0 ? (
-              <ul className="mt-3 space-y-1.5">
-                {deps.map((dep) => (
-                  <li key={dep} className="valeur text-[12px] text-encre">
-                    {dep}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-3 text-[13px] text-second">
-                Aucune. Le moteur suffit.
-              </p>
-            )}
           </div>
         </aside>
       </div>
@@ -205,5 +202,6 @@ export default async function PageComposant({
         </Link>
       </nav>
     </article>
+    </SceneFiche>
   );
 }

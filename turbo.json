@@ -47,6 +47,11 @@
         "dist/**",
         "registry/**"
       ]
+    },
+    "@nova-ui/docs#test": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }
