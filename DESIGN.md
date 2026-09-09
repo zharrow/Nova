@@ -422,20 +422,41 @@ couleur d'accent système ferait une troisième occurrence de signal par écran.
   remonte au-dessus du contenu. Elle n'existe QUE sur l'accueil : une page d'affiche est
   un imprimé, une page de documentation est un poste de travail, et leur donner la même
   marge effacerait la distinction.
-- **Le filet de tête du banc tombe sur la première ligne de base du titre** et file
-  jusqu'au bord de l'écran. Il part du bord GAUCHE DU BANC, pas de la colonne de texte :
-  tiré sur toute la largeur il barrait le titre comme un texte rayé, et un geste
-  d'affiche qui abîme la ligne qu'il aligne ne vaut rien. Le décalage est calculé en CSS
-  — `calc(0.825rem + 1.5rem + 0.78 * clamp(...))` — et non mesuré en JavaScript : le
-  `0.78em` est la distance du haut de la ligne à la ligne de base pour Bricolage
-  Grotesque. Approximation assumée, vérifiée à 3 px près sur un titre de 58 px.
+- **Les deux colonnes de l'affiche sont centrées l'une sur l'autre.** La planche étant
+  plus haute que le texte, c'est le texte qui descend ; le numéro de section descend avec
+  lui, et c'est pour cela qu'il est posé par la COLONNE et non par la marge — un numéro
+  resté collé au haut de la grille flottait quatre-vingt-dix pixels au-dessus de la ligne
+  qu'il numérote. Voir `Numero` dans `app/page.tsx`.
+- Le banc portait un **filet de tête** tombant sur la première ligne de base du titre, et
+  un décalage calculé en CSS qui n'existait que pour l'y poser. Les deux ont été retirés
+  le 2026-09-09. Un alignement dont on retire la chose alignée ne laisse qu'un trou en
+  haut de colonne : le décalage est parti avec le filet, et ses soixante-seize pixels
+  sont revenus à la planche.
 ### La supernova de l'accueil
 
-Le premier écran ne montre plus une case du catalogue, mais **une supernova en trame**,
-qui déborde du format par la droite. La case était juste — le même objet partout — mais
-elle faisait de l'affiche une vitrine de plus : un cadre, une étiquette, un lien. Une
-affiche n'expose pas une fiche produit, elle montre la chose elle-même, en grand, sans
-cadre.
+Le premier écran ne montre plus une case du catalogue, mais **une supernova en trame**.
+La case était juste — le même objet partout — mais elle faisait de l'affiche une vitrine
+de plus : un cadre, une étiquette, un lien. Une affiche n'expose pas une fiche produit,
+elle montre la chose elle-même, en grand, sans cadre.
+
+Elle a d'abord débordé du format par la droite, et **elle n'en déborde plus** : sa boîte
+est CARRÉE et tient dans sa colonne, sans une seule marge négative. Ce qu'il faut savoir
+avant d'y retoucher, c'est que la trame est DIMENSIONNÉE par la hauteur de sa boîte — le
+disque vaut 0,9 de cette hauteur — mais PLACÉE par sa largeur, puisqu'elle y est centrée.
+Élargir la boîte n'agrandit donc pas l'objet : ça le pousse à droite. C'est ainsi qu'un
+rapport 4/3 débordant de 256 px portait son bord à 1503 px dans un écran de 1470. Le seul
+levier qui grandit le disque est la hauteur de la boîte, et le carré est ce qui la donne
+sans rien pousser : 594 px de haut deviennent 695, et le disque 534 devient 626.
+
+**Les colonnes se lisent comme une taille de module, pas comme un compte.** Le module vaut
+largeur de boîte / colonnes, et c'est lui qui fait la matière : à 7,6 px on voit une trame
+d'imprimeur, à 6 px une photo tramée. Le passage au carré rétrécit la boîte de 791 à
+695 px, donc les colonnes passent de 104 à 92 — l'objet grandit sans changer de matière,
+ce qui est la définition d'agrandir.
+
+**Le plafond de hauteur porte sur le DISQUE, pas sur la boîte.** Le disque n'occupe que
+0,05 à 0,95 de la hauteur de boîte ; plafonner la boîte gaspillait cette marge des deux
+côtés. D'où la division par 0,95 dans `--banc-haut`.
 
 C'est `Halftone`, pris par sa porte la moins connue : une **fonction de couverture**.
 L'étoile est donc calculée, pas chargée — ce que la catégorie « Rendu » revendique,
@@ -446,6 +467,10 @@ mandala : un halo qui porte tout le dégradé (sans lui, tous les modules sorten
 même taille et l'étoile est une tache), un cœur qui sature un disque minuscule, une onde
 de choc modulée en angle, et **dix-sept rais** de matière projetée. Sans les rais, des
 cercles concentriques : un astre calme, jamais une explosion.
+
+La légende de planche annonçait le composant et menait à sa fiche. Elle a été retirée le
+2026-09-09, sur demande. Conséquence assumée : l'affiche ne mène plus à `Halftone`, qui
+reste atteignable par le catalogue comme n'importe quelle autre famille.
 
 **Elle éclôt, puis elle tourne.** Toute la figure part à 9 % de sa taille et grandit
 d'un coup : les premières images sont un point. Ensuite les deux coquilles tournent,
@@ -487,6 +512,29 @@ comme l'exige l'état par défaut visible.
 
 L'éclosion passe par `onTick`, la boucle partagée de la librairie, et non par un
 `requestAnimationFrame` à elle. La vitrine se tient à la règle qu'elle vend.
+
+**Sa HAUTEUR est plafonnée par ce que l'écran peut montrer** — pas sa largeur. À partir
+de `lg`, la planche ne dépasse pas ce qui reste une fois retranchés l'en-tête collant, le
+souffle du haut, la pose du banc, la légende, et une marge pour que celle-ci ne soit pas
+collée au pli. Sur un 13 pouces, l'affiche faisait 1047 px dans une bande visible de
+772 : le tiers bas de l'étoile et TOUTE sa légende tombaient sous le pli, c'est-à-dire
+que la plus belle pièce du site redevenait celle qu'on ne peut pas aller chercher.
+
+C'est bien la hauteur qu'on plafonne, et le choix n'est pas indifférent : plafonner la
+largeur gardait le rapport 4/3 intact mais faisait fuir l'étoile vers le coin droit, en
+creusant trois cents pixels de vide entre elle et le titre. La page tenait dans l'écran
+et ne tenait plus debout. En cédant sur la hauteur, la boîte garde toute sa largeur et
+l'objet reste au milieu de sa colonne, à sa place dans la composition.
+
+Le prix est que le rapport de la boîte n'est plus constant, donc `Supernova` se
+**remesure** : le moteur redéduit ses lignes du rapport du canevas — à condition qu'on ne
+lui impose pas `rows`, ce que le composant faisait et qui neutralisait son propre
+observateur — et un observateur de taille relit le rapport pour la fonction de
+couverture. Sans lui, un redimensionnement laissait le disque ovale par accident de
+grille, alors que son ovale doit venir de la perspective.
+
+Sous `lg` le plafond ne s'applique pas : la page est empilée, on défile de toute façon,
+et il n'aurait fait qu'aplatir la planche en bandeau sur un téléphone en paysage.
 
 - **Rien n'est centré au niveau de la page.**
 - **La prose ne dépasse jamais 62 caractères. Tout ce qui est mécanique — scène, code,
@@ -616,6 +664,15 @@ l'établi entier dans le champ. Elle ne l'est plus avec un plan de travail clair
 fond clair, le blanc entre deux objets EST une séparation, alors que sur fond sombre il
 faut un filet pour la même chose. Serrer une grille claire produit du bruit là où serrer
 une grille sombre produisait de la matière.
+
+**Le souffle de l'affiche est une PART de l'écran, pas une constante** :
+`clamp(4rem, 7.5svh, 7rem)`, du plancher mobile au plafond de l'affiche entière. Les
+96 px sont la respiration d'une page regardée à un mètre ; sur un portable de 13 pouces,
+829 px de haut, deux fois 112 px donnaient un quart de l'écran au vide pendant que la
+planche sortait par le bas. La règle « 64 px sous 640 px » ne s'y déclenchait pas :
+elle est indexée sur la LARGEUR, et un portable est large et bas. Celle-ci est indexée
+sur la hauteur, donc elle tient les deux cas d'un seul chiffre — et elle rend l'ancienne
+sans rien changer sur téléphone.
 
 ### La fiche
 
@@ -831,3 +888,11 @@ Ce document sert à éviter que chaque écran soit redécidé à la main, pas à
 | 2026-09-09 | Une supernova calculée remplace la case du catalogue sur l'affiche | La case répétait le catalogue au lieu de porter la page : un cadre, une étiquette, un lien. Une affiche montre la chose, pas sa fiche. `Halftone` par sa fonction de couverture prouve « aucune ressource chargée » à l'échelle de l'écran, au lieu de l'affirmer. |
 | 2026-09-09 | Les coquilles de l'affiche tournent, à cadences différentes | Seconde exception à « immobile, sauf un point », demandée et assumée : l'affiche est une scène. Cadences opposées et non entières, sinon les parois restent solidaires et l'objet se lit comme un dessin qui pivote. Le survol devient DIRECTIONNEL — la paroi s'allume du côté d'où l'on regarde — parce que c'est la réponse qui dit qu'un objet est dans l'espace. |
 | 2026-09-09 | Une planète orbite le rémanent, et éclaire comme le pointeur | Une seule mécanique de lumière rasante, deux sources. Un corps qui passe sans rien éclairer se lit comme une vignette collée sur l'image ; un corps qui éclaire appartient à la scène. Le vide qui le cerne est ce qui le détache de la paroi qu'il croise. |
+| 2026-09-09 | Le souffle de l'affiche s'indexe sur la hauteur de l'écran | La règle « 96 px, 64 px sous 640 px » est indexée sur la LARGEUR et ne se déclenchait donc jamais sur un portable, qui est large et bas : deux fois 112 px de vide sur 829 px de haut pendant que la planche sortait par le bas. Un `clamp(4rem, 7.5svh, 7rem)` couvre les deux cas et ne change rien sur téléphone. |
+| 2026-09-09 | La planche de l'affiche est plafonnée en hauteur, pas en largeur | Sur 13 pouces, le tiers bas de l'étoile et toute sa légende tombaient sous le pli. Plafonner la largeur aurait gardé le rapport intact mais poussé l'objet dans le coin droit, avec trois cents pixels de trou à sa gauche : la page tenait dans l'écran et ne tenait plus debout. En cédant sur la hauteur, la boîte garde sa largeur et l'objet reste au milieu de sa colonne. Le prix est un rapport variable, donc `Supernova` se remesure. |
+| 2026-09-09 | Le filet de tête du banc est retiré, et le décalage avec lui | Demandé. Le décalage calculé n'existait que pour poser le filet sur la première ligne de base : un alignement dont on retire la chose alignée ne laisse qu'un trou de soixante-seize pixels en haut de colonne. Ces pixels reviennent à la planche. |
+| 2026-09-09 | Les deux colonnes de l'affiche sont centrées l'une sur l'autre | Demandé. Le filet de tête parti, plus rien n'expliquait que la planche descende deux cents pixels sous le dernier bouton. Conséquence à tenir : le numéro de section est désormais posé par la colonne de texte, pas par la marge, sinon il reste en haut de la grille pendant que la ligne qu'il numérote descend. |
+| 2026-09-09 | La supernova ne déborde plus du format, elle respecte la marge | Demandé — elle était collée au bord droit. Le piège est que la boîte de la trame est plus large que le disque d'un tiers : elle est dimensionnée par sa HAUTEUR et placée par sa LARGEUR. Élargir la boîte ne grandit pas l'objet, ça le pousse à droite. Il reste 96 px de débordement de boîte, invisibles, qui tiennent la taille des modules à 7,6 px au lieu de 6,7. |
+| 2026-09-09 | La légende de planche est retirée de l'affiche | Demandé. L'affiche ne mène donc plus à la fiche `Halftone` : elle reste atteignable par le catalogue. Le compte de colonnes n'étant plus affiché nulle part, il redevient un réglage — d'où sa liberté de suivre la largeur de boîte. |
+| 2026-09-09 | La boîte de la supernova devient carrée, et le disque grandit de 17 % | Demandé « agrandir ». Le seul levier est la hauteur de boîte : la largeur ne fait que pousser l'objet vers la droite. Le carré donne 695 px de haut au lieu de 594 sans toucher à la colonne, donc sans reprendre la marge gagnée au tour précédent. Les colonnes passent de 104 à 92 pour tenir le module à 7,6 px : grandir en changeant de matière n'est pas grandir. |
+| 2026-09-09 | Le favicon passe du glyphe noir sur transparent à une tuile bleue | Il était correctement livré et servi en 200 — c'est l'icône qui était invisible : un glyphe noir sur transparent disparaît sur une barre d'onglets sombre, et il contredisait la règle « le bleu identifie » que l'en-tête applique déjà. La tuile pleine gagne les deux fonds, et rend l'`apple-touch-icon` opaque, ce qu'iOS exige. `nova-icon-512.png` reste noir : c'est un MASQUE, seul son alpha est lu. |
