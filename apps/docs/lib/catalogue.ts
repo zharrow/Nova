@@ -4,6 +4,11 @@
  * Le registry (`registry/registry.json`) reste la source de vérité de ce qui
  * s'installe ; ce fichier ne porte que ce qui se raconte : l'accroche, les
  * options, l'exemple d'usage.
+ *
+ * Une exception, et une seule : le drapeau `valide`. Il dit si une famille
+ * SORT — sur le site comme par la CLI. Il vit ici parce qu'une famille se
+ * valide sur ce qu'on en montre, et que `scripts/build-registry.ts` vient le
+ * lire pour n'embarquer que les validées dans le registry distribué.
  */
 
 export interface OptionRow {
@@ -15,14 +20,49 @@ export interface OptionRow {
 
 /**
  * Familles du catalogue. L'ordre déclaré ici est celui de la barre latérale.
+ *
+ * La `description` sert l'index : chaque section y porte une phrase qui dit ce
+ * qu'elle rassemble. Sans elle, six titres se succèdent sans qu'on sache
+ * lequel contient ce qu'on cherche — « Effets » et « Rendu » ne se distinguent
+ * pas d'eux-mêmes.
  */
 export const CATEGORIES = [
-  { id: "texte", label: "Animations de texte" },
-  { id: "defilement", label: "Défilement" },
-  { id: "pointeur", label: "Pointeur" },
-  { id: "donnees", label: "Données" },
-  { id: "rendu", label: "Rendu" },
-  { id: "effets", label: "Effets" },
+  {
+    id: "texte",
+    label: "Animations de texte",
+    description:
+      "Ce qui arrive à un mot, à une ligne, à un paragraphe : décodage, découpe, surlignage, soulignement. Le texte reste lisible avant, pendant et après.",
+  },
+  {
+    id: "defilement",
+    label: "Défilement",
+    description:
+      "Ce que la molette entraîne, et ce qui paraît quand un bloc entre dans l'écran. Rien ne se masque qui ne saurait pas se démasquer.",
+  },
+  {
+    id: "pointeur",
+    label: "Pointeur",
+    description:
+      "Ce qui répond au curseur, et rien d'autre. Ces composants ne jouent pas tout seuls : leur effet EST le geste du visiteur.",
+  },
+  {
+    id: "donnees",
+    label: "Données",
+    description:
+      "Des chiffres, des dates et des relations mis en mouvement sans cesser d'être justes : la valeur finale est écrite dès le premier rendu.",
+  },
+  {
+    id: "rendu",
+    label: "Rendu",
+    description:
+      "Ce qui se calcule pixel par pixel, sur un canevas plutôt que dans le DOM. Aucune ressource à charger : la matière est calculée.",
+  },
+  {
+    id: "effets",
+    label: "Effets",
+    description:
+      "Le reste, et le plus ambitieux : rideaux d'ouverture, panneaux qui se substituent, vols d'un point à un autre, célébrations.",
+  },
 ] as const;
 
 export type CategorieId = (typeof CATEGORIES)[number]["id"];
@@ -40,6 +80,17 @@ export interface Forme {
   id: string;
   nom: string;
   note: string;
+  /**
+   * Les props qui produisent cette forme, quand `formeProp` ne suffit pas.
+   *
+   * Le cas courant est une famille qui bascule sur UNE prop dont l'`id` de la
+   * forme est la valeur — `variant="mask"`, `effect="blur"` : `formeProp` le
+   * dit une fois pour toute la famille. Les voies `usage`, elles, ne
+   * basculent pas sur une prop : « à intervalle » est `trigger` ET `interval`,
+   * et une forme de `DatePicker` est `granularity` ET `startWith`. Ces
+   * familles écrivent donc leurs props ici, forme par forme.
+   */
+  props?: Record<string, string | number | boolean>;
 }
 
 export interface Fiche {
@@ -55,6 +106,34 @@ export interface Fiche {
   voie?: "option" | "usage" | "frere";
   /** Les formes de la famille. Absent quand il n'y en a qu'une. */
   formes?: Forme[];
+  /**
+   * La prop que le sélecteur de formes pilote, quand il n'y en a qu'une.
+   *
+   * L'`id` de la forme en est alors la valeur : `formeProp: "variant"` sur
+   * Reveal signifie que la forme `mask` s'écrit `variant="mask"`. C'est ce qui
+   * permet au bloc d'usage de suivre la scène — voir `lib/code-vivant.ts`.
+   * Absent sur les voies `usage`, où la forme n'est pas une prop : ces
+   * familles écrivent leurs props sur chaque forme.
+   */
+  formeProp?: string;
+  /**
+   * La famille est validée : Nova la distribue.
+   *
+   * ABSENT PAR DÉFAUT, et c'est tout l'intérêt. Une famille récoltée mais pas
+   * encore relue n'existe ni sur la vitrine ni pour la CLI : elle n'a pas de
+   * fiche, pas d'entrée dans la barre, pas de ligne dans `llms.txt`, et
+   * `npx novaui add <nom>` ne la trouve pas. Poser ce drapeau est un geste,
+   * pris en relecture de différence, pas un état qu'on atteint par accumulation.
+   *
+   * Le drapeau porte les deux surfaces à la fois — `catalogue` filtre là-dessus
+   * et `scripts/build-registry.ts` lit la même liste — parce que deux listes
+   * finissent toujours par diverger, et que la divergence se solde ici par une
+   * fiche dont la commande d'installation échoue.
+   *
+   * Ce qui n'est pas validé reste sur `/banc`, qui rend `familles` : c'est là
+   * qu'on juge un candidat, et le banc est absent de la production.
+   */
+  valide?: boolean;
   /** Signalé comme récent dans la grille. */
   nouveau?: boolean;
   /**
@@ -264,6 +343,14 @@ export const REGLAGES: Record<string, Reglage[]> = {
     N("dialDuration", "Durée d'une course", 100, 1200, 20, 420, "ms"),
     N("dialFalloff", "Profondeur du cadran", 1, 6, 0.1, 2.6, "items"),
   ],
+  /* En SECONDES, comme les autres moteurs GSAP du dépôt — et pas en ms comme
+     les moteurs CSS. La valeur du réglage part telle quelle dans la prop : une
+     unité affichée qui ne serait pas celle du moteur ferait mentir le panneau
+     ET le bloc de code qu il alimente. */
+  "flip-list": [
+    N("duration", "Durée", 0.1, 1.5, 0.05, 0.45, "s"),
+    N("stagger", "Décalage", 0, 0.12, 0.005, 0.02, "s"),
+  ],
 };
 
 /** Les réglages d'une famille, ou rien si elle n'en expose pas. */
@@ -271,7 +358,35 @@ export function reglagesDe(nom: string): Reglage[] {
   return REGLAGES[nom] ?? [];
 }
 
-export const catalogue: Fiche[] = [
+/**
+ * Ce que la CLI installe EN PLUS, par famille. Voir DEPENDANCES.md.
+ *
+ * Cette table vivait dans la page de fiche, où seule la fiche pouvait la lire.
+ * Elle est ici parce que trois surfaces en ont besoin — la fiche, le markdown
+ * servi aux agents, et l'index `llms.txt` — et qu'une liste de dépendances
+ * recopiée à trois endroits finit par mentir à deux.
+ */
+export const DEPENDANCES: Record<string, string[]> = {
+  expand: ["gsap"],
+  lightbox: ["gsap", "radix-ui"],
+  "smooth-scroll": ["lenis"],
+  "date-picker": ["radix-ui", "react-day-picker"],
+};
+
+/** Les dépendances d'une famille. Vide quand le moteur suffit. */
+export function dependancesDe(nom: string): string[] {
+  return DEPENDANCES[nom] ?? [];
+}
+
+/**
+ * Toutes les familles déclarées, validées ou non.
+ *
+ * C'est la liste de travail : elle contient ce que le dépôt sait faire. Ce
+ * n'est PAS ce que le site montre ni ce que la CLI installe — voir `catalogue`
+ * juste après. Le banc rend celle-ci, parce qu'on ne peut pas juger ce qu'on
+ * ne voit pas.
+ */
+export const familles: Fiche[] = [
   {
     nom: "reveal",
     geometrie: "bloc",
@@ -289,7 +404,7 @@ export const catalogue: Fiche[] = [
       { nom: "stagger", type: "number", defaut: "80", role: "RevealGroup — décalage entre enfants, en ms." },
       { nom: "easing", type: "string", defaut: "cubic-bezier(0.16, 1, 0.3, 1)", role: "Courbe d'accélération, en syntaxe CSS." },
     ],
-    usage: `<Reveal variant="mask" duration={1100}>
+    usage: `<Reveal variant="mask" duration={1100} easing="cubic-bezier(0.16, 1, 0.3, 1)">
   <img src="/atelier.jpg" alt="" />
 </Reveal>
 
@@ -299,6 +414,7 @@ export const catalogue: Fiche[] = [
   <article>Troisième</article>
 </RevealGroup>`,
     voie: "option",
+    formeProp: "variant",
     formes: [
       {
         id: "slide-up",
@@ -355,7 +471,7 @@ export const catalogue: Fiche[] = [
       { nom: "chars", type: "string", defaut: "A-Z 0-9 #%&/<>*+=", role: "Jeu de caractères de brouillage." },
     ],
     usage: `/* Au survol — le décodage répond à un geste : */
-<ScrambleText text="DÉCODER" trigger="hover" />
+<ScrambleText text="DÉCODER" trigger="hover" stepMs={52} scrambleSteps={6} />
 
 /* À intervalle — le décodage est un signal de fond : */
 <ScrambleText text="RÉFÉRENTIELS" trigger="view" interval={6000} />
@@ -368,11 +484,13 @@ export const catalogue: Fiche[] = [
         id: "hover",
         nom: "Au survol",
         note: "Le décodage répond à un geste : le texte est stable, c'est le lecteur qui le provoque. C'est l'usage d'un lien ou d'un titre : on décode ce qu'on vise.",
+        props: { trigger: "hover", interval: 0 },
       },
       {
         id: "interval",
         nom: "À intervalle",
         note: "Le décodage se rejoue seul tant que le texte est à l'écran. Il n'attend rien de personne : une étiquette qui se redéchiffre, un signal de fond. C'est l'usage d'un badge d'état ou d'un compteur qui vit tout seul.",
+        props: { trigger: "view", interval: 5000 },
       },
     ],
   },
@@ -395,23 +513,26 @@ export const catalogue: Fiche[] = [
       { nom: "easing", type: "nom de courbe · fonction", defaut: "expoOut", role: "Courbe d'accélération. Le compteur interpole en JavaScript : il prend un nom de courbe, pas une chaîne CSS." },
     ],
     usage: `<Counter to={12480} locale="fr-FR" suffix=" €" />
-<Counter to={99.4} decimals={1} suffix=" %" duration={2000} />`,
+<Counter to={99.4} decimals={1} suffix=" %" duration={2000} easing="expoOut" />`,
     voie: "usage",
     formes: [
       {
         id: "brut",
         nom: "Brut",
         note: "Le nombre nu. Aucun séparateur, aucune locale — pour un identifiant ou un compte technique.",
+        props: {},
       },
       {
         id: "localise",
         nom: "Localisé",
         note: "Séparateurs de milliers et décimales selon la locale. Pour tout chiffre qu'un lecteur doit pouvoir lire d'un coup.",
+        props: { locale: "fr-FR" },
       },
       {
         id: "monetaire",
         nom: "Monétaire",
         note: "Devise, via les options Intl. La place est réservée dès le premier rendu, symbole compris.",
+        props: { locale: "fr-FR", currency: "EUR" },
       },
     ],
   },
@@ -432,12 +553,19 @@ export const catalogue: Fiche[] = [
       { nom: "duration", type: "number", defaut: "900", role: "Durée d'une unité, en ms." },
       { nom: "easing", type: "string", defaut: "courbe du catalogue", role: "Timing CSS." },
     ],
-    usage: `<TextEffect as="h1" text="Le texte reste lisible" effect="line" />
+    usage: `<TextEffect
+  as="h1"
+  text="Le texte reste lisible"
+  effect="line"
+  duration={900}
+  easing="cubic-bezier(0.16, 1, 0.3, 1)"
+/>
 <TextEffect text="NOVA" effect="wave" />
 
 /* Au défilement — aucune durée, c'est la molette qui donne le temps : */
 <TextEffect as="p" text={manifeste} effect="reading" />`,
     voie: "option",
+    formeProp: "effect",
     formes: [
       {
         id: "line",
@@ -551,6 +679,7 @@ export const catalogue: Fiche[] = [
   {referentiels.map((r) => <span key={r}>{r}</span>)}
 </Marquee>`,
     voie: "option",
+    formeProp: "direction",
     formes: [
       {
         id: "left",
@@ -591,7 +720,7 @@ export const catalogue: Fiche[] = [
       { nom: "skew", type: "number", defaut: "2.6", role: "Inclinaison en degrés par millier de px/s." },
       { nom: "hoverFactor", type: "number", defaut: "0.12", role: "Part de vitesse gardée au survol." },
     ],
-    usage: `<ScrollMarquee drift={44} gap="2rem">
+    usage: `<ScrollMarquee drift={44} skew={2.6} smoothing={0.1} gap="2rem">
   {mots.map((m) => (
     <span key={m}>
       {m}
@@ -657,10 +786,11 @@ export const catalogue: Fiche[] = [
       { nom: "hoverSelector", type: "string", defaut: "a, button, input…", role: "Ce qui déclenche l'agrandissement." },
     ],
     usage: `/* Une seule fois, dans le layout racine : */
-<Cursor />
+<Cursor lerp={0.2} hoverScale={2.6} />
 
 /* Le curseur système reste visible — Nova l'augmente. */`,
     voie: "option",
+    formeProp: "variant",
     formes: [
       {
         id: "blob",
@@ -689,10 +819,15 @@ export const catalogue: Fiche[] = [
       { nom: "spread", type: "number", defaut: "200", role: "Dispersion horizontale en px." },
       { nom: "shape", type: "circle · square · mixed", defaut: "mixed", role: "Forme des particules." },
     ],
-    usage: `const tirer = useConfetti({ colors: ["#ff5b1f", "#e9e7e2"] });
+    usage: `const tirer = useConfetti({
+  count: 50,
+  spread: 200,
+  colors: ["#ff5b1f", "#e9e7e2"],
+});
 
 <button onClick={() => tirer()}>Célébrer</button>`,
     voie: "option",
+    formeProp: "shape",
     formes: [
       {
         id: "mixed",
@@ -730,7 +865,14 @@ export const catalogue: Fiche[] = [
       { nom: "pointerBoost", type: "number", defaut: "0", role: "Agrandissement sous le curseur. 0 n'ouvre aucune boucle." },
       { nom: "channel", type: "alpha · luminance", defaut: "déduit", role: "Canal lu dans une image. Détouré : alpha. Photo : luminance." },
     ],
-    usage: `<Halftone alt="Portrait" source="/photo.jpg" cols={64} pointerBoost={0.4} />
+    usage: `<Halftone
+  alt="Portrait"
+  source="/photo.jpg"
+  cols={64}
+  steps={4}
+  gamma={0.45}
+  pointerBoost={0.4}
+/>
 
 /* Une forme calculée — un disque : */
 <Halftone
@@ -739,6 +881,7 @@ export const catalogue: Fiche[] = [
   source={(x, y) => (Math.hypot(x - 0.5, y - 0.5) < 0.4 ? 1 : 0)}
 />`,
     voie: "option",
+    formeProp: "shape",
     formes: [
       {
         id: "square",
@@ -777,6 +920,7 @@ export const catalogue: Fiche[] = [
   colors={{ cyber: "#4FD1C5", ia: "#8C79FF" }}
   groupLabels={{ cyber: "Cybersécurité", ia: "Intelligence artificielle" }}
   autoCycle={1700}
+  settleVisible={90}
 />`,
   },
   {
@@ -789,6 +933,7 @@ export const catalogue: Fiche[] = [
     apport:
       "C'est un frère de Reveal, pas une de ses formes : il faut injecter des lames, les mesurer, les décaler, et personne qui veut un simple fondu ne devrait embarquer ce code. Même règle d'or que partout — en mouvement réduit, sans JavaScript, ou pour un bloc déjà à l'écran, aucune lame n'est posée du tout.",
     voie: "option",
+    formeProp: "orientation",
     formes: [
       { id: "vertical", nom: "Colonnes", note: "Des lames verticales, comme un calepinage qu'on démonte. Le motif d'origine." },
       { id: "horizontal", nom: "Rangs", note: "Des lames horizontales, qui se retirent latéralement. Convient aux blocs larges et bas." },
@@ -802,7 +947,7 @@ export const catalogue: Fiche[] = [
       { nom: "color", type: "string", defaut: "fond hérité", role: "Couleur des lames." },
       { nom: "easing", type: "string", defaut: "cubic-bezier(0.16, 1, 0.3, 1)", role: "Courbe d'accélération, en syntaxe CSS." },
     ],
-    usage: `<Blinds count={6} className="aspect-video">
+    usage: `<Blinds count={6} stagger={55} duration={650} easing="cubic-bezier(0.16, 1, 0.3, 1)" className="aspect-video">
   <img src="/verriere.jpg" alt="" />
 </Blinds>`,
   },
@@ -824,7 +969,9 @@ export const catalogue: Fiche[] = [
       { nom: "trigger", type: "view · mount · manual", defaut: "view", role: "Quand tracer." },
     ],
     usage: `<h2>
-  Rendre lisible <BrushUnderline seed={3}>ce qui ne l'est pas</BrushUnderline>.
+  Rendre lisible <BrushUnderline seed={3} duration={1100} delay={180} weight={0.5}>
+    ce qui ne l'est pas
+  </BrushUnderline>.
 </h2>`,
   },
   {
@@ -837,6 +984,7 @@ export const catalogue: Fiche[] = [
     apport:
       "Trois rideaux récoltés dans trois projets, qui ne se ressemblent pas mais partagent tout ce qui compte. Quatre garde-fous, tous non négociables : il se saute à la première interaction, il ne rejoue pas dans la même session, il n'existe pas en mouvement réduit — pas « plus court », absent — et sans JavaScript il n'y a pas de rideau du tout, donc jamais de page bloquée derrière un voile qui ne se lèvera pas.",
     voie: "option",
+    formeProp: "form",
     formes: [
       { id: "blades", nom: "Lames", note: "Un rideau de lames qui se retirent l'une après l'autre. Le décalage fait le calepinage — un rideau qui tombe d'un bloc n'a pas de matière." },
       { id: "greetings", nom: "Salutations", note: "Un mot d'accueil qui défile en vingt langues, puis s'efface. Il dit qu'on est arrivé quelque part, pas qu'on attend." },
@@ -855,7 +1003,13 @@ export const catalogue: Fiche[] = [
       { nom: "onDone", type: "() => void", defaut: "—", role: "Appelé à la fin, ou tout de suite s'il ne joue pas." },
     ],
     usage: `/* Une seule fois, dans le layout racine : */
-<Loader form="blades" onDone={() => setPret(true)}>
+<Loader
+  form="blades"
+  holdMs={1100}
+  exitMs={700}
+  stepMs={200}
+  onDone={() => setPret(true)}
+>
   <p>Votre logo</p>
 </Loader>`,
   },
@@ -875,7 +1029,7 @@ export const catalogue: Fiche[] = [
       { nom: "ghost", type: "HTMLElement", defaut: "clone de la source", role: "Faire voler autre chose que ce qu'on montre." },
       { nom: "onArrive", type: "() => void", defaut: "—", role: "Appelé à l'arrivée, ou tout de suite si le vol n'a pas lieu." },
     ],
-    usage: `const voler = useFlight({ duration: 700 });
+    usage: `const voler = useFlight({ duration: 700, arc: 0.18, scale: 0.6 });
 
 const { flew } = await voler(source, marge);
 if (!flew) afficherUneNotification(); /* la source était hors écran */`,
@@ -896,7 +1050,10 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
       { nom: "veilDuration", type: "number", defaut: "0.1", role: "Durée de la descente du voile, en s." },
       { nom: "reverseSpeed", type: "number", defaut: "1.6", role: "Accélération du repli. Ce qui s'en va n'a pas à se faire attendre." },
     ],
-    usage: `const { ref, capture, shown } = useExpand(ouvert);
+    usage: `const { ref, capture, shown } = useExpand(ouvert, {
+  maxDuration: 0.18,
+  reverseSpeed: 1.6,
+});
 
 <div ref={ref}>
   <header onClick={() => { capture(); setOuvert((v) => !v); }}>
@@ -923,7 +1080,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
       { nom: "orientation", type: "vertical · horizontal", defaut: "vertical", role: "Sens du défilement." },
     ],
     usage: `/* Une seule fois, dans le layout racine : */
-<SmoothScroll lerp={0.1}>
+<SmoothScroll lerp={0.1} wheelMultiplier={1}>
   {children}
 </SmoothScroll>`,
   },
@@ -971,6 +1128,8 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
     ],
     usage: `<TextHighlight
   text="nous le pratiquons d'abord sur nous-mêmes"
+  duration={350}
+  stagger={30}
   onMiss={() => surlignerLeBlocEntier()}
 >
   <p>{contenu}</p>
@@ -998,6 +1157,8 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   onOpenChange={setOuvert}
   origin={point}
   aspect={16 / 9}
+  duration={0.8}
+  closeSpeed={1.5}
   title="Verrière de l'atelier"
 >
   <img data-nova-bloom-media src={src} alt="" />
@@ -1016,16 +1177,19 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
         id: "day",
         nom: "Jour",
         note: "La grille d'abord, et l'en-tête déplie les cadrans par-dessus. Le geste de qui connaît déjà son mois.",
+        props: { granularity: "day", startWith: "day" },
       },
       {
         id: "month-first",
         nom: "Mois puis jour",
         note: "Les cadrans d'abord, « appliquer » mène à la grille. Le geste des dates lointaines : personne ne feuillette quatre cents mois pour arriver à 1995.",
+        props: { granularity: "day", startWith: "month" },
       },
       {
         id: "month",
         nom: "Mois seul",
         note: "Les cadrans SONT le panneau. Pas de grille : un mois et une année, rien d'autre.",
+        props: { granularity: "month", startWith: "month" },
       },
     ],
     accroche: "Deux colonnes qui roulent sous une ligne de sélection.",
@@ -1046,21 +1210,87 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
       { nom: "dialDuration", type: "number", defaut: "420", role: "Durée d'une course de cadran, en ms." },
       { nom: "dialFalloff", type: "number", defaut: "2.6", role: "Nombre d'items sur lequel le fondu s'épuise." },
     ],
-    usage: `{/* Une date de naissance : le mois et l'année d'abord,
-    le jour ensuite. */}
+    usage: `{/* Une date de naissance. startWith décide par où le panneau
+    commence : les cadrans, ou la grille. */}
 <DatePicker
   value={naissance}
   onValueChange={setNaissance}
   startWith="month"
   startYear={1940}
   endYear={2012}
+  dialDuration={420}
+  dialFalloff={2.6}
   locale={fr}
 />`,
   },
+  {
+    nom: "flip-list",
+    geometrie: "bloc",
+    titre: "Flip List",
+    categorie: "effets",
+    nouveau: true,
+    accroche: "Le reflux d’une liste, raccordé au lieu d’être subi.",
+    apport:
+      "C’est la primitive qui manquait. Nova animait des apparitions, des textes, des défilements et des rideaux, mais aucune REMISE EN PAGE — or c’est le mouvement le plus fréquent d’une interface réelle : on filtre une grille, on trie un tableau, on retire une étiquette, et vingt pièces sautent d’une position à l’autre en une image. L’œil perd ce qu’il regardait, et le rendu se lit comme un rechargement plutôt que comme un tri. Le geste tient à un point que GSAP Flip achète et qu’on ne réécrira pas : les pièces qui partent quittent le flux, pour que les autres se referment sur leur place tout en les laissant visibles là où elles étaient. Oublier la capture ne casse rien — sans état relevé la liste se réorganise instantanément, ce qui est son comportement natif.",
+    options: [
+      { nom: "items", type: "string", defaut: ":scope > *", role: "Ce qui se déplace, en sélecteur relatif au conteneur. Le défaut ne demande aucun attribut." },
+      { nom: "duration", type: "number", defaut: "0.45", role: "Durée du raccordement, en secondes." },
+      { nom: "stagger", type: "number", defaut: "0.02", role: "Décalage entre deux pièces, en secondes. Minuscule à dessein : lisible sur cinq pièces, c’est une attente sur cinquante." },
+      { nom: "ease", type: "string", defaut: "expo.out", role: "Courbe du déplacement, en vocabulaire GSAP — le moteur interpole en JavaScript, il ne peut rien faire d’une chaîne CSS." },
+      { nom: "enter", type: "fade · scale · none", defaut: "scale", role: "Comment une pièce nouvelle paraît." },
+      { nom: "exit", type: "fade · scale · none", defaut: "fade", role: "Comment une pièce retirée s’en va." },
+      { nom: "onSettled", type: "() => void", defaut: "—", role: "Appelé quand le raccordement est fini." },
+    ],
+    usage: `const { ref, capture } = useFlipList(filtre, {
+  duration: 0.45,
+  stagger: 0.02,
+});
+
+{/* capture() AVANT le setState : c’est le seul moment où l’ancienne
+    disposition est encore à l’écran, donc mesurable. */}
+<button onClick={() => { capture(); setFiltre("actifs"); }}>
+  Actifs
+</button>
+
+{/* La clé passée au crochet décrit la disposition. Quand elle change,
+    le raccordement se joue seul. */}
+<ul ref={ref}>
+  {visibles.map((p) => (
+    <li key={p.id}>{p.nom}</li>
+  ))}
+</ul>`,
+  },
 ];
 
+/**
+ * Ce que Nova distribue : les familles explicitement validées.
+ *
+ * Toutes les surfaces publiques lisent cette liste-ci — l'index, la barre, les
+ * routes `/composants/<nom>`, la recherche, le markdown servi aux agents. Une
+ * famille sans `valide: true` en est absente, et sa page répond 404 : il n'y a
+ * pas d'adresse secrète par laquelle un candidat sortirait quand même.
+ *
+ * Le filtre est en UN SEUL endroit, ici, plutôt que répété par surface. Une
+ * surface ajoutée demain hérite de la règle sans qu'on ait à y penser — et
+ * c'est la seule façon dont une règle de ce genre survit à la sixième surface.
+ */
+export const catalogue: Fiche[] = familles.filter(
+  (fiche) => fiche.valide === true,
+);
+
+/** Une famille distribuée. Rend `undefined` pour un candidat non validé. */
 export function trouverFiche(nom: string): Fiche | undefined {
   return catalogue.find((fiche) => fiche.nom === nom);
+}
+
+/**
+ * Une famille déclarée, validée ou non.
+ *
+ * Réservé au banc et aux tests : une surface publique qui appelle ceci passe
+ * à côté du garde-fou. Voir `trouverFiche`.
+ */
+export function trouverFamille(nom: string): Fiche | undefined {
+  return familles.find((fiche) => fiche.nom === nom);
 }
 
 /** Libellé lisible d'une catégorie. */
@@ -1089,7 +1319,19 @@ export function nombreDeFormes(fiche: Fiche): number {
   return fiche.formes?.length ?? 1;
 }
 
-/** Total des formes du catalogue — ce que la vitrine annonce vraiment. */
+/**
+ * Total des formes du catalogue.
+ *
+ * PLUS AFFICHÉ NULLE PART, et volontairement : un compte global change à chaque
+ * récolte, et toute phrase qui le cite se périme à la ligne suivante — on
+ * passait plus de temps à le remettre à jour qu'il n'apprenait au lecteur. Ce
+ * qui reste affiché est le compte de formes d'UNE famille, qui est une
+ * propriété de cette famille, et le résultat d'une recherche, qui répond à ce
+ * qu'on vient de taper.
+ *
+ * L'export survit parce qu'il est juste et gratuit : la prochaine surface qui
+ * aura une vraie raison de compter le trouvera ici plutôt que de le recalculer.
+ */
 export const TOTAL_FORMES = catalogue.reduce(
   (total, fiche) => total + nombreDeFormes(fiche),
   0,
