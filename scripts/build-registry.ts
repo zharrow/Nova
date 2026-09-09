@@ -18,6 +18,7 @@
 import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { catalogue } from "../apps/docs/lib/catalogue";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const LIB_TOKEN = "%NOVA_LIB%";
@@ -195,6 +196,32 @@ async function main(): Promise<void> {
   );
   const symbols = await readSymbolMap();
 
+  /* Le registry ne distribue QUE les familles validées.
+
+     La liste vient de `apps/docs/lib/catalogue.ts`, où le drapeau `valide` est
+     posé à la main, famille par famille. Elle n'est pas recopiée ici : deux
+     listes divergent, et la divergence se paierait au pire endroit — une fiche
+     en ligne dont la commande d'installation répond « introuvable », ou un
+     composant que la CLI sert alors que personne ne l'a relu.
+
+     Le fichier importé ne dépend de rien : c'est de la donnée, tsx la lit
+     directement, et le script reste exécutable sur un clone neuf sans build. */
+  const validees = new Set(catalogue.map((fiche) => fiche.nom));
+  const items = manifest.items.filter((item) => validees.has(item.name));
+
+  /* Une famille validée sans entrée de registry n'est pas une omission
+     bénigne : sa fiche est en ligne, elle affiche `npx novaui add <nom>`, et
+     la commande échoue. On refuse de construire plutôt que de livrer ça. */
+  const orphelines = [...validees].filter(
+    (nom) => !manifest.items.some((item) => item.name === nom),
+  );
+  if (orphelines.length > 0) {
+    throw new Error(
+      `Validée(s) sans entrée dans registry.json : ${orphelines.join(", ")}. ` +
+        `Soit on ajoute l'entrée, soit on retire \`valide\` de la fiche.`,
+    );
+  }
+
   const outputDirectory = join(ROOT, "registry/dist");
   await rm(outputDirectory, { recursive: true, force: true });
   await mkdir(outputDirectory, { recursive: true });
@@ -225,7 +252,7 @@ async function main(): Promise<void> {
   );
 
   // Un fichier par composant — ce que `novaui add` télécharge.
-  for (const item of manifest.items) {
+  for (const item of items) {
     const payload = {
       name: item.name,
       title: item.title,
@@ -246,7 +273,7 @@ async function main(): Promise<void> {
     homepage: manifest.homepage,
     framework: manifest.framework,
     generatedAt: new Date().toISOString(),
-    items: manifest.items.map((item) => ({
+    items: items.map((item) => ({
       name: item.name,
       title: item.title,
       description: item.description,
@@ -259,8 +286,12 @@ async function main(): Promise<void> {
     JSON.stringify(index, null, 2),
   );
 
+  const retenues = manifest.items.length - items.length;
   console.log(
-    `Registry construit : ${manifest.items.length} composants + socle (${base.files.length} fichiers).`,
+    `Registry construit : ${items.length} composants + socle (${base.files.length} fichiers).` +
+      (retenues > 0
+        ? ` ${retenues} famille(s) non validée(s), non distribuée(s).`
+        : ""),
   );
 }
 

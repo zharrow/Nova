@@ -51,7 +51,7 @@ export function BasculeTheme() {
       aria-label={
         theme === "clair" ? "Passer en mode sombre" : "Passer en mode clair"
       }
-      className="flex size-8 items-center justify-center rounded-presse border border-filet text-sourdine transition-colors hover:border-filet-vif hover:text-encre"
+      className="cible-doigt flex size-8 items-center justify-center rounded-presse border border-filet text-sourdine transition-colors hover:border-filet-vif hover:text-encre"
     >
       {/* Rendu neutre tant que le thème n'est pas lu : choisir une icône au
           hasard ferait un saut visible à l'hydratation. */}

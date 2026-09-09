@@ -186,8 +186,11 @@ export function Palette() {
             </div>
 
             {/* Le pied de clavier. Un raccourci qu'on ne peut pas deviner
-                n'existe pas — même règle que le badge `F` des scènes. */}
-            <div className="flex items-center gap-4 border-t border-filet px-4 py-2">
+                n'existe pas — même règle que le badge `F` des scènes. Et il
+                disparaît au doigt : trois touches qu'on ne peut pas taper au
+                bas d'une liste qu'on fait défiler du pouce. La palette se
+                referme alors d'une tape à côté, ce que Radix gère déjà. */}
+            <div className="sans-doigt flex items-center gap-4 border-t border-filet px-4 py-2">
               <Aide touches={["↑", "↓"]}>parcourir</Aide>
               <Aide touches={["↵"]}>ouvrir</Aide>
               <Aide touches={["esc"]}>fermer</Aide>
@@ -240,7 +243,7 @@ function DeclencheurPalette({ onOuvrir }: { onOuvrir: () => void }) {
       type="button"
       onClick={onOuvrir}
       aria-label="Chercher un composant"
-      className="flex items-center gap-2 rounded-presse border border-filet px-2.5 py-1.5 text-sourdine transition-colors hover:border-filet-vif hover:text-encre"
+      className="cible-doigt flex items-center justify-center gap-2 rounded-presse border border-filet px-2.5 py-1.5 text-sourdine transition-colors hover:border-filet-vif hover:text-encre"
     >
       <Search className="size-3.5" aria-hidden />
       {/* Rendu vide tant que la plateforme n'est pas lue : choisir un symbole

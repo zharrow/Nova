@@ -18,6 +18,17 @@ export async function list(cwd: string): Promise<void> {
   );
   log.info("");
 
+  /* Un registry vide n'est pas un accident : une famille n'y entre qu'une fois
+     validée. Sans ce cas, `Math.max()` sur une liste vide vaut -Infini et la
+     commande affiche un catalogue muet suivi d'une invitation à installer. */
+  if (index.items.length === 0) {
+    log.info(
+      `  ${style.dim("Aucun composant publié pour l'instant.")}`,
+    );
+    log.info("");
+    return;
+  }
+
   const width = Math.max(...index.items.map((item) => item.name.length));
 
   for (const item of index.items) {
