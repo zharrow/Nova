@@ -207,7 +207,24 @@ async function main(): Promise<void> {
      Le fichier importé ne dépend de rien : c'est de la donnée, tsx la lit
      directement, et le script reste exécutable sur un clone neuf sans build. */
   const validees = new Set(catalogue.map((fiche) => fiche.nom));
-  const items = manifest.items.filter((item) => validees.has(item.name));
+
+  /* L'ÉCHAPPEMENT DE VÉRIFICATION — `NOVA_REGISTRY_TOUT=1`.
+
+     La CI compile le code que la CLI copie chez un utilisateur, parce que le
+     typecheck du monorepo ne le couvre pas : c'est ce passage qui a révélé
+     l'erreur de typage de `mergeOptions`. Ce contrôle porte sur ce que le
+     dépôt SAIT PRODUIRE, pas sur ce qu'il publie — sinon une famille écrite
+     aujourd'hui et validée dans trois semaines passerait trois semaines sans
+     être compilée, et casserait la CI le jour de sa validation, c'est-à-dire
+     au plus loin de la main qui l'a écrite.
+
+     Le drapeau ne sert donc qu'à ça, et il le dit dans sa sortie. Il n'est
+     posé nulle part ailleurs que sur le job `registry` de `ci.yml` : un
+     `pnpm build` — en local comme au déploiement — reste filtré. */
+  const tout = process.env.NOVA_REGISTRY_TOUT === "1";
+  const items = tout
+    ? manifest.items
+    : manifest.items.filter((item) => validees.has(item.name));
 
   /* Une famille validée sans entrée de registry n'est pas une omission
      bénigne : sa fiche est en ligne, elle affiche `npx novaui add <nom>`, et
@@ -293,6 +310,14 @@ async function main(): Promise<void> {
         ? ` ${retenues} famille(s) non validée(s), non distribuée(s).`
         : ""),
   );
+  if (tout) {
+    const attente = manifest.items.length - validees.size;
+    console.log(
+      `NOVA_REGISTRY_TOUT=1 — registry de VÉRIFICATION : le garde-fou de ` +
+        `publication est levé, ${attente} famille(s) en attente y sont ` +
+        `incluses. Ne pas distribuer ce registry.`,
+    );
+  }
 }
 
 main().catch((error) => {

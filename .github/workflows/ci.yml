@@ -47,6 +47,22 @@ jobs:
     name: Registry et CLI
     runs-on: ubuntu-latest
 
+    # Ce job vérifie ce que le dépôt SAIT PRODUIRE, pas ce qu'il publie.
+    #
+    # Le garde-fou de publication ne laisse sortir que les familles portant
+    # `valide: true` dans `apps/docs/lib/catalogue.ts`. Sans cette variable, un
+    # registry sans aucune famille validée fait installer zéro composant à
+    # l'étape suivante, `novaui add` sans argument sort en erreur, et le job
+    # tombe en annonçant « Aucun composant publié » — ce qui est vrai, et n'a
+    # rien à voir avec ce qu'on cherche à contrôler ici.
+    #
+    # Pire, sans elle le contrôle serait VIDE de sens : une famille écrite
+    # aujourd'hui et validée dans trois semaines ne serait pas compilée entre
+    # les deux, et casserait la CI le jour de sa validation, loin de la main
+    # qui l'a écrite. La variable n'est posée que sur ce job.
+    env:
+      NOVA_REGISTRY_TOUT: "1"
+
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -102,11 +118,24 @@ jobs:
           node "$cli" init --yes --cwd "$projet"
 
           # Tout le catalogue, pour que la compilation couvre chaque moteur.
+          # `NOVA_REGISTRY_TOUT` (posé sur le job) lève le garde-fou de
+          # publication : la liste contient donc les familles en attente.
           composants=$(node -e "
             const r = require('$GITHUB_WORKSPACE/registry/dist/index.json');
             console.log(r.items.map((c) => c.name).join(' '));
           ")
           echo "Composants installés : $composants"
+
+          # Une liste vide voudrait dire qu'aucune famille n'est DÉCLARÉE, pas
+          # qu'aucune n'est publiée — le manifeste serait vide. C'est une
+          # erreur, pas un cas de repos : le dire ici évite de la lire comme
+          # « Aucun composant publié », qui enverrait chercher au mauvais
+          # endroit.
+          if [ -z "$composants" ]; then
+            echo "registry/dist/index.json ne contient aucun composant :" \
+                 "registry.json est vide, ou NOVA_REGISTRY_TOUT n'a pas pris." >&2
+            exit 1
+          fi
 
           # `--yes` : sans lui, `add` demande confirmation avant d'installer
           # gsap, lenis et radix-ui, et le job resterait bloqué.
