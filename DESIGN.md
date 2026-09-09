@@ -606,6 +606,57 @@ Iconographie limitée à quatre icônes fonctionnelles — chevron, copier, vali
 
 ---
 
+## Le doigt
+
+Le document n'avait rien sur le téléphone, et ça se voyait : la barre débordait de
+36 px — la page entière défilait latéralement et la bascule de thème sortait du champ —
+le tableau d'options coupait ses valeurs au milieu d'un mot en gardant sa colonne
+« rôle » hors de l'écran, et cinq scènes demandaient un survol à un doigt qui n'en fait
+pas. Ce sont les décisions prises pour y répondre.
+
+**Le test est `pointer: coarse`, jamais une largeur.** Ce qui rend un survol impossible
+est le doigt, pas la taille de la fenêtre. Une tablette avec souris garde ses badges de
+touche ; un desktop réduit à 390 px les garde aussi, puisqu'il a un clavier. Deux
+classes portent la règle, dans `globals.css` : `.sans-doigt` (ce qui suppose souris ou
+clavier) et `.doigt-seul` (ce qui ne s'adresse qu'au doigt). Ce qui dépend de la
+LARGEUR — le nombre de colonnes, la forme d'un tableau — reste aux points de rupture
+Tailwind. Les deux axes sont distincts et ne se remplacent pas.
+
+**Une scène qui suit le pointeur parle au doigt dans sa langue.** Chaque invitation
+existe en deux versions, rendues toutes les deux, dont le CSS en cache une :
+« survolez le mot » / « touchez le mot ». Quand la famille n'a pas d'équivalent tactile
+— Spotlight refuse le pointeur grossier par décision du moteur, Cursor est un curseur —
+la version tactile le DIT, au lieu de laisser une consigne impossible sous une scène
+qui ne bouge pas. Une vitrine d'animation qui laisse croire à un composant cassé perd
+son seul argument. Et lorsqu'un geste tactile équivaut vraiment au survol, c'est le
+composant qui s'adapte, pas la légende : `RollText` pivote à la pression sous
+`pointer: coarse`.
+
+**Une cible d'icône fait 40 px au doigt** (`.cible-doigt`), contre 32 à la souris. Les
+recommandations tactiles disent 44 ; la barre fait 56 px de haut, et au-delà de 40
+l'icône flotte dans son cadre. Les liens de texte ne prennent pas la règle : leur
+soulignement est posé sous la boîte du lien, et grandir la boîte décollerait le trait
+du mot.
+
+**Sous 640 px, la barre ne garde qu'un lien de texte** — « Composants », la page dont le
+site est le sujet. « Installation » et « Source » descendent au pied de page, qui ne
+portait qu'une devise et une licence. La recherche reste en tête : au doigt, c'est ELLE
+la navigation entre familles, et elle fait mieux qu'un tiroir puisqu'elle cherche.
+
+**La référence se lit en blocs, la comparaison en tableau.** Sous 640 px, chaque option
+devient un bloc — nom, type, `DÉFAUT` étiqueté, rôle en pleine largeur. Le tableau à
+quatre colonnes revient au-dessus, où comparer une colonne d'un bout à l'autre est
+justement ce qu'on vient y faire. Le défaut porte son étiquette et n'est pas séparé du
+type par un point médian : le type d'une famille à formes EST une liste de valeurs
+séparées par des points médians, et « scale · slide-up » se lisait comme une forme de
+plus.
+
+**Le souffle vertical tombe de 96 px à 64 px sous 640 px.** Quatre-vingt-seize pixels
+sont la respiration d'une affiche regardée à un mètre ; sur 844 px de haut, deux fois 96
+donnent un quart de l'écran au vide avant la première ligne.
+
+---
+
 ## Espacement
 
 Unité de base 4px. Densité : confortable sur les fiches, dense sur le catalogue.
@@ -664,3 +715,7 @@ Ce document sert à éviter que chaque écran soit redécidé à la main, pas à
 | 2026-09-08 | Ce qu'une démonstration découvre porte la marque | Le tracé de la courbe passait les trois tests, mais répondait à la mauvaise question : un rideau d'ouverture ne se lève pas sur un diagramme, il se lève sur une marque — c'est le seul usage réel que le composant ait. Les réglettes graduées restent : sans elles la scène devient un écran de démarrage, et la vitrine est un banc d'essai. Le tracé de courbe part dans le sélecteur de courbe, où il fait un travail au lieu de décorer. |
 | 2026-09-08 | La marque en masque CSS, son lettrage nulle part | Le kit livre un raster : en `<img>` il faudrait deux fichiers et une bascule au thème, en masque il en faut un et il hérite de `currentColor`. Le lettrage du kit est d'une autre famille que Bricolage Grotesque — deux voix dans un bandeau de 56 px. |
 | 2026-09-08 | Ce qu'une démonstration découvre trace la courbe signature | Le faux titre d'article était du remplissage, et la mire de réglage qui l'a remplacé échouait au test du trope et à celui de la nécessité : elle aurait illustré n'importe quelle librairie. `cubic-bezier(0.16, 1, 0.3, 1)` est ce qui donne à chaque moteur sa sensation — c'est le seul fond qui ne pouvait venir que d'ici. |
+| 2026-09-09 | Le doigt traité sur `pointer: coarse`, pas sur la largeur | La barre débordait de 36 px sur un écran de 390 : la page défilait latéralement et la bascule de thème était hors d'atteinte. En corrigeant, le vrai critère est apparu : ce qui casse au doigt n'est pas la place, c'est l'absence de survol. Un desktop réduit à 390 px garde donc ses badges de touche, une tablette tactile les perd. |
+| 2026-09-09 | Chaque invitation de scène existe en deux versions | « Survolez le mot » sous une scène qui ne répondra jamais fait conclure que le composant est cassé — le contraire de ce qu'une vitrine prouve. Quand le tactile n'a pas d'équivalent, la version tactile le dit ; quand il en a un, c'est le composant qui s'adapte (`RollText` pivote à la pression). |
+| 2026-09-09 | Les options en blocs sous 640 px, en tableau au-dessus | Dans 300 px, le tableau coupait `false` en `fals` et gardait la colonne « rôle » — la seule qui explique — hors du champ, sans rien signaler qu'on pouvait la chercher du doigt. Une référence qu'il faut deviner ne référence rien. |
+| 2026-09-09 | La barre mobile garde un lien, le pied de page prend le reste | Trois liens, une marque et deux boutons ne tiennent pas dans 390 px. La recherche est la navigation tactile du site — elle cherche, là où un tiroir ne fait que déplier. |

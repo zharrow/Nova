@@ -230,6 +230,20 @@
   transform: translateY(-1em);
 }
 
+/* Au doigt, il n'y a pas de survol, et une tape ne donne pas non plus
+   `:focus-visible` — l'heuristique du navigateur le réserve au clavier. Sans
+   cette règle, le composant est simplement MORT sur téléphone : un label qui
+   ne pivote jamais, dans un bouton qui a l'air normal.
+
+   La pression fait donc office de survol, et seulement au pointeur grossier :
+   à la souris, `:active` ferait pivoter le label pendant le clic, c'est-à-dire
+   au moment où on quitte le bouton. */
+@media (pointer: coarse) {
+  [data-nova-roll-trigger]:active .nova-roll-text {
+    transform: translateY(-1em);
+  }
+}
+
 /* --------------------------------------------------------------------------
    Dial — la colonne qui roule sous une ligne de sélection
 

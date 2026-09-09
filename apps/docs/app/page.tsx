@@ -19,6 +19,12 @@ const EN_TETE = ["text-effect", "blinds", "scroll-marquee"];
  * Sous 768 px elle disparaît et le numéro remonte au-dessus du contenu :
  * quatre-vingt-seize pixels de gouttière sur un téléphone mangeraient la
  * colonne qu'ils servent à cadrer.
+ *
+ * Le souffle vertical suit la même logique : 96 px en haut et en bas d'une
+ * section, c'est la respiration d'une affiche qu'on regarde à un mètre. Sur
+ * un écran de 844 px, deux fois 96 px sont un quart de l'écran donné au vide
+ * avant la première ligne. Il tombe à 64 px sous 640 px — la page reste aérée,
+ * elle cesse d'être creuse.
  */
 function Section({
   numero,
@@ -70,7 +76,7 @@ function Heros() {
       {/* Asymétrique 5/7, rien de centré. Le banc de droite occupait, avant,
           la moitié vide de l'écran : une affiche a besoin d'un poids en face
           de son texte, et ici ce poids est une démonstration. */}
-      <Section numero="00" className="relative py-24 sm:py-28">
+      <Section numero="00" className="relative py-16 sm:py-28">
       <div className="grid items-start gap-12 lg:grid-cols-[5fr_7fr] lg:gap-16">
         <div className="min-w-0">
           <p className="cote">Librairie de composants · TypeScript</p>
@@ -196,7 +202,7 @@ function EnTete() {
   if (fiches.length === 0) return null;
 
   return (
-    <Section numero="01" className="py-24">
+    <Section numero="01" className="py-16 sm:py-24">
       {/* La catégorie plutôt que le compte de formes : ces trois-là sont
           sorties de leur section, et c'est de savoir d'où elles viennent qu'on
           a besoin ici. */}
@@ -235,7 +241,7 @@ function Familles() {
 
   return (
     <section className="border-t border-filet">
-      <Section numero="02" className="py-24">
+      <Section numero="02" className="py-16 sm:py-24">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
           <div>
             <p className="cote">Le principe</p>

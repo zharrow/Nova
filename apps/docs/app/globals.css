@@ -274,6 +274,48 @@ body,
   color: var(--sourdine);
 }
 
+/* Ce que le doigt ne peut pas faire, et ce qu'il est seul à faire.
+
+   Une vitrine d'animation dit sans arrêt « survolez », « ↑ ↓ parcourir »,
+   « F pour rejouer ». Sur un téléphone, ce sont des consignes impossibles à
+   suivre, écrites à côté de scènes qui ne répondront jamais. Ces deux classes
+   sont ce qui permet à une même scène de s'adresser à la souris ET au doigt
+   sans que l'un lise l'ordre de l'autre.
+
+   Le test est `pointer: coarse`, pas une largeur : c'est le doigt qui rend le
+   survol impossible, pas la taille de l'écran. Une tablette avec clavier et
+   souris garde donc ses badges, un téléphone en paysage les perd — les deux
+   sont le bon résultat. `not all and` plutôt que `not (…)` : la forme
+   booléenne des médias de niveau 4 n'est pas partout, celle-ci l'est. */
+@media (pointer: coarse) {
+  .sans-doigt {
+    display: none;
+  }
+}
+@media not all and (pointer: coarse) {
+  .doigt-seul {
+    display: none;
+  }
+}
+
+/* Une cible que le doigt doit viser.
+
+   Un bouton d'icône de 32 px se pointe très bien à la souris et se rate au
+   pouce. Les recommandations tactiles tournent autour de 44 px ; on prend
+   40 px, parce que la barre fait 56 px de haut et qu'au-delà l'icône commence
+   à flotter dans son cadre. La règle ne vaut qu'au doigt : à la souris, une
+   cible de 40 px pour une icône de 14 px serait du vide dessiné.
+
+   Réservée aux boutons d'ICÔNE. Un lien de texte ne la prend pas : son
+   soulignement est posé à `bottom: -2px` de la boîte du lien, et grandir la
+   boîte décollerait le trait du mot. */
+@media (pointer: coarse) {
+  .cible-doigt {
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+  }
+}
+
 /* Une valeur est toujours tabulaire : deux nombres l'un sous l'autre doivent
    s'aligner sur leurs chiffres. */
 .valeur {

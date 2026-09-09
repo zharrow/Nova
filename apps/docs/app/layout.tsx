@@ -113,19 +113,28 @@ function Entete() {
           <span className="cote hidden translate-y-px sm:inline">v0.1.0</span>
         </Link>
 
+        {/* Sous 640 px, la barre ne garde qu'UN lien de texte.
+
+            Les trois plus la marque plus les deux boutons faisaient 426 px de
+            contenu dans 390 px d'écran : la page entière défilait
+            latéralement, et la bascule de thème sortait du champ — un réglage
+            qu'on ne peut plus atteindre. Ce qui reste est le seul lien dont la
+            page est le sujet du site ; « Installation » et « Source » passent
+            au pied de page, qui n'avait rien à porter. La recherche, elle,
+            reste : au doigt, c'est ELLE la navigation entre familles. */}
         <nav className="flex items-center gap-4 text-sm sm:gap-7">
           <Link href="/composants" className="lien text-second hover:text-encre">
             Composants
           </Link>
           <Link
             href="/installation"
-            className="lien text-second hover:text-encre"
+            className="lien hidden text-second hover:text-encre sm:inline"
           >
             Installation
           </Link>
           <a
             href="https://github.com/zharrow/Nova"
-            className="lien text-second hover:text-encre"
+            className="lien hidden text-second hover:text-encre sm:inline"
           >
             Source
           </a>
@@ -140,9 +149,30 @@ function Entete() {
 function PiedDePage() {
   return (
     <footer className="border-t border-filet">
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-6 py-10 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-5 px-6 py-10 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
         <p className="cote">Nova — le mouvement est l&apos;objet.</p>
-        <p className="cote">MIT</p>
+        {/* La navigation complète, ici et pas seulement en tête.
+
+            Elle existe d'abord pour le téléphone, où la barre ne garde qu'un
+            lien — sans ce pied, « Installation » et « Source » n'auraient plus
+            d'adresse. Elle ne coûte rien au grand écran : un pied qui ne
+            portait qu'une devise et une licence était de la place tenue pour
+            rien. */}
+        <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <Link href="/composants" className="lien cote hover:text-encre">
+            Composants
+          </Link>
+          <Link href="/installation" className="lien cote hover:text-encre">
+            Installation
+          </Link>
+          <a
+            href="https://github.com/zharrow/Nova"
+            className="lien cote hover:text-encre"
+          >
+            Source
+          </a>
+          <span className="cote">MIT</span>
+        </nav>
       </div>
     </footer>
   );
