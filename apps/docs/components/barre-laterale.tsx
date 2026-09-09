@@ -75,7 +75,7 @@ export function BarreLaterale({
       </div>
 
       <div>
-        <p className="cote mb-2.5">Démarrer</p>
+        <p className="cote cote-separateur mb-2.5">Démarrer</p>
         <ul className="space-y-0.5">
           <LienNav href="/composants" actif={chemin === "/composants"}>
             Tout parcourir
@@ -88,7 +88,7 @@ export function BarreLaterale({
 
       {visibles.map((groupe) => (
         <div key={groupe.id}>
-          <p className="cote mb-2.5">{groupe.label}</p>
+          <p className="cote cote-separateur mb-2.5">{groupe.label}</p>
           <ul className="space-y-0.5">
             {groupe.entrees.map((entree) => (
               <LienNav
@@ -149,11 +149,13 @@ function LienNav({
         aria-current={actif ? "page" : undefined}
         className={cn(
           "flex items-center gap-1 rounded-presse px-2 py-1.5 text-[13.5px] transition-colors",
-          /* La page courante est BLEUE, pas juste sur un fond gris : dans une
-             liste de vingt-trois entrées, un fond légèrement plus clair se
-             cherche, un mot bleu se trouve. */
+          /* La page courante porte TROIS marques, et aucune ne déplace le
+             texte : le fond gris, le mot en bleu, et le filet bleu du bord
+             gauche. Dans une liste de vingt-trois entrées, un fond légèrement
+             plus clair se cherche ; un filet sur le bord que l'œil descend se
+             trouve sans être cherché. */
           actif
-            ? "bg-accent font-medium text-signal"
+            ? "page-courante bg-accent font-medium text-signal"
             : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
         )}
       >

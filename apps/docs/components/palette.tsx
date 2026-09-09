@@ -215,7 +215,7 @@ export function Palette() {
                     return (
                       <div key={resultat.fiche.nom + resultat.forme}>
                         {section ? (
-                          <p className="cote px-3 pb-1.5 pt-4 first:pt-1.5">
+                          <p className="cote cote-separateur px-3 pb-1.5 pt-4 first:pt-1.5">
                             {section}
                           </p>
                         ) : null}
