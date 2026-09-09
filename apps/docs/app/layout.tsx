@@ -123,7 +123,16 @@ function Entete() {
             au pied de page, qui n'avait rien à porter. La recherche, elle,
             reste : au doigt, c'est ELLE la navigation entre familles. */}
         <nav className="flex items-center gap-4 text-sm sm:gap-7">
-          <Link href="/composants" className="lien text-second hover:text-encre">
+          {/* Sous 640 px, c'est le déclencheur de la palette qui porte le mot
+              « Composants » : il ouvre le menu du catalogue, là où ce lien ne
+              mène qu'à son index. Deux commandes du même nom côte à côte
+              feraient hésiter sans rien ajouter — et la barre n'a de toute
+              façon pas la place des deux. Le menu, lui, garde un accès à
+              l'index en tête de liste. */}
+          <Link
+            href="/composants"
+            className="lien hidden text-second hover:text-encre sm:inline"
+          >
             Composants
           </Link>
           <Link

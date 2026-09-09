@@ -316,6 +316,21 @@ body,
   }
 }
 
+/* Le curseur de la palette est un objet de CLAVIER.
+
+   La rangée choisie porte un fond, et ce fond a un sens précis : c'est là que
+   sont les flèches, et c'est cette famille que la scène de droite joue. Au
+   doigt il n'y a ni flèches ni scène — la pastille ne dit plus « vous êtes
+   ici », elle dit « ceci est choisi », sur une famille que personne n'a
+   désignée et qui n'est même pas la page ouverte. La règle vient après les
+   utilitaires de Tailwind dans la cascade, donc elle l'emporte à specificité
+   égale. */
+@media (pointer: coarse) {
+  [data-choisie="true"] {
+    background-color: transparent;
+  }
+}
+
 /* Une valeur est toujours tabulaire : deux nombres l'un sous l'autre doivent
    s'aligner sur leurs chiffres. */
 .valeur {

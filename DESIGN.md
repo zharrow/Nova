@@ -643,6 +643,19 @@ site est le sujet. « Installation » et « Source » descendent au pied de page
 portait qu'une devise et une licence. La recherche reste en tête : au doigt, c'est ELLE
 la navigation entre familles, et elle fait mieux qu'un tiroir puisqu'elle cherche.
 
+**Sous 640 px, la palette EST le menu.** La barre latérale n'existe pas là, et une
+loupe seule ne remplace pas une navigation : elle annonce « cherchez », c'est-à-dire
+« sachez d'abord ce que vous voulez », précisément ce qu'un visiteur qui découvre un
+catalogue ne sait pas. Le déclencheur porte donc son nom — « Composants » — et un
+chevron qui dit qu'il ouvre au lieu d'emmener. Derrière, la même palette, avec trois
+changements qui la font passer d'outil de recherche à menu : la liste sans requête est
+rangée PAR CATÉGORIE (la règle de l'index vaut ici, vingt-trois noms d'affilée forment
+un mur), le clavier virtuel ne s'ouvre pas — le focus va sur le panneau, pas sur le
+champ, sinon le clavier recouvre la liste qu'on vient ouvrir pour la parcourir — et le
+panneau prend 70 vh au lieu de 46. La pastille de la rangée choisie disparaît au doigt :
+elle marque la position des flèches et la famille que la scène joue, deux choses qui
+n'existent pas là, et elle se lirait comme un choix que personne n'a fait.
+
 **La référence se lit en blocs, la comparaison en tableau.** Sous 640 px, chaque option
 devient un bloc — nom, type, `DÉFAUT` étiqueté, rôle en pleine largeur. Le tableau à
 quatre colonnes revient au-dessus, où comparer une colonne d'un bout à l'autre est
@@ -719,3 +732,4 @@ Ce document sert à éviter que chaque écran soit redécidé à la main, pas à
 | 2026-09-09 | Chaque invitation de scène existe en deux versions | « Survolez le mot » sous une scène qui ne répondra jamais fait conclure que le composant est cassé — le contraire de ce qu'une vitrine prouve. Quand le tactile n'a pas d'équivalent, la version tactile le dit ; quand il en a un, c'est le composant qui s'adapte (`RollText` pivote à la pression). |
 | 2026-09-09 | Les options en blocs sous 640 px, en tableau au-dessus | Dans 300 px, le tableau coupait `false` en `fals` et gardait la colonne « rôle » — la seule qui explique — hors du champ, sans rien signaler qu'on pouvait la chercher du doigt. Une référence qu'il faut deviner ne référence rien. |
 | 2026-09-09 | La barre mobile garde un lien, le pied de page prend le reste | Trois liens, une marque et deux boutons ne tiennent pas dans 390 px. La recherche est la navigation tactile du site — elle cherche, là où un tiroir ne fait que déplier. |
+| 2026-09-09 | Sous 640 px, la palette est le menu du site | Il n'y avait aucune navigation claire sur téléphone : la barre latérale disparaît, et il restait une loupe qui n'annonce pas qu'elle liste tout. Plutôt qu'un tiroir — le trope, et une seconde navigation à tenir — le déclencheur prend son nom et la palette prend des sections, de la hauteur, et cesse d'appeler le clavier. |
