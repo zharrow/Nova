@@ -209,6 +209,17 @@ Chacun a coûté un débogage. Ils sont ici pour ne pas le repayer.
   `globals.css` le règle. Le cas ne s'était jamais présenté parce que les
   moteurs n'habillent rien — ils posent des attributs, et `nova.css` fait le
   reste. `DatePicker` est le premier à s'habiller lui-même.
+- **`nova-icon-512.png` est un MASQUE, les favicons sont des images.** Le
+  premier est noir sur transparent parce que `Marque` ne lit que son alpha et
+  prend la couleur de `currentColor` : le recolorer ne servirait à rien et
+  casserait le thème sombre. Les seconds sont regardés tels quels — livrés
+  noirs sur transparent, ils étaient invisibles sur une barre d'onglets
+  sombre. Ne pas confondre les deux familles de fichiers en les « harmonisant ».
+- **Même cause, autre symptôme : une classe CONSTRUITE n'existe pas.** Tailwind
+  ne génère que ce qu'il trouve littéralement dans la source. Un
+  `` `-left-[${MARGE}]` `` produit à l'exécution un nom de classe correct qui
+  ne correspond à aucune règle — rien ne bouge, rien ne prévient. Écrire la
+  valeur en clair et mettre la constante dans le commentaire, jamais l'inverse.
 - **La feuille de style de Nova est chargée APRÈS celle du projet.** À
   spécificité égale, elle gagne. Ne jamais y poser de dimension, de marge ou de
   couleur de fond sur un élément que l'appelant habille : `width: 100%` sur le
@@ -239,6 +250,21 @@ Chacun a coûté un débogage. Ils sont ici pour ne pas le repayer.
   avant de mesurer, ce qui rend la mesure idempotente, et le composant donne à
   la colonne une hauteur DÉFINIE — un `height: 100%` sur un élément de grille
   se replie sur la taille du contenu quand la piste ne l'est pas.
+- **Une option facultative peut ÉTEINDRE un calcul du moteur.** `halftone` ne
+  déduit les lignes du rapport du canevas — et ne les redéduit à chaque
+  redimensionnement, depuis son propre `ResizeObserver` — que si `rows` n'est
+  pas fourni. `Supernova` le fournissait avec la formule identique, ce qui
+  n'ajoutait rien et figeait la grille du premier rendu. Tant que la boîte
+  gardait un rapport constant cela ne se voyait pas ; le jour où l'affiche a
+  plafonné sa hauteur, le disque est sorti ovale. Avant de passer une option,
+  vérifier ce que le moteur en fait quand elle est absente.
+- **Une valeur mesurée au montage se périme au redimensionnement.** Même cas,
+  côté composant : `Supernova` lit le rapport du canevas pour corriger
+  l'anisotropie de sa fonction de couverture. Un `ResizeObserver` le relit —
+  et non l'image d'animation, qui forcerait soixante calculs de mise en page
+  par seconde pour une valeur immobile. En mouvement réduit il n'y a aucune
+  image d'animation, donc c'est l'observateur lui-même qui repousse la
+  couverture.
 
 ## Tests
 

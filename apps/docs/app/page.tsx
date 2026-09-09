@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Marquee } from "@nova-ui/react";
 import { catalogue, libelleCategorie } from "@/lib/catalogue";
 import { CarteFamille, carteDe } from "@/components/carte-famille";
-import { Supernova, COLONNES } from "@/components/supernova";
+import { Supernova } from "@/components/supernova";
 import { BlocCode } from "@/components/bloc-code";
 import { Button } from "@/components/ui/button";
 
@@ -32,7 +32,11 @@ function Section({
   children,
   className,
 }: {
-  numero: string;
+  /* Facultatif : une section dont le contenu ne commence PAS en haut de la
+     grille pose son numéro elle-même, sur la ligne qu'il numérote. Voir
+     `Numero` et l'affiche. La marge et son filet restent, eux, à la charge de
+     `Section` : c'est l'ossature, et elle ne dépend d'aucun contenu. */
+  numero?: string;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -40,17 +44,51 @@ function Section({
     <div className={["mx-auto max-w-[1440px] px-6", className ?? ""].join(" ")}>
       <div className="md:grid md:grid-cols-[96px_minmax(0,1fr)]">
         <div className="md:border-r md:border-filet">
-          {/* Le numéro est bleu. C'est l'ossature de l'affiche — 00, 01, 02 —
-              et la seule chose qui se répète d'une section à l'autre : lui
-              donner la couleur de la marque fait que le bleu scande la page
-              au lieu d'y apparaître deux fois. */}
-          <span className="cote block pb-2 text-signal md:pb-0 md:pt-1">
-            {numero}
-          </span>
+          {numero ? <Numero>{numero}</Numero> : null}
         </div>
         <div className="md:pl-10">{children}</div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Le numéro de section.
+ *
+ * Il est bleu : c'est l'ossature de l'affiche — 00, 01, 02 — et la seule chose
+ * qui se répète d'une section à l'autre. Lui donner la couleur de la marque
+ * fait que le bleu scande la page au lieu d'y apparaître deux fois.
+ *
+ * `flottant` le sort du flux et le renvoie dans la marge, à hauteur de la
+ * première ligne du bloc qui le contient. C'est ce qu'il faut dès que le
+ * contenu ne commence plus en haut de la section : sur l'affiche, les deux
+ * colonnes sont centrées l'une sur l'autre, et un numéro resté collé au haut
+ * de la grille se retrouvait quatre-vingt-dix pixels au-dessus de la ligne
+ * qu'il numérote. Sous 768 px il n'y a pas de marge : il repasse au-dessus du
+ * contenu, comme partout ailleurs.
+ *
+ * Les 136 px sont écrits EN CLAIR, et pas construits depuis une constante :
+ * Tailwind ne génère que les classes qu'il trouve littéralement dans la
+ * source, et `-left-[${...}]` produirait à l'exécution une classe qui n'existe
+ * dans aucune feuille. C'est la marge de 96 px plus la gouttière `pl-10` de
+ * `Section` — les deux sont juste au-dessus, dans ce fichier.
+ */
+function Numero({
+  children,
+  flottant,
+}: {
+  children: React.ReactNode;
+  flottant?: boolean;
+}) {
+  return (
+    <span
+      className={[
+        "cote block pb-2 text-signal md:pb-0 md:pt-1",
+        flottant ? "md:absolute md:-left-[136px] md:top-0" : "",
+      ].join(" ")}
+    >
+      {children}
+    </span>
   );
 }
 
@@ -75,13 +113,58 @@ export default function Accueil() {
  */
 function Heros() {
   return (
-    <section className="relative overflow-hidden border-b border-filet">
-      {/* Asymétrique 5/7, rien de centré. Le banc de droite occupait, avant,
-          la moitié vide de l'écran : une affiche a besoin d'un poids en face
-          de son texte, et ici ce poids est une démonstration. */}
-      <Section numero="00" className="relative py-16 sm:py-28">
-      <div className="grid items-start gap-12 lg:grid-cols-[5fr_7fr] lg:gap-16">
-        <div className="min-w-0">
+    <section
+      className="relative overflow-hidden border-b border-filet"
+      style={
+        {
+          /* LE SOUFFLE DE L'AFFICHE EST UNE PART DE L'ÉCRAN, PAS UNE CONSTANTE.
+             96 px en haut et en bas sont la respiration d'une affiche regardée
+             à un mètre — sur un 13 pouces, 829 px de haut, deux fois 112 px
+             donnaient un quart de l'écran au vide pendant que la planche
+             sortait par le bas. La règle du dépôt ne se déclenchait pas : elle
+             est indexée sur la LARGEUR (« 64 px sous 640 px »), et un portable
+             est large et bas. Celle-ci est indexée sur la hauteur, donc elle
+             tient les deux cas d'un seul chiffre. Le plancher de 4rem est la
+             valeur mobile documentée, le plafond de 7rem l'affiche entière. */
+          "--souffle": "clamp(4rem, 7.5svh, 7rem)",
+          /* LA PLANCHE EST PLAFONNÉE PAR CE QUE L'ÉCRAN PEUT MONTRER.
+             C'est la HAUTEUR qu'on plafonne, et la boîte garde toute sa
+             largeur : l'étoile reste alors au milieu de sa colonne, à sa place
+             dans la composition. Plafonner la largeur l'aurait fait fuir vers
+             le coin droit en creusant un trou de trois cents pixels entre elle
+             et le titre — la page tenait dans l'écran et ne tenait plus
+             debout. La contrepartie est que le rapport de la boîte change avec
+             l'écran, donc `Supernova` doit se remesurer : voir son observateur
+             de taille.
+             Ce qu'on retranche de l'écran : l'en-tête collant, le souffle du
+             haut, et une marge de 24 px sous le disque. La division par 0,95
+             est la clé du calcul — ce n'est pas la BOÎTE qui doit tenir sous
+             le pli, c'est le DISQUE, et il n'occupe que 0,05 à 0,95 de la
+             hauteur de boîte. Plafonner la boîte elle-même gaspillait la
+             marge des deux côtés. */
+          "--banc-haut": "calc((100svh - 5rem - var(--souffle)) / 0.95)",
+        } as React.CSSProperties
+      }
+    >
+      {/* Asymétrique 5/7 : rien n'est centré DANS LA LARGEUR, le texte n'a pas
+          le même poids que la planche et ne prend pas la même place. Le banc de
+          droite occupait, avant, la moitié vide de l'écran — une affiche a
+          besoin d'un poids en face de son texte, et ici ce poids est une
+          démonstration.
+
+          En HAUTEUR, en revanche, les deux colonnes sont centrées l'une sur
+          l'autre. La planche partait du haut, décalée d'une ligne de base, et
+          descendait deux cents pixels plus bas que le dernier bouton : deux
+          blocs posés à des profondeurs différentes, sans rien pour expliquer
+          l'écart une fois le filet de tête retiré. Centrées, elles se
+          répondent. */}
+      <Section className="relative py-[var(--souffle)]">
+      <div className="grid items-center gap-12 lg:grid-cols-[5fr_7fr] lg:gap-16">
+        {/* `relative` porte le numéro flottant : c'est de CETTE colonne qu'il
+            doit suivre la première ligne, puisque c'est elle qui descend quand
+            la planche est plus haute qu'elle. */}
+        <div className="relative min-w-0">
+          <Numero flottant>00</Numero>
           <p className="cote">Librairie de composants · TypeScript</p>
 
           <h1 className="titre-affiche mt-6 text-[clamp(2rem,3.4vw,3rem)]">
@@ -120,35 +203,15 @@ function Heros() {
             rayonne au lieu de se lire, donc elle ne concurrence pas le titre
             posé juste à côté.
 
-            Son filet de tête tombe sur la PREMIÈRE LIGNE DE BASE du titre, et
-            traverse l'écran entier en passant derrière le panneau. C'est ce
-            qui fait de l'écran une affiche et non deux colonnes juxtaposées.
-
-            Le décalage est calculé, pas mesuré en JavaScript : hauteur de la
-            cote, plus sa marge, plus la hauteur d'œil du titre. Le 0.78em est
-            la distance du haut de la ligne à la ligne de base pour Instrument
-            Sans — une approximation, assumée, qui suit le `clamp` du titre à
-            toutes les largeurs. */}
-        <div
-          className="relative min-w-0 lg:mt-[var(--pose-banc)]"
-          style={
-            {
-              "--pose-banc":
-                "calc(0.825rem + 1.5rem + 0.80 * clamp(2rem, 3.4vw, 3rem))",
-            } as React.CSSProperties
-          }
-        >
-          {/* Le filet part du bord du banc et file jusqu'au bord de l'écran.
-              Il ne remonte PAS jusqu'à la colonne de texte : tiré sur toute la
-              largeur, il barrait le titre comme un texte rayé, et un geste
-              d'affiche qui abîme la ligne qu'il aligne ne vaut rien.
-
-              La section porte `overflow-hidden` : ce filet de 100 vw est donc
-              découpé et ne peut pas créer de barre de défilement. */}
-          <span
-            className="pointer-events-none absolute left-0 top-0 hidden h-px w-screen bg-filet lg:block"
-            aria-hidden
-          />
+            Il portait un FILET DE TÊTE, tombant sur la première ligne de base
+            du titre et filant jusqu'au bord de l'écran, et un décalage calculé
+            (`--pose-banc`) qui n'existait que pour l'y poser. Les deux sont
+            partis ensemble : le filet parce qu'il a été jugé de trop, le
+            décalage parce qu'un alignement sans rien à aligner n'est plus
+            qu'un trou de soixante-seize pixels en haut de la colonne. Ces
+            soixante-seize pixels reviennent à la planche, qui est d'autant
+            plus grande sous le plafond de hauteur. */}
+        <div className="relative min-w-0">
           {/* UNE SUPERNOVA, et non plus la case du catalogue.
 
               La case était juste — le même objet partout — mais elle faisait
@@ -162,26 +225,34 @@ function Heros() {
               démontré à l'échelle de l'écran plutôt qu'affirmé dans une
               phrase. Voir `components/supernova.tsx`.
 
-              Elle déborde à droite : la section porte `overflow-hidden`, le
-              débordement est donc découpé au bord de l'écran et ne crée
-              aucune barre de défilement. Un objet qui touche le bord du
-              format est ce qui distingue une affiche d'une carte posée dans
-              une grille. */}
-          <div className="relative -mr-6 sm:-mr-10 lg:-mr-40 xl:-mr-64">
-            <Supernova className="block aspect-[4/3] w-full text-signal" />
-          </div>
+              LA BOÎTE EST CARRÉE, ET C'EST CE QUI AGRANDIT L'OBJET.
 
-          {/* La légende de planche. Elle dit ce qu'on regarde et mène à sa
-              fiche : sans elle, la plus belle pièce du site serait la seule
-              qu'on ne puisse pas aller chercher. */}
-          <p className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <Link href="/composants/halftone" className="lien cote">
-              Halftone
-            </Link>
-            <span className="cote text-sourdine">
-              trame calculée · {COLONNES} colonnes · aucune image chargée
-            </span>
-          </p>
+              La règle à connaître avant d'y retoucher : une trame est
+              DIMENSIONNÉE par la hauteur de sa boîte — le disque vaut 0,9 de
+              cette hauteur — mais PLACÉE par sa largeur, puisqu'elle y est
+              centrée. Élargir la boîte n'agrandit donc pas l'objet, ça le
+              pousse à droite ; c'est ainsi qu'un rapport 4/3 débordant de
+              256 px portait son bord à 1503 px dans un écran de 1470. Les deux
+              seuls leviers qui grandissent vraiment le disque sont la hauteur
+              de la boîte et rien d'autre.
+
+              D'où le carré : à largeur de colonne inchangée, il monte la
+              hauteur de 594 à 695 px et le disque de 534 à 626. Il ne reste
+              AUCUNE marge négative — la boîte tient dans sa colonne, l'objet
+              garde le bord de la page à distance, et plus rien ne dépasse de
+              l'écran. */}
+          {/* Le `max-h` est ce qui garde la légende — et le bas de l'étoile —
+              au-dessus du pli sur un portable. Sur un écran haut il ne mord
+              pas, et la planche est exactement celle d'avant.
+
+              Il ne vaut qu'à partir de `lg`, où l'affiche est en deux colonnes
+              et où le pli est un enjeu. En dessous la page est empilée, on
+              défile de toute façon, et le plafond n'aurait fait qu'un mal :
+              sur un téléphone en paysage il aplatissait la planche en bandeau
+              de cent cinquante pixels dans huit cents de large. */}
+          <div className="relative">
+            <Supernova className="block aspect-square w-full text-signal lg:max-h-[var(--banc-haut)]" />
+          </div>
         </div>
       </div>
       </Section>

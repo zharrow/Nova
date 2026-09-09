@@ -240,15 +240,21 @@ function novaA(
 }
 
 /**
- * Le nombre de colonnes de la trame, EXPORTÉ.
+ * Le nombre de colonnes de la trame.
  *
- * La légende de l'affiche l'annonce au visiteur. Elle l'avait d'abord écrit à
- * la main — « 84 colonnes » — et le jour où la grille est passée à 104, la
- * page a menti sans que rien ne le signale. C'est précisément ce que le dépôt
- * interdit : un compte cité dans une phrase se périme à la ligne suivante, ce
- * qui est affiché se CALCULE.
+ * IL SE LIT COMME UNE TAILLE DE MODULE, pas comme un compte. Le module vaut
+ * largeur de boîte / colonnes, et c'est LUI qui fait la matière : à 7,6 px on
+ * voit une trame d'imprimeur, à 6 px une photo tramée. Le jour où la boîte est
+ * passée du rapport 4/3 (791 px de large) au carré (695), 104 colonnes
+ * l'auraient fait tomber à 6,7 — l'objet aurait grandi en changeant de
+ * matière, ce qui n'est pas grandir. 92 tient le module à 7,6 px.
+ *
+ * Il était exporté pour la légende de planche, qui l'affichait plutôt que de
+ * le citer à la main — la page avait déjà menti d'un « 84 colonnes » figé le
+ * jour où la grille était passée à 104. La légende retirée, plus personne ne
+ * l'annonce, et il redevient ce qu'il est : un réglage.
  */
-export const COLONNES = 104;
+const COLONNES = 92;
 
 /** Durée de l'éclosion. Assez longue pour se voir, assez courte pour ne pas attendre. */
 const ECLOSION = 1600;
@@ -259,7 +265,15 @@ export function Supernova({ className }: { className?: string }) {
   useEffect(() => {
     if (!canvas) return;
 
-    const ratio = canvas.clientWidth / Math.max(1, canvas.clientHeight);
+    /* LE RAPPORT DE LA BOÎTE SE REMESURE.
+
+       Il corrige l'anisotropie de la grille, et il n'est plus constant : sur un
+       portable, l'affiche plafonne la HAUTEUR de la planche pour garder la
+       légende au-dessus du pli, donc la boîte s'aplatit quand l'écran est bas.
+       Lu une seule fois au montage, un redimensionnement laissait le disque
+       ovale — pour un accident de grille, alors que son ovale doit venir de la
+       perspective. */
+    let ratio = canvas.clientWidth / Math.max(1, canvas.clientHeight);
     const reduit = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     /* LE REGARD — l'orientation du pointeur autour du centre, lissée.
@@ -287,9 +301,10 @@ export function Supernova({ className }: { className?: string }) {
          s'arme. */
       source: novaA(reduit ? 1 : 0, ratio, 0, regard),
       cols: COLONNES,
-      /* La grille suit le rapport du canevas, sinon les cellules ne sont pas
-         carrées et le disque sort ovale pour la mauvaise raison. */
-      rows: Math.max(8, Math.round(COLONNES / ratio)),
+      /* `rows` n'est PAS donné, et c'est voulu : sans lui le moteur déduit les
+         lignes du rapport du canevas — même formule — et les redéduit à chaque
+         redimensionnement depuis son propre observateur. Le fixer ici
+         neutralisait ce calcul, et la grille restait celle du premier rendu. */
       steps: 6,
       bleed: 1,
       gamma: 0.85,
@@ -302,7 +317,23 @@ export function Supernova({ className }: { className?: string }) {
       pointerBoost: 0,
     });
 
-    if (reduit) return () => instance.destroy();
+    /* Le rapport se relit ICI et non dans l'image d'animation : il ne bouge
+       qu'au redimensionnement, et le relire soixante fois par seconde forcerait
+       autant de calculs de mise en page pour une valeur immobile.
+       En mouvement réduit il n'y a pas d'image d'animation du tout, donc c'est
+       l'observateur qui repousse la couverture ; sinon la prochaine image s'en
+       charge, vingt-quatre millisecondes plus tard. */
+    const surTaille = new ResizeObserver(() => {
+      ratio = canvas.clientWidth / Math.max(1, canvas.clientHeight);
+      if (reduit) instance.update({ source: novaA(1, ratio, 0, regard) });
+    });
+    surTaille.observe(canvas);
+
+    if (reduit)
+      return () => {
+        surTaille.disconnect();
+        instance.destroy();
+      };
 
     canvas.addEventListener("pointermove", surPointeur, { passive: true });
     canvas.addEventListener("pointerleave", surSortie, { passive: true });
@@ -341,6 +372,7 @@ export function Supernova({ className }: { className?: string }) {
 
     return () => {
       stop();
+      surTaille.disconnect();
       canvas.removeEventListener("pointermove", surPointeur);
       canvas.removeEventListener("pointerleave", surSortie);
       instance.destroy();
