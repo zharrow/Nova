@@ -339,8 +339,11 @@ dépend :
 
 - **Budget de contraste** — aucun élément de chrome ne dépasse 7:1, aucun contenu de
   scène ne descend sous 12:1. Le décor ne peut jamais gagner contre ce qu'il accompagne.
-- **Rationnement du signal** — `--signal` est autorisé à deux occurrences par écran, et
-  à deux emplois seulement : l'anneau de focus et l'intérieur d'une scène.
+- **Le bleu marque ce qui agit ou ce qui identifie, jamais ce qui décore** — boutons,
+  liens, anneau de focus, page courante, marque. Avec une exception : les liens de
+  NAVIGATION restent neutres, sinon le bleu peint le chrome au lieu de le signaler. Le
+  rationnement à deux occurrences par écran a été levé le 2026-09-09 ; il produisait une
+  page grise où la marque n'apparaissait nulle part.
 - **Aucun titre ne s'anime.** Le seul mouvement hors scène est le bandeau `Marquee` et
   les filets au survol. Une librairie d'animation dont le chrome s'anime enseigne au
   visiteur que le mouvement est décoratif.

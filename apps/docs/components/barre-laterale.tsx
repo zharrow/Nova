@@ -149,8 +149,11 @@ function LienNav({
         aria-current={actif ? "page" : undefined}
         className={cn(
           "flex items-center gap-1 rounded-presse px-2 py-1.5 text-[13.5px] transition-colors",
+          /* La page courante est BLEUE, pas juste sur un fond gris : dans une
+             liste de vingt-trois entrées, un fond légèrement plus clair se
+             cherche, un mot bleu se trouve. */
           actif
-            ? "bg-accent text-accent-foreground"
+            ? "bg-accent font-medium text-signal"
             : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
         )}
       >

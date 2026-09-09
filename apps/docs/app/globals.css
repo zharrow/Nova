@@ -44,21 +44,39 @@
    une passe sur chaque fichier pour un gain nul. Voir DESIGN.md.
    -------------------------------------------------------------------------- */
 
+/* --------------------------------------------------------------------------
+   LES NEUTRES SONT FROIDS, et c'est la même décision que la couleur primaire.
+
+   Une couleur de marque ne vit pas seulement dans ses accents, elle vit dans
+   ses gris. Chaque neutre porte donc la TEINTE DU SIGNAL — 264° en OKLCH — à
+   un chroma minuscule, de 0.008 à 0.018. Le résultat ne se lit jamais comme
+   « du bleu » : il se lit comme un papier qui n'est pas gris.
+
+   Les clartés sont inchangées, et les contrastes documentés le restent à un
+   dixième près : 17,5:1 pour l'encre, 10,4 pour la prose, 6,2 pour le second,
+   4,5 pour la sourdine. Refroidir n'a rien coûté à la lisibilité.
+
+   `--banc` reste le BLANC PUR en clair. La scène est la seule surface qui ne
+   se teinte pas : c'est elle qu'on regarde, et un fond de démonstration doit
+   ressembler au fond que le composant aura chez celui qui le copie. Sur une
+   page légèrement froide, ce blanc pur ressort au lieu de disparaître.
+   -------------------------------------------------------------------------- */
+
 :root,
 [data-theme="clair"] {
   color-scheme: light;
 
-  --nuit: #fcfcfb;        /* page. Un blanc cassé, jamais #ffffff */
-  --plan: #f4f4f1;        /* plan ENFONCÉ : code, tableaux */
+  --nuit: #f9fcff;        /* page. Un blanc cassé, jamais #ffffff */
+  --plan: #f0f4fb;        /* plan ENFONCÉ : code, tableaux */
   --banc: #ffffff;        /* plan SURÉLEVÉ : scène. Le seul blanc pur du site */
-  --banc-haut: #f7f7f4;   /* surface interne à une scène */
-  --filet: #e6e6e1;
-  --filet-vif: #c9c9c1;   /* filet actif, bord de scène survolée */
+  --banc-haut: #f4f7fd;   /* surface interne à une scène */
+  --filet: #e2e6ee;
+  --filet-vif: #c3c9d3;   /* filet actif, bord de scène survolée */
 
-  --encre: #16161a;       /* 16,8:1 sur --nuit */
-  --prose: #3d3d45;       /* 10,1:1 */
-  --second: #5e5e68;      /*  6,1:1 */
-  --sourdine: #74747e;    /*  4,6:1 */
+  --encre: #13171d;       /* 16,8:1 sur --nuit */
+  --prose: #3a3e47;       /* 10,1:1 */
+  --second: #5a5f6a;      /*  6,1:1 */
+  --sourdine: #707580;    /*  4,6:1 */
 
   --signal: #1b4fd8;      /*  6,0:1 */
 
@@ -81,17 +99,17 @@
 [data-theme="nuit"] {
   color-scheme: dark;
 
-  --nuit: #0b0b0c;
-  --plan: #101013;
-  --banc: #1a1a20;        /* la scène MONTE, au lieu d'être le seul blanc */
-  --banc-haut: #24242b;
-  --filet: #26262c;
-  --filet-vif: #3c3c46;
+  --nuit: #090b0f;
+  --plan: #0e1116;
+  --banc: #171b22;        /* la scène MONTE, au lieu d'être le seul blanc */
+  --banc-haut: #20252e;
+  --filet: #23272f;
+  --filet-vif: #383d47;
 
-  --encre: #f2f2ef;       /* 17,0:1 */
-  --prose: #c3c3c9;       /* 11,1:1 */
-  --second: #9a9aa3;      /*  6,9:1 */
-  --sourdine: #7c7c86;    /*  4,7:1 */
+  --encre: #f0f2f6;       /* 17,0:1 */
+  --prose: #c0c4cc;       /* 11,1:1 */
+  --second: #979ba4;      /*  6,9:1 */
+  --sourdine: #787d87;    /*  4,7:1 */
 
   /* Une nova est une étoile, et le bleu-blanc en est l'extrémité chaude. */
   --signal: #4da3ff;      /*  7,3:1 sur --nuit · 6,6:1 sur --banc */
@@ -126,7 +144,15 @@
   --card-foreground: var(--encre);
   --popover: var(--banc-haut);
   --popover-foreground: var(--encre);
-  --primary: var(--encre);
+  /* LA COULEUR PRIMAIRE EST LE BLEU DE NOVA, pas l'encre.
+     
+     Une nova est une étoile, et le bleu-blanc en est l'extrémité chaude : ce
+     bleu est l'identité, pas un accent parmi d'autres. Le tenir en réserve
+     rendait le site gris — un bouton noir sur une page blanche n'appartient à
+     personne. Il porte donc ce qui AGIT : boutons, liens, anneau de focus,
+     page courante, et la marque en tête. Blanc cassé dessus, 6,5:1 en clair,
+     7,5:1 en sombre. */
+  --primary: var(--signal);
   --primary-foreground: var(--nuit);
   --secondary: var(--plan);
   --secondary-foreground: var(--encre);
@@ -137,7 +163,6 @@
   --destructive: #e5484d;
   --border: var(--filet);
   --input: var(--filet);
-  /* L'anneau de focus est l'un des DEUX seuls emplois autorisés du signal. */
   --ring: var(--signal);
 }
 
@@ -440,9 +465,33 @@ body,
   display: none;
 }
 
-/* Le lien qui se souligne depuis la gauche. */
+/* Le lien qui se souligne depuis la gauche.
+
+   UN LIEN EST BLEU — le mot et le trait. C'est la convention la plus ancienne
+   du web, et c'est ce qui fait qu'une page se lit sans avoir à survoler pour
+   savoir où l'on peut aller.
+
+   Le bleu est celui de la marque, pas un bleu de navigateur : la même valeur
+   que les boutons, l'anneau de focus et le symbole en tête. Une seule couleur
+   pour tout ce qui agit. */
 .lien {
   position: relative;
+  color: var(--signal);
+}
+
+/* SAUF DANS UNE NAVIGATION.
+
+   Trois liens bleus dans une barre, ou vingt-trois dans une colonne, ne
+   signalent plus une action : ils peignent le chrome, et le bleu perd d'un
+   coup ce qu'il vient de gagner ailleurs. Une navigation se lit à sa position,
+   pas à sa couleur. Le trait bleu au survol suffit à la relier au reste — il
+   n'apparaît qu'au moment où l'on vise. */
+.lien-menu {
+  color: var(--second);
+}
+.lien-menu:hover,
+.lien-menu[aria-current="page"] {
+  color: var(--encre);
 }
 .lien::after {
   content: "";
@@ -451,7 +500,7 @@ body,
   bottom: -2px;
   height: 1px;
   width: 100%;
-  background: currentColor;
+  background: var(--signal);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 400ms var(--nova-ease-expo, cubic-bezier(0.16, 1, 0.3, 1));

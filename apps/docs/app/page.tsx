@@ -39,7 +39,13 @@ function Section({
     <div className={["mx-auto max-w-[1440px] px-6", className ?? ""].join(" ")}>
       <div className="md:grid md:grid-cols-[96px_minmax(0,1fr)]">
         <div className="md:border-r md:border-filet">
-          <span className="cote block pb-2 md:pb-0 md:pt-1">{numero}</span>
+          {/* Le numéro est bleu. C'est l'ossature de l'affiche — 00, 01, 02 —
+              et la seule chose qui se répète d'une section à l'autre : lui
+              donner la couleur de la marque fait que le bleu scande la page
+              au lieu d'y apparaître deux fois. */}
+          <span className="cote block pb-2 text-signal md:pb-0 md:pt-1">
+            {numero}
+          </span>
         </div>
         <div className="md:pl-10">{children}</div>
       </div>
@@ -179,10 +185,13 @@ function BandeauSignature() {
             className="valeur mr-8 flex items-center gap-8 text-xs tracking-[0.16em] text-sourdine"
           >
             {mot}
-            {/* Le losange est en SOURDINE, pas en signal : celui-ci est
-                rationné à deux occurrences par écran, et cinq losanges par
-                défilement en consommaient huit à eux seuls. */}
-            <span aria-hidden>◆</span>
+            {/* Le losange est BLEU. Il l'était déjà, puis le rationnement du
+                signal l'a éteint — cinq losanges par défilement consommaient
+                huit occurrences à eux seuls. Le rationnement levé, c'est lui
+                qui fait revenir la couleur de Nova à intervalle régulier sur
+                toute la largeur : une identité se lit à sa récurrence, pas à
+                sa surface. */}
+            <span className="text-signal" aria-hidden>◆</span>
           </span>
         ))}
       </Marquee>

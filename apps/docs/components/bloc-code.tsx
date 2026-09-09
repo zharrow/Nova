@@ -24,16 +24,48 @@ const REGLES: Array<{ motif: RegExp; classe: string }> = [
 ];
 
 /**
+ * Les règles du TERMINAL, qui n'ont rien à voir avec celles du TSX.
+ *
+ * Une commande passée aux règles du TSX ne déclenche rien : `npx novaui add
+ * reveal` n'a ni chaîne, ni balise, ni mot-clé. Elle sortait donc entièrement
+ * en ponctuation, c'est-à-dire en gris uniforme — la ligne la plus importante
+ * du site, celle qu'on vient copier, était la seule sans couleur.
+ *
+ * Quatre rôles, dans l'ordre où on les lit :
+ *
+ *  - le LANCEUR (`npx`, `pnpm`) reste en sourdine : c'est de la tuyauterie,
+ *    la même pour tout le monde, et ce n'est pas ce qu'on cherche des yeux ;
+ *  - l'OUTIL (`novaui`) prend la couleur des mots-clés — c'est le nom du
+ *    produit, et la seule chose que le visiteur doit retenir de la ligne ;
+ *  - la SOUS-COMMANDE (`init`, `add`, `list`) prend celle des types : ce que
+ *    la commande fait ;
+ *  - les ARGUMENTS — noms de composants — prennent celle des chaînes, parce
+ *    que c'en sont : les seules valeurs que l'utilisateur remplace.
+ *
+ * Les drapeaux gardent la règle `--` du TSX, en type.
+ */
+const REGLES_TERMINAL: Array<{ motif: RegExp; classe: string }> = [
+  { motif: /#[^\n]*/g, classe: "text-code-comm" },
+  { motif: /--[\w-]+/g, classe: "text-code-nombre" },
+  { motif: /\b(npx|npm|pnpm|yarn|bun|cd|node)\b/g, classe: "text-code-ponct" },
+  { motif: /\bnovaui\b/g, classe: "text-code-cle" },
+  { motif: /\b(init|add|list|build|dev|test)\b/g, classe: "text-code-type" },
+  // Le reste d'une ligne de commande est un argument : un nom de composant,
+  // un chemin. En dernier, pour ne prendre que ce que personne n'a réclamé.
+  { motif: /[a-zA-Z][\w./-]*/g, classe: "text-code-chaine" },
+];
+
+/**
  * Découpe en jetons sans jamais superposer deux règles.
  *
  * On marque d'abord toutes les plages trouvées, en refusant celles qui
  * chevauchent une plage déjà prise — c'est ce qui empêche un mot-clé à
  * l'intérieur d'un commentaire de ressortir en orange par-dessus le gris.
  */
-function colorer(code: string): Jeton[] {
+function colorer(code: string, regles = REGLES): Jeton[] {
   const prises: Array<{ debut: number; fin: number; classe: string }> = [];
 
-  for (const { motif, classe } of REGLES) {
+  for (const { motif, classe } of regles) {
     motif.lastIndex = 0;
     let trouve: RegExpExecArray | null;
     while ((trouve = motif.exec(code)) !== null) {
@@ -84,7 +116,10 @@ export function BlocCode({
   langue?: string;
 }) {
   const [etat, setEtat] = useState<"repos" | "copie" | "echec">("repos");
-  const jetons = useMemo(() => colorer(code), [code]);
+  const jetons = useMemo(
+    () => colorer(code, langue === "terminal" ? REGLES_TERMINAL : REGLES),
+    [code, langue],
+  );
 
   async function copier() {
     try {
