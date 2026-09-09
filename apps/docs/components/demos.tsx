@@ -251,12 +251,23 @@ function Scene({
           {nom ?? ""}
         </span>
         {onRejouer ? (
+          /* Un BOUTON ENCADRÉ, et non plus un mot souligné.
+
+             C'est la seule commande de la scène, et elle se tenait au même
+             rang typographique qu'une légende. Le cadre bleu lui donne le rang
+             de ce qu'elle est. Plus grande d'un cran aussi — 12 px au lieu de
+             11 — parce qu'elle fait désormais face au nom de la famille, qui
+             est à 17.
+
+             La typographie est écrite en utilitaires plutôt qu'avec `.cote` :
+             cette classe fixe la taille ET la couleur hors de toute couche, et
+             ni l'une ni l'autre n'aurait cédé à une surcharge. */
           <button
             type="button"
             onClick={onRejouer}
-            className="cote flex shrink-0 items-center gap-1.5 hover:text-encre"
+            className="flex shrink-0 items-center gap-2 rounded-presse border border-signal px-3 py-1.5 font-mono text-[0.75rem] font-medium uppercase leading-none tracking-[0.09em] text-signal transition-colors hover:bg-signal/10"
           >
-            <span className="lien">rejouer</span>
+            rejouer
             <Touche />
           </button>
         ) : null}
@@ -316,7 +327,7 @@ function Touche() {
   return (
     <kbd
       aria-hidden
-      className="sans-doigt rounded-[3px] border border-filet px-1 py-px font-mono text-[9px] leading-none text-sourdine"
+      className="sans-doigt rounded-[3px] border border-signal/45 px-1.5 py-0.5 font-mono text-[10px] leading-none text-signal"
     >
       F
     </kbd>
