@@ -389,6 +389,7 @@ export function dependancesDe(nom: string): string[] {
 export const familles: Fiche[] = [
   {
     nom: "reveal",
+    valide: true,
     geometrie: "bloc",
     categorie: "defilement",
     titre: "Reveal",
@@ -455,6 +456,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "scramble-text",
+    valide: true,
     geometrie: "carre",
     categorie: "texte",
     titre: "Scramble Text",
@@ -496,6 +498,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "counter",
+    valide: true,
     geometrie: "carre",
     categorie: "donnees",
     titre: "Counter",
@@ -538,6 +541,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "text-effect",
+    valide: true,
     geometrie: "bande",
     categorie: "texte",
     nouveau: true,
@@ -656,6 +660,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "marquee",
+    valide: true,
     geometrie: "bande",
     categorie: "defilement",
     titre: "Marquee",
@@ -705,6 +710,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "scroll-marquee",
+    valide: true,
     geometrie: "bande",
     categorie: "defilement",
     nouveau: true,
@@ -732,6 +738,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "roll-text",
+    valide: true,
     geometrie: "carre",
     categorie: "texte",
     nouveau: true,
@@ -752,6 +759,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "spotlight",
+    valide: true,
     geometrie: "carre",
     categorie: "pointeur",
     nouveau: true,
@@ -773,6 +781,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "cursor",
+    valide: true,
     geometrie: "carre",
     categorie: "pointeur",
     titre: "Cursor",
@@ -806,6 +815,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "confetti",
+    valide: true,
     geometrie: "carre",
     categorie: "effets",
     titre: "Confetti",
@@ -848,6 +858,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "halftone",
+    valide: true,
     geometrie: "carre",
     categorie: "rendu",
     nouveau: true,
@@ -897,6 +908,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "graph",
+    valide: true,
     geometrie: "bloc",
     categorie: "donnees",
     nouveau: true,
@@ -925,6 +937,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "blinds",
+    valide: true,
     geometrie: "bloc",
     titre: "Blinds",
     categorie: "defilement",
@@ -953,6 +966,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "brush-underline",
+    valide: true,
     geometrie: "bande",
     titre: "Brush Underline",
     categorie: "texte",
@@ -976,6 +990,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "loader",
+    valide: true,
     geometrie: "bloc",
     titre: "Loader",
     categorie: "effets",
@@ -1015,6 +1030,7 @@ export const familles: Fiche[] = [
   },
   {
     nom: "flight",
+    valide: true,
     geometrie: "carre",
     titre: "Flight",
     categorie: "effets",
@@ -1036,6 +1052,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "expand",
+    valide: true,
     geometrie: "bloc",
     titre: "Expand",
     categorie: "effets",
@@ -1066,6 +1083,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "smooth-scroll",
+    valide: true,
     geometrie: "bande",
     titre: "Smooth Scroll",
     categorie: "defilement",
@@ -1086,6 +1104,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "scroll-scene",
+    valide: true,
     geometrie: "bloc",
     titre: "Scroll Scene",
     categorie: "defilement",
@@ -1111,6 +1130,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "text-highlight",
+    valide: true,
     geometrie: "bande",
     titre: "Text Highlight",
     categorie: "texte",
@@ -1137,6 +1157,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "lightbox",
+    valide: true,
     geometrie: "bloc",
     titre: "Lightbox",
     categorie: "effets",
@@ -1167,6 +1188,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "date-picker",
+    valide: true,
     geometrie: "bloc",
     titre: "Date Picker",
     categorie: "donnees",
@@ -1225,6 +1247,7 @@ if (!flew) afficherUneNotification(); /* la source était hors écran */`,
   },
   {
     nom: "flip-list",
+    valide: true,
     geometrie: "bloc",
     titre: "Flip List",
     categorie: "effets",
