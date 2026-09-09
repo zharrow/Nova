@@ -151,6 +151,17 @@ function novaA(t: number, ratio: number) {
   };
 }
 
+/**
+ * Le nombre de colonnes de la trame, EXPORTÉ.
+ *
+ * La légende de l'affiche l'annonce au visiteur. Elle l'avait d'abord écrit à
+ * la main — « 84 colonnes » — et le jour où la grille est passée à 104, la
+ * page a menti sans que rien ne le signale. C'est précisément ce que le dépôt
+ * interdit : un compte cité dans une phrase se périme à la ligne suivante, ce
+ * qui est affiché se CALCULE.
+ */
+export const COLONNES = 104;
+
 /** Durée de l'éclosion. Assez longue pour se voir, assez courte pour ne pas attendre. */
 const ECLOSION = 1600;
 
@@ -168,10 +179,10 @@ export function Supernova({ className }: { className?: string }) {
       /* En mouvement réduit, l'étoile naît finie. C'est la règle du dépôt :
          l'état par défaut est visible, aucune animation d'entrée ne s'arme. */
       source: novaA(reduit ? 1 : 0, ratio),
-      cols: 104,
+      cols: COLONNES,
       /* La grille suit le rapport du canevas, sinon les cellules ne sont pas
          carrées et l'étoile sort ovale. */
-      rows: Math.max(8, Math.round(104 / ratio)),
+      rows: Math.max(8, Math.round(COLONNES / ratio)),
       steps: 6,
       bleed: 1,
       gamma: 0.85,

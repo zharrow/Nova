@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Marquee } from "@nova-ui/react";
 import { catalogue, libelleCategorie } from "@/lib/catalogue";
 import { CarteFamille, carteDe } from "@/components/carte-famille";
-import { Supernova } from "@/components/supernova";
+import { Supernova, COLONNES } from "@/components/supernova";
 import { BlocCode } from "@/components/bloc-code";
 import { Button } from "@/components/ui/button";
 
@@ -179,7 +179,7 @@ function Heros() {
               Halftone
             </Link>
             <span className="cote text-sourdine">
-              trame calculée · 84 colonnes · aucune image chargée
+              trame calculée · {COLONNES} colonnes · aucune image chargée
             </span>
           </p>
         </div>
