@@ -31,8 +31,10 @@ export async function add(
   if (names.length === 0) {
     const index = await registry.index();
     log.error(
-      `Préciser au moins un composant. Disponibles : ` +
-        index.items.map((item) => item.name).join(", "),
+      index.items.length === 0
+        ? `Aucun composant publié pour l'instant.`
+        : `Préciser au moins un composant. Disponibles : ` +
+            index.items.map((item) => item.name).join(", "),
     );
     process.exitCode = 1;
     return;
@@ -40,9 +42,21 @@ export async function add(
 
   log.info("");
   const dependances: string[] = [];
+  let copies = 0;
   for (const name of names) {
     const requises = await addOne(cwd, config, name, flags);
+    /* `null` = introuvable dans le registry, le cas d'un composant non publié.
+       Sans ce compte, la commande annonçait « Composant ajouté » juste après
+       avoir écrit qu'il était introuvable — deux lignes qui se contredisent,
+       et un code de sortie que personne ne lit pour trancher. */
+    if (requises === null) continue;
+    copies += 1;
     dependances.push(...requises);
+  }
+
+  if (copies === 0) {
+    log.info("");
+    return;
   }
 
   // Les dépendances sont installées EN UNE FOIS, après toutes les copies :
@@ -51,28 +65,29 @@ export async function add(
 
   log.info("");
   log.success(
-    (names.length === 1
-      ? "Composant ajouté."
-      : `${names.length} composants ajoutés.`) +
+    (copies === 1 ? "Composant ajouté." : `${copies} composants ajoutés.`) +
       (ajoutees.length ? ` ${ajoutees.length} dépendance(s) installée(s).` : ""),
   );
   log.info("");
 }
 
-/** Copie un composant. Renvoie les dépendances qu'il exige. */
+/**
+ * Copie un composant. Renvoie les dépendances qu'il exige, ou `null` si le
+ * composant n'est pas dans le registry — non publié, ou nom mal tapé.
+ */
 async function addOne(
   cwd: string,
   config: NovaConfig,
   name: string,
   flags: Set<string>,
-): Promise<string[]> {
+): Promise<string[] | null> {
   let item;
   try {
     item = await registry.item(name);
   } catch (error) {
     log.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
-    return [];
+    return null;
   }
 
   log.step(`${style.bold(item.title)} — ${item.description}`);

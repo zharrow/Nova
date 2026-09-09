@@ -74,9 +74,14 @@ export async function init(cwd: string, flags: Set<string>): Promise<void> {
 
   log.info("");
   log.success("Socle installé.");
+  /* L'exemple est PRIS DANS LE REGISTRY plutôt qu'écrit en dur. Le nom d'un
+     composant publié change : `reveal` était écrit ici, et une commande
+     d'exemple qui répond « introuvable » est pire que pas d'exemple. */
+  const premier = (await registry.index()).items[0]?.name;
   log.info(
-    `  Ajouter un composant : ${style.cyan("npx novaui add reveal")}` +
-      `   ·   Tout voir : ${style.cyan("npx novaui list")}`,
+    (premier
+      ? `  Ajouter un composant : ${style.cyan(`npx novaui add ${premier}`)}   ·   `
+      : "  ") + `Tout voir : ${style.cyan("npx novaui list")}`,
   );
   log.info("");
 }
