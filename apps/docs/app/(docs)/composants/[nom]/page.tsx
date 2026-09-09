@@ -64,8 +64,12 @@ export default async function PageComposant({
         </Link>
         <span className="cote">/</span>
         <span className="cote">{libelleCategorie(fiche.categorie)}</span>
-        {/* Le menu pousse à droite : c est un outil, pas une étape du fil. */}
-        <div className="ml-auto flex items-center gap-1">
+        {/* Le menu pousse à droite : c est un outil, pas une étape du fil.
+            Mais seulement quand il tient sur la MÊME ligne que le fil : sous
+            640 px il passe à la ligne, et l'y pousser à droite lui donnait un
+            bord gauche en escalier qui se lit comme un défaut de gabarit. À la
+            ligne, il s'aligne donc sur le fil. */}
+        <div className="flex items-center gap-1 sm:ml-auto">
           <BasculeThemeScene />
           <MenuCopier nom={fiche.nom} titre={fiche.titre} />
         </div>
@@ -125,9 +129,56 @@ export default async function PageComposant({
             <p className="cote mt-9" id="options">
               Options
             </p>
-            {/* Le tableau déborde sur mobile : il défile dans son propre
-                conteneur plutôt que d'élargir la page. */}
-            <div className="mt-3 overflow-x-auto">
+            {/* DEUX RENDUS DE LA MÊME DONNÉE, et c'est délibéré.
+
+                Le tableau qui défile dans son conteneur tenait la page droite
+                mais perdait ce qu'il devait dire : dans 300 px, « défaut » se
+                coupait au milieu d'un mot (`fals`, `1.5r`) et la colonne
+                « rôle » — la seule qui explique à quoi sert l'option — restait
+                hors du champ, sans rien pour signaler qu'on pouvait la
+                chercher du doigt. Une référence qu'il faut deviner ne
+                référence rien.
+
+                Sous 640 px, chaque option devient donc un BLOC : le nom, puis
+                type et défaut sur une ligne, puis le rôle en pleine largeur.
+                C'est l'ordre dans lequel on lit une option quand on ne compare
+                pas — et sur un téléphone, on ne compare pas.
+
+                Le tableau reste au-dessus de 640 px, où comparer une colonne
+                d'un bout à l'autre est justement ce qu'on vient y faire. */}
+            <dl className="mt-3 sm:hidden">
+              {fiche.options.map((option) => (
+                <div
+                  key={option.nom}
+                  className="border-b border-filet py-3.5 last:border-0"
+                >
+                  <dt className="valeur text-[13px] text-encre">
+                    {option.nom}
+                  </dt>
+                  <dd className="mt-1.5 space-y-1.5">
+                    <p className="valeur text-[12px] text-sourdine">
+                      {option.type}
+                    </p>
+                    {/* Le défaut porte son étiquette, il n'est pas séparé du
+                        type par un point médian : le type d'une famille à
+                        formes EST une liste de valeurs séparées par des points
+                        médians, et « scale · slide-up » se lisait comme une
+                        huitième forme au lieu d'une valeur par défaut. */}
+                    <p className="flex items-baseline gap-2">
+                      <span className="cote">défaut</span>
+                      <span className="valeur text-[12px] text-second">
+                        {option.defaut}
+                      </span>
+                    </p>
+                    <p className="text-[13px] leading-relaxed text-prose">
+                      {option.role}
+                    </p>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="mt-3 hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[34rem] border-collapse text-sm">
                 <thead>
                   <tr>

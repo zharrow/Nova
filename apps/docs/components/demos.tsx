@@ -307,15 +307,58 @@ function Mire({
 /**
  * Le badge de touche. Un raccourci qu'on ne peut pas deviner n'existe pas :
  * il est écrit à côté de la commande qu'il double, pas dans une aide.
+ *
+ * `sans-doigt` en retire l'affichage au doigt : sur un téléphone, ce badge
+ * annonçait une touche que personne ne peut taper, à côté d'un bouton qui
+ * marche. Voir `globals.css`.
  */
 function Touche() {
   return (
     <kbd
       aria-hidden
-      className="rounded-[3px] border border-filet px-1 py-px font-mono text-[9px] leading-none text-sourdine"
+      className="sans-doigt rounded-[3px] border border-filet px-1 py-px font-mono text-[9px] leading-none text-sourdine"
     >
       F
     </kbd>
+  );
+}
+
+/**
+ * La consigne d'une scène, dite dans la langue du pointeur qui la lit.
+ *
+ * La moitié des légendes de ce site sont des INVITATIONS — « survolez le
+ * mot », « promenez le curseur ». Au doigt, elles demandent un geste qui
+ * n'existe pas, à côté d'une scène qui ne répondra pas : le visiteur en
+ * conclut que le composant est cassé, ce qui est exactement le contraire de
+ * ce qu'une vitrine doit prouver.
+ *
+ * Les deux textes sont RENDUS TOUS LES DEUX et c'est le CSS qui en cache un.
+ * Lire `matchMedia` en JavaScript demanderait un état, donc un second rendu,
+ * donc un texte qui change sous les yeux après l'hydratation — pour une
+ * ligne de onze mots.
+ *
+ * `doigt` absent veut dire : au doigt, cette scène n'a rien à dire. C'est le
+ * cas d'un bandeau qui défile tout seul — la consigne « survolez pour
+ * suspendre » n'a pas d'équivalent tactile, et son absence ne manque à
+ * personne puisque la scène bouge déjà.
+ */
+function Consigne({
+  souris,
+  doigt,
+  className,
+}: {
+  souris: string;
+  doigt?: string;
+  className?: string;
+}) {
+  const classes = ["cote", className ?? ""].join(" ");
+  return (
+    <>
+      <span className={`sans-doigt ${classes}`}>{souris}</span>
+      {doigt ? (
+        <span className={`doigt-seul ${classes}`}>{doigt}</span>
+      ) : null}
+    </>
   );
 }
 
@@ -424,11 +467,19 @@ export function DemoScrambleText({ forme = "interval", compact, geometrie, nomAf
               : "font-mono text-2xl tracking-[0.12em] sm:text-3xl"
           }
         />
-        <span className="cote mt-4 block">
-          {boucle
-            ? "il se rejoue seul — et le survol le relance"
-            : "survolez le mot"}
-        </span>
+        <Consigne
+          className="mt-4 block"
+          souris={
+            boucle
+              ? "il se rejoue seul — et le survol le relance"
+              : "survolez le mot"
+          }
+          /* Une tape émet l'événement `mouseenter` de compatibilité, que le
+             moteur écoute : le décodage part donc bien au doigt. */
+          doigt={
+            boucle ? "il se rejoue seul — et la tape le relance" : "touchez le mot"
+          }
+        />
       </p>
     </Scene>
   );
@@ -635,9 +686,10 @@ export function DemoMarquee({ forme = "left", compact, geometrie, nomAffiche, re
               </span>
             ))}
           </Marquee>
-          <span className="cote mt-5 block text-center">
-            survolez pour suspendre
-          </span>
+          <Consigne
+            className="mt-5 block text-center"
+            souris="survolez pour suspendre"
+          />
         </div>
       )}
     </Scene>
@@ -682,7 +734,10 @@ export function DemoRollText({ compact, geometrie, nomAffiche, reglages, nu }: P
         >
           <RollText text="Nous écrire" />
         </button>
-        <span className="cote">survolez le bouton, pas le mot</span>
+        <Consigne
+          souris="survolez le bouton, pas le mot"
+          doigt="appuyez sur le bouton, pas sur le mot"
+        />
       </div>
     </Scene>
   );
@@ -709,9 +764,14 @@ export function DemoSpotlight({ compact, geometrie, nomAffiche, reglages, nu }: 
           </span>
         ))}
       </div>
-      <span className="cote absolute bottom-3 left-4">
-        promenez le curseur — inactif au tactile
-      </span>
+      <Consigne
+        className="absolute bottom-3 left-4"
+        souris="promenez le curseur"
+        /* Le moteur refuse le doigt par décision, pas par oubli : au tactile,
+           `pointerenter` reste armé après le relâchement et le halo se fige au
+           milieu du panneau. Voir `engines/spotlight.ts`. */
+        doigt="le halo suit une souris — inactif au doigt"
+      />
     </Scene>
   );
 }
@@ -753,10 +813,15 @@ export function DemoCursor({ forme = "blob", compact, geometrie, nomAffiche, reg
         >
           {actif ? "Désactiver" : "Activer sur cette page"}
         </button>
-        <p className="cote mt-4">
-          {actif
-            ? "survolez un lien — le disque grossit"
-            : "il n'est pas monté par défaut sur ce site"}
+        <p className="mt-4">
+          <Consigne
+            souris={
+              actif
+                ? "survolez un lien — le disque grossit"
+                : "il n'est pas monté par défaut sur ce site"
+            }
+            doigt="un curseur additif suppose une souris"
+          />
         </p>
       </div>
     </Scene>
