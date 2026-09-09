@@ -61,6 +61,11 @@ const INCLINAISON = 0.56;
 /** Son azimut, en radians. Le disque penche vers la gauche, comme sur la référence. */
 const AZIMUT = -0.52;
 
+/** Le rayon de l'orbite, dans le repère du disque : entre les deux coquilles. */
+const ORBITE = 0.335;
+/** Sa cadence. Un tour en une trentaine de secondes — on doit pouvoir l'oublier. */
+const CADENCE_ORBITE = 0.21;
+
 /**
  * La couverture du rémanent à l'instant `t` de son éclosion, entre 0 et 1.
  *
@@ -83,6 +88,26 @@ function novaA(
 
   const ca = Math.cos(AZIMUT);
   const sa = Math.sin(AZIMUT);
+
+  /* LA PLANÈTE, et son orbite.
+  
+     Sa position se calcule dans le repère du DISQUE — elle tourne donc dans le
+     plan des coquilles, et son orbite se dessine à l'écran comme une ellipse
+     vue sous la même inclinaison. C'est ce qui la fait appartenir à la scène
+     plutôt que passer devant : une orbite circulaire à l'écran l'aurait posée
+     sur l'image, pas dedans.
+  
+     On ramène ensuite sa position dans le repère de l'écran, en inversant la
+     rotation et l'étirement, parce que le CORPS lui-même doit rester rond :
+     une planète ne s'aplatit pas avec la perspective, seule sa trajectoire le
+     fait. */
+  const angleOrbite = temps * CADENCE_ORBITE;
+  const orbiteRayon = ORBITE * echelle;
+  const ox = orbiteRayon * Math.cos(angleOrbite);
+  const oyDisque = orbiteRayon * Math.sin(angleOrbite) * INCLINAISON;
+  const planeteX = ox * ca - oyDisque * sa;
+  const planeteY = ox * sa + oyDisque * ca;
+  const rayonPlanete = 0.048 * echelle;
 
   return (x: number, y: number): number => {
     const dx = (x - 0.5) * ratio;
@@ -161,10 +186,20 @@ function novaA(
          défiler. Elle reste au-dessus de zéro, sinon la paroi se coupe en
          morceaux au lieu de tourner. */
       const densite = 0.72 + 0.28 * Math.cos(3 * phase);
-      /* Le regard. `force` tombe à zéro quand le pointeur quitte la scène, et
-         la lumière rasante s'éteint avec lui. */
+      /* DEUX SOURCES DE LUMIÈRE RASANTE, et une seule mécanique.
+      
+         Le pointeur allume la paroi du côté d'où l'on regarde ; `force` tombe
+         à zéro quand il quitte la scène, et la lumière s'éteint avec lui.
+      
+         La planète fait EXACTEMENT la même chose, depuis sa position sur
+         l'orbite. C'était la demande, et c'est aussi ce qui la rend crédible :
+         un corps qui passe sans rien éclairer se lit comme une vignette collée
+         par-dessus. Elle éclaire un peu moins fort que le pointeur — le geste
+         du visiteur doit rester le plus fort des deux. */
       const eclaire =
-        1 + regard.force * 0.42 * Math.cos(theta - regard.angle);
+        1 +
+        regard.force * 0.42 * Math.cos(theta - regard.angle) +
+        0.30 * Math.cos(theta - angleOrbite);
       return force * densite * eclaire * Math.exp(-(e * e));
     };
     /* Sens opposés, rapports non entiers : les deux parois ne se retrouvent
@@ -179,6 +214,22 @@ function novaA(
        de supernova est une BULLE — de la matière sur une paroi mince, et du
        vide dedans. C'est ce vide qui fait lire les ellipses ; le remplir, c'est
        les effacer. */
+
+    /* LE CORPS. Rond dans le repère de l'écran, à sommet plat comme le cœur :
+       c'est une masse, elle doit saturer. Elle porte son propre halo, qui la
+       détache du fond quand elle passe devant une paroi. */
+    const dPlanete = Math.hypot(dx - planeteX, dy - planeteY);
+    v += 1.30 * Math.exp(-((dPlanete / rayonPlanete) ** 2.4)) * t;
+    v += 0.46 * Math.exp(-((dPlanete / (rayonPlanete * 2.4)) ** 1.6)) * t;
+
+    /* UN VIDE AUTOUR D'ELLE, et c'est ce qui la fait exister.
+    
+       Sans lui, le corps se pose sur une paroi déjà dense et se confond avec
+       elle : on voit un renflement, pas une planète. Un anneau soustrait juste
+       après le halo la détache de tout ce qu'elle croise — c'est le geste du
+       graveur, qui creuse autour d'une forme pour la faire avancer. */
+    const anneauVide = (dPlanete - rayonPlanete * 2.9) / (rayonPlanete * 1.1);
+    v -= 0.60 * Math.exp(-(anneauVide * anneauVide)) * t;
 
     /* Le grain. Multiplicatif et léger : il creuse la matière sans la trouer,
        et c'est ce qui empêche les coquilles de se lire comme des aplats. */

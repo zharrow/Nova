@@ -460,6 +460,21 @@ est réel — la trame est ré-échantillonnée à chaque image, huit mille cell
 plafond à quarante images par seconde et l'arrêt automatique quand la scène sort de
 l'écran.
 
+**Une planète tourne autour, et elle éclaire.** Sa position se calcule dans le repère du
+DISQUE : elle tourne donc dans le plan des coquilles, et son orbite se dessine comme une
+ellipse vue sous la même inclinaison — une orbite circulaire à l'écran l'aurait posée sur
+l'image au lieu de la mettre dedans. Le corps, lui, revient au repère de l'écran pour
+rester rond : une planète ne s'aplatit pas avec la perspective, seule sa trajectoire le
+fait.
+
+Elle porte **la même lumière rasante que le pointeur**, depuis sa propre position, un peu
+moins fort — le geste du visiteur doit rester le plus fort des deux. Un corps qui passe
+sans rien éclairer se lit comme une vignette collée par-dessus.
+
+Et **un vide la cerne** : sans lui, elle se pose sur une paroi déjà dense et on voit un
+renflement, pas une planète. L'anneau soustrait est le geste du graveur, qui creuse
+autour d'une forme pour la faire avancer.
+
 **Le survol est directionnel, pas de proximité.** Le moteur propose `pointerBoost`, qui
 gonfle les modules sous le curseur ; il est laissé à zéro. La paroi s'allume du côté d'où
 l'on regarde, comme une lumière rasante : sur un objet en perspective, c'est la réponse
@@ -815,3 +830,4 @@ Ce document sert à éviter que chaque écran soit redécidé à la main, pas à
 | 2026-09-09 | La ligne de commande est colorisée | Passée aux règles du TSX elle ne déclenchait rien : la ligne qu'on vient copier était la seule sans couleur de la page. |
 | 2026-09-09 | Une supernova calculée remplace la case du catalogue sur l'affiche | La case répétait le catalogue au lieu de porter la page : un cadre, une étiquette, un lien. Une affiche montre la chose, pas sa fiche. `Halftone` par sa fonction de couverture prouve « aucune ressource chargée » à l'échelle de l'écran, au lieu de l'affirmer. |
 | 2026-09-09 | Les coquilles de l'affiche tournent, à cadences différentes | Seconde exception à « immobile, sauf un point », demandée et assumée : l'affiche est une scène. Cadences opposées et non entières, sinon les parois restent solidaires et l'objet se lit comme un dessin qui pivote. Le survol devient DIRECTIONNEL — la paroi s'allume du côté d'où l'on regarde — parce que c'est la réponse qui dit qu'un objet est dans l'espace. |
+| 2026-09-09 | Une planète orbite le rémanent, et éclaire comme le pointeur | Une seule mécanique de lumière rasante, deux sources. Un corps qui passe sans rien éclairer se lit comme une vignette collée sur l'image ; un corps qui éclaire appartient à la scène. Le vide qui le cerne est ce qui le détache de la paroi qu'il croise. |
