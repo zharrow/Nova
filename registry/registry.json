@@ -473,6 +473,29 @@
       ]
     },
     {
+      "name": "flip-list",
+      "title": "Flip List",
+      "description": "Le reflux d’une liste, raccordé au lieu d’être subi : filtre, tri, ajout, retrait.",
+      "exports": [
+        "useFlipList"
+      ],
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/flip-list.ts",
+          "target": "engines/flip-list.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/hooks/use-flip-list.ts",
+          "target": "use-flip-list.ts",
+          "kind": "component"
+        }
+      ]
+    },
+    {
       "name": "smooth-scroll",
       "title": "Smooth Scroll",
       "description": "Défilement lissé sur Lenis, branché sur la boucle de Nova. Tactile natif, absent en mouvement réduit.",

@@ -1,7 +1,7 @@
 {
   "name": "@nova-ui/core",
   "version": "0.1.0",
-  "description": "Moteurs d'animation framework-agnostiques de Nova. TypeScript, sans d\u00e9pendance sauf l\u00e0 o\u00f9 une librairie ach\u00e8te vraiment quelque chose.",
+  "description": "Moteurs d'animation framework-agnostiques de Nova. TypeScript, sans dépendance sauf là où une librairie achète vraiment quelque chose.",
   "license": "MIT",
   "type": "module",
   "sideEffects": [
@@ -34,6 +34,11 @@
       "types": "./dist/engines/bloom.d.ts",
       "import": "./dist/engines/bloom.js",
       "require": "./dist/engines/bloom.cjs"
+    },
+    "./flip-list": {
+      "types": "./dist/engines/flip-list.d.ts",
+      "import": "./dist/engines/flip-list.js",
+      "require": "./dist/engines/flip-list.cjs"
     }
   },
   "scripts": {

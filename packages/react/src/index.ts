@@ -18,6 +18,8 @@ export { useFlight } from "./hooks/use-flight";
    pas n'embarque rien. Voir DEPENDANCES.md. */
 export { useExpand } from "./hooks/use-expand";
 export type { UseExpandResult } from "./hooks/use-expand";
+export { useFlipList } from "./hooks/use-flip-list";
+export type { UseFlipListResult } from "./hooks/use-flip-list";
 
 export { Reveal, RevealGroup } from "./components/reveal";
 export type { RevealProps, RevealGroupProps } from "./components/reveal";
