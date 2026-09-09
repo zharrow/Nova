@@ -299,6 +299,21 @@ body,
   color: var(--sourdine);
 }
 
+/* La cote qui SÉPARE au lieu de légender.
+
+   Dans une liste où l'on choisit — le menu du téléphone, la barre latérale —
+   l'intertitre de catégorie et les noms qu'il coiffe étaient au même gris. La
+   casse et la chasse fixe ne suffisent pas : à la lecture rapide, on voit une
+   colonne d'entrées uniformes, et la structure disparaît.
+
+   Le bleu la rend. C'est le même emploi que les numéros de section de
+   l'affiche : il marque l'OSSATURE d'une surface de navigation, jamais un lien
+   — les liens de ces listes-là restent neutres, et c'est précisément ce qui
+   rend l'ossature lisible. */
+.cote-separateur {
+  color: var(--signal);
+}
+
 /* Ce que le doigt ne peut pas faire, et ce qu'il est seul à faire.
 
    Une vitrine d'animation dit sans arrêt « survolez », « ↑ ↓ parcourir »,
