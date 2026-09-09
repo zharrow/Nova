@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Marquee } from "@nova-ui/react";
 import { catalogue, libelleCategorie } from "@/lib/catalogue";
 import { CarteFamille, carteDe } from "@/components/carte-famille";
+import { Supernova } from "@/components/supernova";
 import { BlocCode } from "@/components/bloc-code";
 import { Button } from "@/components/ui/button";
 
@@ -73,10 +74,6 @@ export default function Accueil() {
  * ci-dessous, qui est lui-même un composant du catalogue. Voir DESIGN.md.
  */
 function Heros() {
-  /* Halftone est la pièce de l'affiche : elle RAYONNE au lieu de se lire, donc
-     elle ne concurrence pas le titre posé juste à côté. */
-  const affiche = catalogue.find((fiche) => fiche.nom === "halftone");
-
   return (
     <section className="relative overflow-hidden border-b border-filet">
       {/* Asymétrique 5/7, rien de centré. Le banc de droite occupait, avant,
@@ -152,15 +149,39 @@ function Heros() {
             className="pointer-events-none absolute left-0 top-0 hidden h-px w-screen bg-filet lg:block"
             aria-hidden
           />
-          {/* EXACTEMENT la carte du catalogue, pas une variante. Trois
-              traitements pour le même objet à trois endroits du site
-              apprendraient au visiteur qu'il regarde trois choses
-              différentes. */}
-          {affiche ? (
-            <CarteFamille
-              carte={carteDe(affiche, { legende: libelleCategorie(affiche.categorie) })}
-            />
-          ) : null}
+          {/* UNE SUPERNOVA, et non plus la case du catalogue.
+
+              La case était juste — le même objet partout — mais elle faisait
+              de l'affiche une vitrine de plus : un cadre, une étiquette, un
+              lien. Une affiche n'expose pas une fiche produit, elle montre la
+              chose elle-même, en grand, sans cadre, débordant du format.
+
+              C'est le composant `Halftone` de la librairie, pris par sa porte
+              la moins connue : une fonction de couverture. L'étoile est donc
+              CALCULÉE, pas chargée — ce que la catégorie « Rendu » revendique,
+              démontré à l'échelle de l'écran plutôt qu'affirmé dans une
+              phrase. Voir `components/supernova.tsx`.
+
+              Elle déborde à droite : la section porte `overflow-hidden`, le
+              débordement est donc découpé au bord de l'écran et ne crée
+              aucune barre de défilement. Un objet qui touche le bord du
+              format est ce qui distingue une affiche d'une carte posée dans
+              une grille. */}
+          <div className="relative -mr-6 sm:-mr-10 lg:-mr-40 xl:-mr-64">
+            <Supernova className="block aspect-[4/3] w-full text-signal" />
+          </div>
+
+          {/* La légende de planche. Elle dit ce qu'on regarde et mène à sa
+              fiche : sans elle, la plus belle pièce du site serait la seule
+              qu'on ne puisse pas aller chercher. */}
+          <p className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <Link href="/composants/halftone" className="lien cote">
+              Halftone
+            </Link>
+            <span className="cote text-sourdine">
+              trame calculée · 84 colonnes · aucune image chargée
+            </span>
+          </p>
         </div>
       </div>
       </Section>

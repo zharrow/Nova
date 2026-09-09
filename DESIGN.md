@@ -429,6 +429,33 @@ couleur d'accent système ferait une troisième occurrence de signal par écran.
   — `calc(0.825rem + 1.5rem + 0.78 * clamp(...))` — et non mesuré en JavaScript : le
   `0.78em` est la distance du haut de la ligne à la ligne de base pour Bricolage
   Grotesque. Approximation assumée, vérifiée à 3 px près sur un titre de 58 px.
+### La supernova de l'accueil
+
+Le premier écran ne montre plus une case du catalogue, mais **une supernova en trame**,
+qui déborde du format par la droite. La case était juste — le même objet partout — mais
+elle faisait de l'affiche une vitrine de plus : un cadre, une étiquette, un lien. Une
+affiche n'expose pas une fiche produit, elle montre la chose elle-même, en grand, sans
+cadre.
+
+C'est `Halftone`, pris par sa porte la moins connue : une **fonction de couverture**.
+L'étoile est donc calculée, pas chargée — ce que la catégorie « Rendu » revendique,
+démontré à l'échelle de l'écran au lieu d'être affirmé dans une phrase.
+
+Quatre termes la composent, et le dernier est celui qui empêche la figure d'être un
+mandala : un halo qui porte tout le dégradé (sans lui, tous les modules sortent de la
+même taille et l'étoile est une tache), un cœur qui sature un disque minuscule, une onde
+de choc modulée en angle, et **dix-sept rais** de matière projetée. Sans les rais, des
+cercles concentriques : un astre calme, jamais une explosion.
+
+**Elle éclôt une fois, puis s'arrête.** Toute la figure part à 9 % de sa taille et
+grandit d'un coup : les premières images sont un point. Ce n'est pas une boucle —
+« énergie : immobile, sauf un point », et ce point reste le bandeau. Ensuite l'étoile ne
+bouge plus, elle RÉPOND : les modules gonflent sous le curseur. En mouvement réduit,
+aucune éclosion — elle naît finie, comme l'exige l'état par défaut visible.
+
+L'éclosion passe par `onTick`, la boucle partagée de la librairie, et non par un
+`requestAnimationFrame` à elle. La vitrine se tient à la règle qu'elle vend.
+
 - **Rien n'est centré au niveau de la page.**
 - **La prose ne dépasse jamais 62 caractères. Tout ce qui est mécanique — scène, code,
   tableau — prend 100% de la colonne.** Aucune largeur intermédiaire : la page alterne
@@ -769,3 +796,4 @@ Ce document sert à éviter que chaque écran soit redécidé à la main, pas à
 | 2026-09-09 | Les liens de navigation restent neutres | Trois liens bleus dans une barre, vingt-trois dans une colonne, ne signalent plus une action : ils peignent le chrome, et le bleu perd ce qu'il vient de gagner ailleurs. Une navigation se lit à sa position. |
 | 2026-09-09 | Les neutres portent la teinte du signal à chroma minuscule | Une couleur de marque vit dans les gris autant que dans les accents. Clartés inchangées, contrastes identiques à un dixième près. |
 | 2026-09-09 | La ligne de commande est colorisée | Passée aux règles du TSX elle ne déclenchait rien : la ligne qu'on vient copier était la seule sans couleur de la page. |
+| 2026-09-09 | Une supernova calculée remplace la case du catalogue sur l'affiche | La case répétait le catalogue au lieu de porter la page : un cadre, une étiquette, un lien. Une affiche montre la chose, pas sa fiche. `Halftone` par sa fonction de couverture prouve « aucune ressource chargée » à l'échelle de l'écran, au lieu de l'affirmer. |
