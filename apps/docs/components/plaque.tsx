@@ -117,9 +117,16 @@ export function Plaque({
  * Ce que ce n'est PAS : une barre de progression. Le rideau de Nova ne mesure
  * aucun chargement, et lui prêter une jauge serait mentir sur ce qu'il fait.
  */
-export function Repere({ className }: { className?: string }) {
+export function Repere({
+  className,
+  ref,
+}: {
+  className?: string;
+  ref?: React.Ref<HTMLSpanElement>;
+}) {
   return (
     <Marque
+      ref={ref}
       className={cn(
         "mx-auto aspect-square h-[clamp(28px,32%,64px)] text-second",
         className,

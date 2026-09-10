@@ -570,27 +570,185 @@
   transform: translateY(-0.9rem);
 }
 
-/* `blades` — les lames se retirent l'une après l'autre. */
+/* Les dix rideaux à lames.
+
+   UNE SEULE MÉCANIQUE, dix déclarations de sortie. Le moteur ne pose qu'une
+   grille de pièces, un retard et parfois une origine ; tout ce qui suit est du
+   CSS conditionné par `data-nova-loader`. C'est ce qui permet d'ajouter une
+   onzième chorégraphie sans toucher à une ligne de JavaScript.
+
+   Les pièces sont positionnées en absolu et non en `flex` : une lame verticale
+   est un cas particulier de grille — une colonne sur un rang — et `diagonal`
+   comme `checker` en demandent plusieurs. */
 .nova-loader__blades {
   position: absolute;
   inset: 0;
-  display: flex;
 }
 .nova-loader__blade {
-  flex: 1;
-  margin-right: -1px;
+  position: absolute;
   /* `currentColor` comme `blinds` : un `#fff` en dur posait un aplat blanc
      sur toute application sombre, et c'est le premier réglage qu'on oublie. */
   background: var(--nova-loader-color, var(--nova-fond, currentColor));
-  transform-origin: 50% 0%;
-  /* La durée vient du moteur : lui seul connaît le nombre de lames, donc
-     l'étalement, donc ce qui reste du budget de sortie pour une course. */
-  transition: transform
-    var(--nova-loader-blade, calc(var(--nova-loader-exit, 700ms) * 0.55))
-    var(--nova-ease-expo) var(--nova-blade-delay, 0ms);
+  transform-origin: var(--nova-blade-origin, 50% 0%);
+  /* La durée vient du moteur : lui seul connaît la grille, donc l'étalement,
+     donc ce qui reste du budget de sortie pour la course d'une pièce. */
+  transition-property: transform, opacity;
+  transition-duration: var(
+    --nova-loader-blade,
+    calc(var(--nova-loader-exit, 700ms) * 0.55)
+  );
+  transition-timing-function: var(--nova-ease-expo);
+  transition-delay: var(--nova-blade-delay, 0ms);
 }
-[data-nova-loader-state="leaving"] .nova-loader__blade {
+
+/* Le retrait par la hauteur : la pièce se replie sur son bord. `alternate`
+   dirige ce bord une lame sur deux, ce qui déchire le rideau au lieu de le
+   lever ; `center` et `edge` ne changent que l'ordre de départ. */
+[data-nova-loader="blades"][data-nova-loader-state="leaving"] .nova-loader__blade,
+[data-nova-loader="alternate"][data-nova-loader-state="leaving"] .nova-loader__blade,
+[data-nova-loader="center"][data-nova-loader-state="leaving"] .nova-loader__blade,
+[data-nova-loader="edge"][data-nova-loader-state="leaving"] .nova-loader__blade {
   transform: scaleY(0);
+}
+
+/* Le retrait par la largeur. `accordion` reçoit son bord du moteur — vers le
+   centre, donc opposé d'une moitié à l'autre ; `slats` a le sien en dur. */
+[data-nova-loader="accordion"][data-nova-loader-state="leaving"] .nova-loader__blade,
+[data-nova-loader="slats"][data-nova-loader-state="leaving"] .nova-loader__blade {
+  transform: scaleX(0);
+}
+[data-nova-loader="slats"] .nova-loader__blade {
+  transform-origin: 0% 50%;
+}
+
+/* `shutter` — la seule chorégraphie en perspective. La perspective va sur le
+   CONTENEUR : posée sur la pièce, chaque lame aurait son propre point de fuite
+   et la jalousie s'ouvrirait en éventail. */
+[data-nova-loader="shutter"] .nova-loader__blades {
+  perspective: 900px;
+}
+[data-nova-loader="shutter"] .nova-loader__blade {
+  transform-origin: 0% 50%;
+  backface-visibility: hidden;
+}
+[data-nova-loader="shutter"][data-nova-loader-state="leaving"] .nova-loader__blade {
+  transform: rotateY(-84deg);
+  opacity: 0.15;
+}
+
+/* `slide` — les lames ne se réduisent pas, elles sortent du cadre. 101 % et
+   non 100 : à la valeur exacte, l'arrondi sous-pixel laisse une raie du voile
+   collée au bord. */
+[data-nova-loader="slide"][data-nova-loader-state="leaving"] .nova-loader__blade {
+  transform: translateY(-101%);
+}
+
+/* Les deux grilles : la pièce se retire sur elle-même, donc depuis son centre. */
+[data-nova-loader="diagonal"] .nova-loader__blade,
+[data-nova-loader="checker"] .nova-loader__blade {
+  transform-origin: 50% 50%;
+}
+[data-nova-loader="diagonal"][data-nova-loader-state="leaving"] .nova-loader__blade {
+  transform: scale(0);
+}
+[data-nova-loader="checker"][data-nova-loader-state="leaving"] .nova-loader__blade {
+  transform: rotate(10deg) scale(0);
+}
+
+/* `edge` — le trait RIDE le bord bas de la lame pendant qu'elle se replie.
+   Sans lui la lame semble s'évaporer ; avec lui, on voit un bord se retirer.
+   Il court en deux fois moins de temps que la lame : un trait qui filerait
+   aussi lentement qu'elle arriverait au bout quand il n'y a plus de bord. */
+[data-nova-loader="edge"] .nova-loader__blade::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: var(--nova-loader-accent, var(--nova-accent, currentColor));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform
+    calc(var(--nova-loader-blade, calc(var(--nova-loader-exit, 700ms) * 0.55)) * 0.5)
+    ease-out var(--nova-blade-delay, 0ms);
+}
+[data-nova-loader="edge"][data-nova-loader-state="leaving"] .nova-loader__blade::after {
+  transform: scaleX(1);
+}
+
+/* `settle` — la marque rejoint sa place, et EMPORTE le voile.
+
+   Un seul geste : la marque vole vers son emplacement dans la page pendant que
+   le panneau se rétracte SUR ELLE, disque qui se referme et s'éteint à
+   l'instant du contact. Le moteur mesure et anime — c'est le seul endroit de
+   Nova où le CSS ne peut pas suffire, puisqu'il faut deux rectangles que seule
+   la mise en page connaît. Ce qui reste ici est le décor de ce geste. */
+[data-nova-loader="settle"] .nova-loader__panel {
+  position: absolute;
+  inset: 0;
+  background: var(--nova-loader-color, var(--nova-fond, currentColor));
+}
+
+/* Le liseré : un cercle d'un rayon d'UNE unité, mis à l'échelle du disque.
+   `non-scaling-stroke` garde son trait à un pixel quel que soit le facteur —
+   aucune bordure CSS ne sait faire ça sur une forme qui passe de mille pixels
+   à zéro. Sans lui, le disque est un masque ; avec lui, une matière qui se
+   referme. */
+[data-nova-loader="settle"] .nova-loader__rim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1;
+}
+[data-nova-loader="settle"] .nova-loader__rim circle {
+  fill: none;
+  stroke: var(--nova-loader-accent, var(--nova-accent, currentColor));
+  stroke-width: 1;
+  /* Nul tant que le vol n'a pas commencé : le cercle est à l'échelle 1, donc
+     d'un rayon d'un pixel au centre de l'écran, et on le verrait. */
+  opacity: 0;
+}
+[data-nova-loader="settle"][data-nova-settle="flying"] .nova-loader__rim circle {
+  opacity: 1;
+}
+
+/* LA MARQUE NE S'EFFACE PAS. Toutes les autres formes font disparaître leur
+   contenu à la sortie ; celle-ci en fait le sujet. Un fondu pendant le vol
+   donnerait exactement ce qu'on cherche à éviter : deux gestes lus l'un sur
+   l'autre, un objet qui part et un objet qui s'éteint. */
+[data-nova-loader="settle"] .nova-loader__content {
+  position: relative;
+  z-index: 2;
+  transition: none;
+  /* EN FLEX, ET C'EST UNE CORRECTION DE JUSTESSE. Le moteur vise le centre de
+     cette boîte ; en flux en ligne, un SVG ou une image y ajoute l'espace du
+     jambage sous la ligne de base, si bien que le centre MESURÉ tombe quelques
+     pixels sous le centre VU. La marque volait alors décalée du disque, et
+     c'est exactement ce que cette forme ne peut pas se permettre. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+[data-nova-loader="settle"][data-nova-loader-state="leaving"]
+  .nova-loader__content {
+  opacity: 1;
+  transform: none;
+}
+
+/* Le repli, quand la cible n'existe pas. Le vol n'a pas eu lieu et rien ne
+   prétend le contraire : le voile s'efface, point. */
+[data-nova-loader="settle"][data-nova-settle="fallback"] .nova-loader__panel,
+[data-nova-loader="settle"][data-nova-settle="fallback"] .nova-loader__content {
+  transition: opacity var(--nova-loader-exit, 700ms) ease-out;
+}
+[data-nova-loader="settle"][data-nova-settle="fallback"][data-nova-loader-state="leaving"]
+  .nova-loader__panel,
+[data-nova-loader="settle"][data-nova-settle="fallback"][data-nova-loader-state="leaving"]
+  .nova-loader__content {
+  opacity: 0;
 }
 
 /* `greetings` — le mot d'accueil, remplacé à chaque pas.
@@ -1308,4 +1466,303 @@ html.lenis body {
   [data-nova-text="roll"] .nova-roll i:first-child {
     display: none;
   }
+}
+
+/* --------------------------------------------------------------------------
+   Progress — rendre compte de l'avancement
+
+   UNE SEULE MÉCANIQUE POUR CINQ FORMES SUR SIX : une couche éteinte, une
+   couche allumée par-dessus, et la seconde DÉCOUPÉE à l'avancement. Le
+   JavaScript ne repose que `--nova-progress` ; allumer les graduations une à
+   une aurait demandé de repasser sur n nœuds à chaque valeur, pour un résultat
+   que `clip-path` obtient sans une ligne. Seul `count` écrit du texte.
+   -------------------------------------------------------------------------- */
+
+[data-nova-progress] {
+  position: relative;
+  display: block;
+}
+
+/* Le découpage commun. `--nova-progress` va de 0 à 1 ; la transition porte sur
+   le DÉCOUPAGE, ce qui rattrape en douceur une mesure qui saute d'un cran. */
+[data-nova-progress] [data-nova-on],
+.nova-progress__fill {
+  clip-path: inset(0 calc(100% - var(--nova-progress, 0) * 100%) 0 0);
+  transition: clip-path var(--nova-progress-duration, 320ms) var(--nova-ease-out);
+}
+
+/* UNE JAUGE EST DE L'INFORMATION, PAS DE LA DÉCORATION. En mouvement réduit
+   elle reste affichée et continue de se mettre à jour : seul le rattrapage
+   animé disparaît. Masquer un avancement retirerait une information à ceux
+   qu'on cherche à ménager. */
+@media (prefers-reduced-motion: reduce) {
+  [data-nova-progress] [data-nova-on],
+  .nova-progress__fill,
+  .nova-progress__ring-fill,
+  .nova-progress__edge {
+    transition: none !important;
+  }
+}
+
+/* `bar` — le filet qui se remplit. */
+.nova-progress__track {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  height: var(--nova-progress-thickness, 2px);
+}
+/* La piste est atténuée par un calque et non par `opacity` sur la boîte :
+   l'opacité du parent aurait aussi atténué le remplissage, qui doit rester
+   plein. C'est le même écart que sur l'anneau et les graduations. */
+.nova-progress__track::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--nova-progress-track, currentColor);
+  opacity: 0.25;
+}
+.nova-progress__track > .nova-progress__fill {
+  display: block;
+  position: absolute;
+  inset: 0;
+  background: var(--nova-progress-fill, var(--nova-accent, currentColor));
+}
+
+/* `ticks` — la règle graduée.
+
+   Le PAS SE RESSERRE vers la fin : les positions viennent du moteur, qui seul
+   peut élever un rang à une puissance. C'est là que le regard s'attarde, et
+   c'est là qu'une règle doit avoir de la résolution — une graduation à pas
+   constant est un gabarit. */
+.nova-progress__ticks {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: var(--nova-progress-track, currentColor);
+  opacity: 0.35;
+}
+.nova-progress__ticks[data-nova-on] {
+  opacity: 1;
+  color: var(--nova-progress-fill, var(--nova-accent, currentColor));
+}
+/* L'ARÊTE. Sans elle, les graduations larges du début se lisent comme des
+   traits MANQUANTS et non comme une échelle grossière — c'était le défaut du
+   premier essai. Une règle a un bord ; les graduations montent depuis lui. Et
+   comme l'arête appartient aux deux couches, elle s'allume avec elles : le
+   bord se remplit en même temps que la course. */
+.nova-progress__ticks::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: currentColor;
+}
+.nova-progress__ticks-piece {
+  position: absolute;
+  /* Les graduations montent DEPUIS l'arête, comme sur un réglet. */
+  top: 55%;
+  bottom: 0;
+  width: 1px;
+  background: currentColor;
+}
+/* Une graduation sur quatre monte à pleine hauteur : sans repère long, on lit
+   une trame et non une règle. */
+.nova-progress__ticks-piece:nth-child(4n + 1) {
+  top: 0;
+}
+[data-nova-progress="ticks"] {
+  height: var(--nova-progress-height, 1.5rem);
+}
+
+/* `blades` — des lames qui se retirent au rythme de l'avancement. */
+.nova-progress__blades {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.nova-progress__blades-piece {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--nova-progress-track, currentColor);
+  opacity: 0.35;
+}
+.nova-progress__blades[data-nova-on] .nova-progress__blades-piece {
+  opacity: 1;
+  background: var(--nova-progress-fill, var(--nova-accent, currentColor));
+}
+[data-nova-progress="blades"] {
+  height: var(--nova-progress-height, 1.5rem);
+}
+
+/* `ring` — l'anneau qui se referme.
+
+   `stroke-dashoffset` se déduit de l'avancement et de la circonférence, toutes
+   deux en variables : aucune mise à jour ne repasse par le JavaScript. */
+.nova-progress__ring {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.nova-progress__ring-track,
+.nova-progress__ring-fill {
+  fill: none;
+  stroke-width: var(--nova-progress-thickness, 6);
+  stroke-linecap: round;
+}
+.nova-progress__ring-track {
+  stroke: var(--nova-progress-track, currentColor);
+  opacity: 0.25;
+}
+.nova-progress__ring-fill {
+  stroke: var(--nova-progress-fill, var(--nova-accent, currentColor));
+  stroke-dasharray: var(--nova-progress-circ, 264);
+  stroke-dashoffset: calc(
+    var(--nova-progress-circ, 264) * (1 - var(--nova-progress, 0))
+  );
+  transition: stroke-dashoffset var(--nova-progress-duration, 320ms)
+    var(--nova-ease-out);
+}
+[data-nova-progress="ring"] {
+  width: var(--nova-progress-size, 4rem);
+  height: var(--nova-progress-size, 4rem);
+}
+
+/* `curve` — la courbe d'accélération du geste, parcourue.
+
+   La seule forme qui ne pouvait venir que d'une librairie de mouvement : ce
+   qu'on lit n'est pas une quantité abstraite, c'est LA courbe qui fait bouger
+   le geste qu'on attend. Deux `<svg>` superposés, le second découpé par la
+   règle commune — même mécanique que les graduations et les lames. */
+[data-nova-progress="curve"] {
+  height: var(--nova-progress-height, 3rem);
+}
+.nova-progress__curve {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.nova-progress__curve-track,
+.nova-progress__curve-fill {
+  fill: none;
+  stroke-width: var(--nova-progress-thickness, 1.5);
+}
+.nova-progress__curve-track {
+  stroke: var(--nova-progress-track, currentColor);
+  opacity: 0.3;
+}
+.nova-progress__curve-fill {
+  stroke: var(--nova-progress-fill, var(--nova-accent, currentColor));
+}
+
+/* `count` — le nombre écrit.
+
+   La seule forme qui repasse par le JavaScript, parce que le CSS n'écrit pas
+   de texte. Elle NE compte pas : elle relève. Un nombre qui monte une fois
+   vers sa cible est `Counter`, un autre geste et un autre composant. */
+.nova-progress__count {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  color: var(--nova-progress-fill, currentColor);
+}
+
+/* Le bord d'attaque de l'état INDÉTERMINÉ.
+
+   Quand la valeur est inconnue, la jauge avance quand même — une jauge
+   immobile ressemble à une panne — mais son bord devient hachuré : ce qui
+   suit est estimé, pas compté. C'est le seul traitement qui ne ment pas, et
+   il coûte une règle. Il est toujours dans l'arbre, masqué quand la valeur est
+   connue : le monter en pleine course ferait apparaître un nœud. */
+.nova-progress__edge {
+  display: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--nova-progress, 0) * 100%);
+  width: var(--nova-progress-edge, 2rem);
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--nova-progress-fill, var(--nova-accent, currentColor)) 0 2px,
+    transparent 2px 6px
+  );
+  mask-image: linear-gradient(to right, #000, transparent);
+  transition: left var(--nova-progress-duration, 320ms) var(--nova-ease-out);
+}
+[data-nova-progress-state="indeterminate"] .nova-progress__edge {
+  /* IL FAUT QUE ÇA BOUGE. Une valeur inconnue laisse `--nova-progress` à zéro,
+     donc sans balayage la jauge reste parfaitement immobile — et une jauge
+     immobile ne se lit pas comme « on ne sait pas », elle se lit comme une
+     panne. Le balayage ne prétend rien : il ne remplit pas, il PARCOURT, et sa
+     hachure dit que rien n'est compté.
+
+     Toute la largeur, la hachure confinée aux deux derniers rem, et un
+     `translateX` de -100 % à 0 : le pourcentage se rapporte à la largeur de
+     l'élément, donc à celle de la piste, et la bande la traverse exactement une
+     fois. C'est le seul montage qui balaye une distance inconnue à l'avance
+     SANS animer une propriété de mise en page. */
+  display: block;
+  left: 0;
+  width: 100%;
+  background: none;
+  mask-image: none;
+  animation: nova-progress-sweep 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  transition: none;
+}
+[data-nova-progress-state="indeterminate"] .nova-progress__edge::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: var(--nova-progress-edge, 2rem);
+  /* Des traits VERTICAUX, et non une hachure oblique. Une oblique à 115° est
+     illisible dans un filet de deux pixels : on n'y voit qu'un flou. Verticale,
+     la discontinuité se lit à toutes les hauteurs — et c'est elle qui porte le
+     sens, puisque « discontinu » veut dire « non compté ». */
+  background: repeating-linear-gradient(
+    90deg,
+    var(--nova-progress-fill, var(--nova-accent, currentColor)) 0 2px,
+    transparent 2px 6px
+  );
+  mask-image: linear-gradient(to left, #000, transparent);
+}
+@keyframes nova-progress-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* EN MOUVEMENT RÉDUIT, PAS DE BALAYAGE — mais l'information reste. La hachure
+   couvre alors toute la piste : immobile, elle dit encore « rien n'est compté
+   ici », ce qu'une jauge vide ne dirait pas. */
+@media (prefers-reduced-motion: reduce) {
+  [data-nova-progress-state="indeterminate"] .nova-progress__edge {
+    animation: none;
+    transform: none;
+  }
+  [data-nova-progress-state="indeterminate"] .nova-progress__edge::after {
+    width: 100%;
+    mask-image: none;
+    opacity: 0.55;
+  }
+}
+
+/* L'anneau n'a pas de bord d'attaque horizontal : son estimation se dit par un
+   trait discontinu sur tout le tracé. */
+[data-nova-progress="ring"] .nova-progress__edge {
+  display: none;
+}
+[data-nova-progress="ring"][data-nova-progress-state="indeterminate"]
+  .nova-progress__ring-fill {
+  stroke-dasharray: 6 5;
+  stroke-dashoffset: 0;
+  opacity: 0.75;
 }

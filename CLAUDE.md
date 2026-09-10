@@ -58,6 +58,17 @@ s'arrête dès qu'il n'a plus d'abonné. Un moteur qui ouvre son propre
 `IntersectionObserver` : le pool de `internal/in-view.ts` mutualise par couple
 (rootMargin, threshold).
 
+**Couvert n'est pas vu.** Un rideau de page se déclare dans
+`internal/curtain.ts`, et tant qu'il est posé, les moteurs d'entrée RETIENNENT
+leur geste — `isAlreadyInView` renvoie faux, et le pool de `internal/in-view.ts`
+diffère ses rappels. Sans cela, tout ce qui est dans la fenêtre au montage
+renonce à son entrée pendant que le voile couvre, et le voile se lève sur une
+page qui est simplement LÀ : le geste que le rideau promettait n'existe pas, et
+on ne l'obtenait qu'en câblant un état à la main dans l'application. Corollaire :
+ce qui déborde de sa propre boîte — le registre ET le drapeau `data-nova-loaded`
+sur `<html>` — est conditionné à `covers: "page"`. Un rideau d'encadré, celui
+d'une démonstration, ne retient rien et n'annonce rien.
+
 **Tout moteur se démonte proprement.** `destroy()` rend l'élément à son état de
 départ : listeners retirés, observers détachés, ticker désabonné, DOM injecté
 retiré, attributs et variables CSS supprimés. Il existe un test par moteur.
@@ -152,6 +163,19 @@ autrement.
 
 Chacun a coûté un débogage. Ils sont ici pour ne pas le repayer.
 
+### Outillage
+
+- **Ne jamais lancer `pnpm build` pendant qu'un `next dev` tourne.** `tsup` VIDE
+  `packages/core/dist` au début de chaque build. Si le serveur de développement
+  compile pendant cette fenêtre, il ne trouve ni `dist/nova.css` ni les
+  sous-chemins d'`exports`, et **Turbopack mémorise l'échec** : l'erreur
+  survit à la reconstruction, à un rechargement et même à un redémarrage du
+  serveur. Le symptôme est un `CssSyntaxError` sur `globals.css` disant
+  « Package path ./styles.css is exported ... but no valid target file was
+  found », alors que le fichier est bien là et que `require.resolve` le trouve.
+  Seul `rm -rf apps/docs/.next` en sort. Arrêter le serveur avant de construire,
+  ou construire d'abord et lancer le serveur ensuite.
+
 ### Bundling et frontière serveur
 
 - **`"use client"` disparaît au bundling.** esbuild supprime le prologue de
@@ -220,6 +244,13 @@ Chacun a coûté un débogage. Ils sont ici pour ne pas le repayer.
   `` `-left-[${MARGE}]` `` produit à l'exécution un nom de classe correct qui
   ne correspond à aucune règle — rien ne bouge, rien ne prévient. Écrire la
   valeur en clair et mettre la constante dans le commentaire, jamais l'inverse.
+- **Un pourcentage dans un `clamp()` de hauteur ne résout rien sous un parent
+  en hauteur automatique.** `h-[clamp(28px,32%,64px)]` sur `Repere` donnait un
+  élément de 0 × 0 dans `.nova-loader__content`, qui se dimensionne sur son
+  contenu : le pourcentage n'a pas de référent, la déclaration tombe, et le
+  repère de la démonstration du Loader était invisible sans que rien ne le
+  signale. Le même composant marche partout ailleurs parce qu'il y vit dans une
+  boîte en `inset: 0`. Même famille de piège que `dial` ci-dessous.
 - **La feuille de style de Nova est chargée APRÈS celle du projet.** À
   spécificité égale, elle gagne. Ne jamais y poser de dimension, de marge ou de
   couleur de fond sur un élément que l'appelant habille : `width: 100%` sur le
@@ -286,6 +317,22 @@ Deux conventions :
 Un test qui mesure une valeur en cours d'animation dépend de la charge de la
 machine. Soit on porte la durée à une valeur qui rend la mesure déterministe,
 soit on assume une tolérance et on l'écrit.
+
+Deux pièges des faux minuteurs, chacun payé une fois :
+
+- **`vi.useFakeTimers()` simule les IMAGES, pas leur horodatage.** Les
+  `requestAnimationFrame` se déclenchent bien quand on avance l'horloge, mais
+  l'argument reçu par le callback reste sur l'horloge réelle : mille
+  millisecondes avancées n'en font passer que trois. Un moteur qui divise cet
+  horodatage par un budget tenu en `setTimeout` mélange deux horloges — il
+  affichait 0,2 % d'avancement là où il en fallait 70. Mesurer une fraction de
+  budget sur l'horloge du budget, donc `Date.now()`.
+- **Un moteur qui survit à son test bloque le ticker pour tous les suivants.**
+  Le ticker est un module global : si le dernier abonné n'est jamais retiré, il
+  garde `frame` non nul avec un handle qui appartient à l'horloge que
+  `useRealTimers()` vient de jeter. Plus aucun abonné n'est appelé ensuite, dans
+  aucun test, sans le moindre message. Enregistrer les instances créées et les
+  démonter en `afterEach` — voir `test/loader.test.ts`.
 
 ## Vitrine
 

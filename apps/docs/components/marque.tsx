@@ -19,9 +19,17 @@ import { cn } from "@/lib/utils";
  * Le jour où le symbole est vectorisé proprement (le README du kit le
  * recommande), il remplace le masque ici et rien d'autre ne bouge.
  */
-export function Marque({ className }: { className?: string }) {
+export function Marque({
+  className,
+  ref,
+}: {
+  className?: string;
+  /** Pour désigner la marque à un moteur — la place que le rideau rejoint. */
+  ref?: React.Ref<HTMLSpanElement>;
+}) {
   return (
     <span
+      ref={ref}
       aria-hidden
       className={cn("inline-block shrink-0 bg-current", className)}
       style={{

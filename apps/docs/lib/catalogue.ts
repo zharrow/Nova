@@ -313,10 +313,22 @@ export const REGLAGES: Record<string, Reglage[]> = {
      fiche on le regarde. Ils doivent rester alignés sur les valeurs codées
      dans `DemoLoader` — ce sont ces réglages-ci qui gagnent sur la fiche, et
      celles-là qui servent en grille. */
+  /* `blades` a pris la place de `stepMs` le jour où dix chorégraphies de lames
+     sont arrivées : il pilote désormais dix formes sur treize, contre une
+     seule pour la cadence des mots. Trois curseurs restent le plafond du
+     catalogue — un panneau qui déborde ne se règle plus, il se subit. */
+  /* `value` en curseur : c'est LA démonstration de cette famille — on scrube
+     la jauge à la main et on voit ce que chaque forme fait d'une valeur. Un
+     bouton « rejouer » ne montrerait qu'une course, toujours la même. */
+  progress: [
+    N("value", "Valeur", 0, 1, 0.01, 0.62),
+    N("steps", "Pièces", 4, 48, 1, 28),
+    N("duration", "Rattrapage", 0, 1200, 20, 320, "ms"),
+  ],
   loader: [
     N("holdMs", "Maintien", 400, 4000, 100, 1800, "ms"),
     N("exitMs", "Sortie", 300, 2500, 50, 1000, "ms"),
-    N("stepMs", "Cadence des mots", 120, 900, 20, 340, "ms"),
+    N("blades", "Lames", 2, 16, 1, 6),
   ],
   flight: [
     N("duration", "Durée", 200, 2500, 50, 900, "ms"),
@@ -371,6 +383,7 @@ export const DEPENDANCES: Record<string, string[]> = {
   lightbox: ["gsap", "radix-ui"],
   "smooth-scroll": ["lenis"],
   "date-picker": ["radix-ui", "react-day-picker"],
+  progress: ["radix-ui"],
 };
 
 /** Les dépendances d'une famille. Vide quand le moteur suffit. */
@@ -989,44 +1002,121 @@ export const familles: Fiche[] = [
 </h2>`,
   },
   {
+    nom: "progress",
+    geometrie: "bande",
+    titre: "Progress",
+    categorie: "donnees",
+    nouveau: true,
+    accroche: "La jauge d'avancement, en six formes.",
+    apport:
+      "Le compte rendu d'une attente, et il vit seul parce qu'on le veut seul : un téléversement, un envoi de formulaire, une vidéo en tampon n'ont pas de rideau. Radix apporte la sémantique — le rôle, les bornes, et le retrait d'aria-valuenow quand la valeur est inconnue — Nova apporte le geste. Cinq formes sur six sont dessinées ENTIÈREMENT par le CSS : le moteur ne pose que --nova-progress, une couche allumée est découpée sur une couche éteinte, et rien ne repasse en JavaScript quand la valeur bouge. Surtout : une valeur inconnue est marquée comme telle. value: null fait avancer la jauge — immobile, elle ressemblerait à une panne — mais hachure son bord d'attaque, ce qui dit que la suite est estimée et non comptée. C'est le seul traitement qui ne ment pas, et il coûte une règle.",
+    voie: "option",
+    formeProp: "form",
+    formes: [
+      { id: "bar", nom: "Filet", note: "La référence : un trait qui se remplit. Le plus discret, et celui qu'on met dans une marge sans y penser." },
+      { id: "ticks", nom: "Règle graduée", note: "Une règle d'établi dont LE PAS SE RESSERRE vers la fin. Ce n'est pas un ornement : la fin de course est là où le regard s'attarde, donc là où une jauge doit avoir de la résolution. Une graduation à pas constant est un gabarit." },
+      { id: "curve", nom: "Courbe", note: "La courbe d'accélération du geste, parcourue par un point. La seule forme qui ne pouvait venir que d'une librairie de mouvement : ce qu'on lit n'est pas une quantité abstraite, c'est la courbe qui fait bouger ce qu'on attend." },
+      { id: "ring", nom: "Anneau", note: "Le cercle qui se referme. Pour un endroit où la largeur manque — un bouton, une vignette. Son état inconnu se dit par un tracé discontinu, faute de bord d'attaque." },
+      { id: "blades", nom: "Lames", note: "Des lames qui s'allument au rythme de l'avancement. La forme qui rime avec le rideau de Loader : le voile cesse d'être ce qui cache pour devenir ce qui mesure." },
+      { id: "count", nom: "Nombre", note: "Le pourcentage écrit. Elle RELÈVE, elle ne compte pas — un nombre qui monte une fois vers sa cible est Counter, un autre geste et un autre composant." },
+    ],
+    options: [
+      { nom: "form", type: "bar · ticks · curve · ring · blades · count", defaut: "bar", role: "Forme de la jauge." },
+      { nom: "value", type: "number · null", defaut: "0", role: "Avancement de 0 à 1. null signifie INCONNU : la jauge avance mais marque son bord comme estimé." },
+      { nom: "steps", type: "number", defaut: "28 · 12", role: "Nombre de pièces — graduations pour ticks, lames pour blades." },
+      { nom: "duration", type: "number", defaut: "320", role: "Rattrapage entre deux valeurs, en ms. Sans lui, une mesure qui saute d'un cran se lit comme un à-coup." },
+      { nom: "curve", type: "[number, number, number, number]", defaut: "0.16, 1, 0.3, 1", role: "Les points de contrôle tracés par la forme curve." },
+      { nom: "decimals", type: "number", defaut: "0", role: "Décimales du nombre, pour count." },
+      { nom: "locale", type: "string", defaut: "—", role: "Locale de formatage, pour count. Sans locale, pas de séparateur." },
+      { nom: "label", type: "string", defaut: "—", role: "Texte lu à la place du pourcentage. Pour dire « 3 images sur 7 »." },
+    ],
+    usage: `/* La jauge prend une valeur, d'où qu'elle vienne. */
+<Progress
+  form="ticks"
+  value={0.62}
+  steps={28}
+  duration={320}
+/>
+
+/* Branchée sur l'attente, elle rend compte de ce qu'on guette vraiment : */
+const { progress } = useReady({ until: ["fonts", "images"] });
+<Progress form="curve" value={progress} />
+
+/* Et quand on ne SAIT PAS compter, on le dit — la jauge avance, mais son
+   bord d'attaque est hachuré : */
+<Progress form="bar" value={null} label="Envoi en cours" />`,
+  },
+  {
     nom: "loader",
     valide: true,
     geometrie: "bloc",
     titre: "Loader",
     categorie: "effets",
     nouveau: true,
-    accroche: "Le rideau d'ouverture, en trois formes.",
+    accroche: "Le rideau d'ouverture, et ce qu'il attend.",
     apport:
-      "Trois rideaux récoltés dans trois projets, qui ne se ressemblent pas mais partagent tout ce qui compte. Quatre garde-fous, tous non négociables : il se saute à la première interaction, il ne rejoue pas dans la même session, il n'existe pas en mouvement réduit — pas « plus court », absent — et sans JavaScript il n'y a pas de rideau du tout, donc jamais de page bloquée derrière un voile qui ne se lèvera pas.",
+      "Un rideau qui joue sur une durée devinée se trompe forcément : il fait patienter une page déjà prête, ou il se lève sur une page encore trouée. Celui-ci attend un SIGNAL — polices, images, une promesse de l'application — et la durée n'est plus qu'un plancher et un plafond autour de lui. Le plancher parce qu'un rideau qui passe en 80 ms n'est pas un rideau bref mais un clignotement ; le plafond parce qu'aucune attente ne doit être infinie, et qu'une promesse en suspens laisserait sinon le visiteur derrière le voile pour toujours. Une attente se règle d'ailleurs sur le SETTLE et non sur le resolve : un fetch qui échoue est une fin, pas une raison d'attendre. Dix des quatorze formes sont le même rideau à lames — une grille de pièces, un rang de départ et une origine par pièce — et tout ce qui les distingue est du CSS conditionné par un attribut, sous un budget de sortie commun où la dernière pièce finit sa course pile à l'heure. Et pendant qu'il couvre, les animations d'entrée du document RETIENNENT leur geste : sous un voile un élément est dans la fenêtre sans que personne le voie, et le jouer là le dépenserait à vide. C'est ce qui permet à la page d'entrer quand le voile se lève, au lieu d'être simplement là.",
     voie: "option",
     formeProp: "form",
     formes: [
-      { id: "blades", nom: "Lames", note: "Un rideau de lames qui se retirent l'une après l'autre. Le décalage fait le calepinage — un rideau qui tombe d'un bloc n'a pas de matière." },
+      { id: "blades", nom: "Rideau", note: "La référence. Lames verticales, retrait vers le haut, de gauche à droite. Le décalage fait le calepinage — un rideau qui tombe d'un bloc n'a pas de matière." },
+      { id: "alternate", nom: "Alterné", note: "Une lame sur deux part vers le bas. Le rideau ne se lève pas, il se déchire." },
+      { id: "center", nom: "Depuis le centre", note: "Les lames du milieu cèdent d'abord, les bords ferment la marche. Le regard part du sujet, pas du coin." },
+      { id: "accordion", nom: "Accordéon", note: "Les lames se replient latéralement vers le centre, par paires. Le voile se range au lieu de monter." },
+      { id: "slats", nom: "Persienne", note: "Lames horizontales, retrait vers la gauche, de haut en bas. Le rideau devient store." },
+      { id: "shutter", nom: "Volet", note: "Chaque lame pivote sur son bord, comme une jalousie qu'on ouvre. La seule forme en perspective — et la perspective va sur le conteneur : posée sur la lame, chacune aurait son propre point de fuite et l'ouverture partirait en éventail." },
+      { id: "slide", nom: "Glissement", note: "Les lames ne se réduisent pas : elles sortent du cadre par le haut en gardant leur masse. La seule qui déplace de la matière au lieu d'en retirer." },
+      { id: "diagonal", nom: "Diagonale", note: "Le voile devient grille et la vague part du coin. Le grain est plus fin que la lame." },
+      { id: "checker", nom: "Damier", note: "La même grille en deux passes : une case sur deux, puis l'autre moitié. Le fond apparaît en négatif plutôt qu'en vague." },
+      { id: "edge", nom: "Filet", note: "Un trait d'accent file sur le bord bas de chaque lame pendant qu'elle se replie. Sans lui la lame semble s'évaporer ; avec lui, on voit un bord se retirer." },
       { id: "greetings", nom: "Salutations", note: "Un mot d'accueil qui défile en vingt langues, puis s'efface. Il dit qu'on est arrivé quelque part, pas qu'on attend." },
       { id: "splash", nom: "Pastille", note: "Rien ne bouge, le voile s'efface. Le plus sobre — celui d'une application installée, où le rideau ne doit surtout pas se faire remarquer." },
       { id: "seam", nom: "Liseré", note: "Le panneau se lève d'un bloc en laissant filer un liseré. Le liseré est ce qui reste du bord : sans lui, le panneau semble disparaître au lieu de se retirer." },
+      { id: "settle", nom: "Mise en place", note: "La marque rejoint sa place dans la page et EMPORTE le voile : un disque se referme sur elle et s'éteint sous elle au premier contact. La seule forme où il n'y a jamais deux écrans — le même objet s'est déplacé. Sa course est un ressort, pas une durée : elle part de l'immobilité, dépasse sa place et s'y range. Sans place à rejoindre, elle replie sur un simple effacement." },
     ],
     options: [
-      { nom: "form", type: "blades · greetings · splash · seam", defaut: "blades", role: "Forme du rideau." },
-      { nom: "holdMs", type: "number", defaut: "1100", role: "Temps d'affichage avant la sortie." },
-      { nom: "exitMs", type: "number", defaut: "700", role: "Durée de la sortie. Toute la chorégraphie y tient, dernière lame comprise." },
-      { nom: "blades", type: "number", defaut: "6", role: "Nombre de lames, pour la forme blades." },
+      { nom: "form", type: "14 formes", defaut: "blades", role: "Forme du rideau. Dix rideaux à lames, plus greetings, splash, seam et settle." },
+      { nom: "until", type: "\"fonts\" · \"images\" · \"load\" · Promise · (() => Promise) · tableau", defaut: "—", role: "Ce qu'on attend avant de lever le voile. Absent, le rideau retombe sur holdMs." },
+      { nom: "minMs", type: "number", defaut: "600", role: "Plancher. Sous ce seuil un rideau n'est pas bref, il clignote. Lu avec until." },
+      { nom: "maxMs", type: "number", defaut: "8000", role: "Plafond. Le voile se lève même si le signal n'arrive jamais. Lu avec until." },
+      { nom: "holdMs", type: "number", defaut: "1100", role: "Temps d'affichage quand il n'y a rien à attendre." },
+      { nom: "exitMs", type: "number", defaut: "700", role: "Durée de la sortie. Toute la chorégraphie y tient, dernière pièce comprise." },
+      { nom: "blades", type: "number", defaut: "6", role: "Nombre de lames — de colonnes, pour diagonal et checker." },
       { nom: "greetings", type: "string[]", defaut: "20 langues", role: "Les mots d'accueil, pour la forme greetings." },
       { nom: "stepMs", type: "number", defaut: "200", role: "Cadence du défilé des mots, pour la forme greetings." },
+      { nom: "settleTo", type: "string · HTMLElement", defaut: "[data-nova-settle]", role: "Où la marque va se poser, pour la forme settle. La page déclare elle-même son emplacement. Introuvable ou de taille nulle, le rideau replie sur un effacement." },
+      { nom: "settleArc", type: "number", defaut: "0.16", role: "Cambrure du vol, en fraction de la distance. 0 donne une ligne droite — qui se lit comme un calcul et non comme un geste." },
+      { nom: "covers", type: "page · element", defaut: "page", role: "Ce que le rideau couvre. En page, il RETIENT les animations d'entrée du document jusqu'à sa sortie — c'est ce qui permet à la page d'entrer au lieu d'être déjà là. En element, il ne retient rien." },
       { nom: "skippable", type: "boolean", defaut: "true", role: "Une interaction termine le rideau." },
       { nom: "sessionKey", type: "string · null", defaut: "nova:loader", role: "Clé de session. null le fait rejouer à chaque montage." },
-      { nom: "onDone", type: "() => void", defaut: "—", role: "Appelé à la fin, ou tout de suite s'il ne joue pas." },
+      { nom: "onProgress", type: "(part: number) => void", defaut: "—", role: "Avancement de 0 à 1. La même valeur est posée en --nova-loader-progress : la barre, c'est votre CSS qui la dessine." },
+      { nom: "onReveal", type: "() => void", defaut: "—", role: "Appelé au DÉBUT de la sortie. L'entrée de la page doit chevaucher le retrait du voile, pas le suivre." },
+      { nom: "onDone", type: "() => void", defaut: "—", role: "Appelé quand le voile a fini d'être retiré, ou tout de suite s'il ne joue pas." },
     ],
-    usage: `/* Une seule fois, dans le layout racine : */
+    usage: `/* Une seule fois, dans le layout racine. */
 <Loader
-  form="blades"
-  holdMs={1100}
+  form="diagonal"
+  blades={6}
+  /* Ce qu'on attend vraiment — jamais moins de minMs, jamais plus de maxMs. */
+  until={["fonts", "images"]}
+  minMs={600}
+  maxMs={8000}
   exitMs={700}
-  stepMs={200}
-  onDone={() => setPret(true)}
+  /* Au DÉBUT de la sortie : la page entre PENDANT que le voile se retire. */
+  onReveal={() => setPret(true)}
 >
   <p>Votre logo</p>
-</Loader>`,
+</Loader>
+
+/* Sans \`until\`, le rideau joue une durée devinée. C'est le comportement
+   d'origine, et \`holdMs\` n'est lu que là : */
+<Loader form="blades" holdMs={1100} />
+
+/* La barre d'avancement est du CSS — le moteur ne pose que la variable : */
+.ma-barre { transform: scaleX(var(--nova-loader-progress, 0)); }
+
+/* Et l'attente se prend SANS rideau, avec le crochet livré au même endroit : */
+const { ready, progress } = useReady({ until: ["fonts", "images"] });`,
   },
   {
     nom: "flight",
