@@ -24,8 +24,12 @@ let branche = false;
  * une animation à chaque `f`, et écrire du JSON sur le banc deviendrait
  * impraticable. C'est le cas limite qui rend la fonctionnalité utilisable ou
  * pas — pas un détail d'implémentation.
+ *
+ * Exportée parce que le banc ajoute SON raccourci — les flèches, qui passent
+ * d'une forme à l'autre — et qu'une seconde copie de cette garde dériverait de
+ * celle-ci à la première correction.
  */
-function saisieEnCours(cible: EventTarget | null): boolean {
+export function saisieEnCours(cible: EventTarget | null): boolean {
   if (!(cible instanceof HTMLElement)) return false;
   if (cible.isContentEditable) return true;
   return ["INPUT", "TEXTAREA", "SELECT"].includes(cible.tagName);

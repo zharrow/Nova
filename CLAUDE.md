@@ -364,17 +364,42 @@ options.
 
 ## Banc de test
 
-`/banc` — hors vitrine, liée depuis aucune navigation, et **absente de la
-production** : la route y répond 404 et le code des brouillons n'est même pas
-livré. `noindex` ne suffisait pas — il demande aux moteurs de ne pas indexer,
-il n'empêche personne d'ouvrir l'adresse. La garde tient à une branche morte à
-la compilation : `process.env.NODE_ENV` devient une constante au build, et
-l'import dynamique du banc part avec la branche. Un import en tête de fichier
-laissait la page en 404 mais expédiait quand même l'établi.
+`/banc` — hors vitrine, liée depuis aucune navigation, `noindex`, et
+**joignable partout, production comprise**.
 
-Trois usages qu'une fiche ne couvre pas : régler un composant **au-delà** des options curées
-de sa fiche (éditeur de props JSON), le voir changer de plan, de hauteur,
-d'alignement et de largeur sans toucher au code, et essayer un **brouillon**.
+Elle ne l'était pas. La garde tenait sur `process.env.NODE_ENV`, ce qui revenait
+à dire « le banc n'existe que sur la machine qui compile » — or c'est
+exactement le cas où l'on en a besoin : regarder un geste depuis un autre
+appareil, où la seule adresse qui existe est celle du déploiement. Un outil
+qu'on ne peut pas ouvrir là où l'on regarde n'est pas un outil.
+
+**L'interrupteur est `NOVA_BANC`.** Lu dans `next.config.ts`, republié en
+constante par `env`, ouvert par défaut ; `NOVA_BANC=0` dans les variables
+d'environnement du déploiement referme la route sans toucher au code. Ce qu'il
+faut préserver en le modifiant : le drapeau doit rester **inliné au build**,
+parce que c'est ce qui rend la branche fermée morte à la compilation et fait
+partir avec elle l'import dynamique du banc — donc le code des brouillons. Un
+import en tête de fichier laissait la page en 404 mais expédiait quand même
+l'établi. `noindex`, lui, ne ferme rien : il demande aux moteurs de ne pas
+indexer, il n'empêche personne d'ouvrir l'adresse.
+
+Trois usages qu'une fiche ne couvre pas : régler un composant **au-delà** des
+options curées de sa fiche (éditeur de props JSON), **comparer ses formes**
+— une par une aux flèches `←` `→`, ou toutes à la fois sur la planche — et
+essayer un **brouillon**.
+
+La planche monte le VRAI composant, une vignette par forme, sous une clé de
+remontage commune : « remonter » ou `F` les relance ensemble. C'est ce que
+faisait le brouillon `lames` avec ses dix chorégraphies, rendu à toutes les
+familles et sans dupliquer une ligne de moteur. Ce qui est hors écran s'arme
+quand on arrive dessus — un rideau joué pendant qu'on regarde ailleurs est un
+rideau dépensé.
+
+**Le banc ne cadre plus la scène.** Il faisait varier le plan, la hauteur, la
+largeur et l'alignement : seize jetons en travers du chemin entre le sujet et
+ses réglages, pour une question qu'on ne se pose pas ici. La scène garde les
+valeurs qui servaient — plan surélevé, hauteur de champ, pleine largeur,
+centrée. Ne pas les remettre sans une raison qui ait manqué.
 
 C'est aussi le seul endroit où l'on voit une famille **en attente** — écrite,
 mais pas encore publiée. Le banc rend `familles` là où le site rend

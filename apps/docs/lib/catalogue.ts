@@ -131,7 +131,9 @@ export interface Fiche {
    * fiche dont la commande d'installation échoue.
    *
    * Ce qui n'est pas validé reste sur `/banc`, qui rend `familles` : c'est là
-   * qu'on juge un candidat, et le banc est absent de la production.
+   * qu'on juge un candidat. Le banc est joignable en production — aucune
+   * navigation n'y mène, il porte `noindex`, et `NOVA_BANC=0` le referme —
+   * donc ce drapeau-ci est la SEULE chose qui décide de ce qui sort.
    */
   valide?: boolean;
   /** Signalé comme récent dans la grille. */

@@ -211,7 +211,13 @@ function Scene({
         // centrage parce que la majorité des scènes sont des figures.
         "justify-center",
         nu
-          ? "h-full w-full"
+          ? // Le banc cadre la HAUTEUR, la scène garde ses marges latérales :
+            // ce qui s'écrit dans le flux respire, ce qui se pose en
+            // `absolute inset-0` — le rideau du Loader, sa planche — couvre
+            // quand même la boîte entière. La marge posée par le banc, elle,
+            // aurait rentré le rideau de 24 px et laissé un liseré de scène
+            // tout autour.
+            "h-full w-full px-6 sm:px-10"
           : compact
             ? // Une case du catalogue est INERTE, et c'est sa carte qui donne
               // la hauteur : l'aperçu y est un rectangle de proportion fixe.
