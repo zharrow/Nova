@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
 /**
  * Les brouillons — l'antichambre de la librairie.
  *
@@ -18,10 +16,21 @@ import { useEffect, useRef, useState } from "react";
  * faut-il une librairie. Un brouillon n'est PAS une exception aux règles du
  * dépôt, c'est une étape avant de les appliquer.
  *
- * Le brouillon `lames` est parti par ce chemin : dix chorégraphies comparées
- * ici sous une horloge unique, puis les dix retenues comme formes de `Loader`.
- * Il ne reste rien de son code — le garder aurait fait deux implémentations
- * des mêmes gestes, qui auraient divergé à la première retouche.
+ * DEUX BROUILLONS SONT PARTIS PAR CE CHEMIN, et il ne reste rien de leur code.
+ *
+ * `lames` comparait dix chorégraphies sous une horloge unique ; les dix sont
+ * devenues des formes de `Loader`. `aimant` posait une question — faut-il le
+ * ticker partagé plutôt qu'un rAF local ? — et la réponse était déjà écrite
+ * dans le dépôt : `internal/pointer.ts` annonçait « tout effet magnétique à
+ * venir » avant que le moteur existe. Il est devenu `Magnet`, et il y a gagné
+ * ce qu'un brouillon isolé ne pouvait pas avoir : un arbitre entre aimants.
+ *
+ * Les garder aurait fait deux implémentations des mêmes gestes, qui auraient
+ * divergé à la première retouche.
+ *
+ * La liste est donc vide, et c'est un état normal — pas un tableau à remplir.
+ * Le banc reste utile sans elle : il sert aussi à régler une famille au-delà
+ * des options de sa fiche, et à comparer ses formes.
  */
 
 export interface Brouillon {
@@ -34,109 +43,4 @@ export interface Brouillon {
   defauts: Record<string, unknown>;
 }
 
-/* ────────────────────────────────────────────────────────────────────────
-   Aimant — candidat.
-
-   Un élément attiré par le pointeur, qui revient à sa place quand il
-   s'éloigne. Sert d'exemple vivant du format d'un brouillon : il montre les
-   trois choses qu'un candidat doit prouver avant d'entrer dans la librairie.
-
-   1. L'état par défaut est visible — au repos, l'élément est à sa place, sans
-      transform posée qu'on ne saurait pas retirer.
-   2. Le mouvement réduit est respecté à la main, parce que le déplacement est
-      écrit en JavaScript et qu'aucune règle CSS ne peut l'annuler.
-   3. Le démontage rend l'élément à son état de départ.
-
-   Ce qui reste à trancher, et c'est pour ça qu'il est ici : faut-il une seule
-   boucle partagée (le ticker de Nova) plutôt qu'un rAF local ? En l'état il
-   ouvre le sien, ce qui est exactement ce que CLAUDE.md interdit à un moteur.
-   C'est la dette assumée d'un brouillon.
-   ──────────────────────────────────────────────────────────────────────── */
-function Aimant({
-  force = 0.35,
-  rayon = 140,
-  lissage = 0.15,
-  libelle = "Aimant",
-}: {
-  force?: number;
-  rayon?: number;
-  lissage?: number;
-  libelle?: string;
-}) {
-  const cible = useRef<HTMLButtonElement>(null);
-  const [reduit, setReduit] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const lire = () => setReduit(media.matches);
-    lire();
-    media.addEventListener("change", lire);
-    return () => media.removeEventListener("change", lire);
-  }, []);
-
-  useEffect(() => {
-    const noeud = cible.current;
-    if (!noeud || reduit) return;
-
-    let vise = { x: 0, y: 0 };
-    let pose = { x: 0, y: 0 };
-    let image = 0;
-
-    function surPointeur(event: PointerEvent) {
-      if (!noeud) return;
-      const r = noeud.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height / 2;
-      const dx = event.clientX - cx;
-      const dy = event.clientY - cy;
-      const distance = Math.hypot(dx, dy);
-      // Hors du rayon, la cible reprend sa place : l'attraction est locale,
-      // sinon l'élément suivrait le pointeur à travers toute la page.
-      if (distance > rayon) {
-        vise = { x: 0, y: 0 };
-        return;
-      }
-      vise = { x: dx * force, y: dy * force };
-    }
-
-    function boucle() {
-      if (!noeud) return;
-      pose.x += (vise.x - pose.x) * lissage;
-      pose.y += (vise.y - pose.y) * lissage;
-      noeud.style.transform = `translate3d(${pose.x.toFixed(2)}px, ${pose.y.toFixed(2)}px, 0)`;
-      image = requestAnimationFrame(boucle);
-    }
-
-    window.addEventListener("pointermove", surPointeur);
-    image = requestAnimationFrame(boucle);
-    return () => {
-      window.removeEventListener("pointermove", surPointeur);
-      cancelAnimationFrame(image);
-      // Démontage propre : on rend l'élément à son état de départ.
-      noeud.style.transform = "";
-    };
-  }, [force, rayon, lissage, reduit]);
-
-  return (
-    <button
-      ref={cible}
-      type="button"
-      className="rounded-presse border border-filet bg-banc-haut px-6 py-3 text-sm font-semibold text-encre"
-    >
-      {libelle}
-      {reduit ? (
-        <span className="cote ml-3">mouvement réduit — inerte</span>
-      ) : null}
-    </button>
-  );
-}
-
-export const BROUILLONS: Brouillon[] = [
-  {
-    nom: "aimant",
-    titre: "Aimant",
-    note: "Attraction locale au pointeur. À trancher : passer par le ticker partagé plutôt qu'un rAF local.",
-    Composant: Aimant as React.ComponentType<Record<string, unknown>>,
-    defauts: { force: 0.35, rayon: 140, lissage: 0.15, libelle: "Aimant" },
-  },
-];
+export const BROUILLONS: Brouillon[] = [];

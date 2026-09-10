@@ -63,31 +63,66 @@ class MockResizeObserver {
 let reducedMotion = false;
 let finePointer = true;
 
+/**
+ * Les listes de média RENDUES, et leurs abonnés.
+ *
+ * `addEventListener` était inerte, ce qui rendait intestable une famille
+ * entière de comportements : un moteur qui anime en JavaScript ne peut pas
+ * compter sur une règle CSS pour l'arrêter, il DOIT écouter le changement de
+ * préférence et se désarmer lui-même. Sans notification, ce chemin n'était
+ * jamais parcouru — et il est exactement celui qui laisse un ressort tourner
+ * chez quelqu'un qui vient de demander le contraire.
+ */
+const listes = new Set<{
+  query: string;
+  abonnes: Set<(e: MediaQueryListEvent) => void>;
+}>();
+
+function notifier(motif: string, valeur: boolean) {
+  for (const liste of listes) {
+    if (!liste.query.includes(motif)) continue;
+    const evenement = { matches: valeur, media: liste.query } as MediaQueryListEvent;
+    for (const abonne of [...liste.abonnes]) abonne(evenement);
+  }
+}
+
 export function setReducedMotion(value: boolean) {
+  if (reducedMotion === value) return;
   reducedMotion = value;
+  notifier("reduced-motion", value);
 }
 export function setFinePointer(value: boolean) {
+  if (finePointer === value) return;
   finePointer = value;
+  notifier("pointer: fine", value);
 }
 export { MockIntersectionObserver };
 
 vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 vi.stubGlobal("ResizeObserver", MockResizeObserver);
 
-vi.stubGlobal(
-  "matchMedia",
-  (query: string) =>
-    ({
-      matches: query.includes("reduced-motion")
+vi.stubGlobal("matchMedia", (query: string) => {
+  const abonnes = new Set<(e: MediaQueryListEvent) => void>();
+  const liste = { query, abonnes };
+  return {
+    get matches() {
+      return query.includes("reduced-motion")
         ? reducedMotion
         : query.includes("pointer: fine")
           ? finePointer
-          : false,
-      media: query,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    }) as unknown as MediaQueryList,
-);
+          : false;
+    },
+    media: query,
+    addEventListener: (_: string, handler: (e: MediaQueryListEvent) => void) => {
+      abonnes.add(handler);
+      listes.add(liste);
+    },
+    removeEventListener: (_: string, handler: (e: MediaQueryListEvent) => void) => {
+      abonnes.delete(handler);
+      if (abonnes.size === 0) listes.delete(liste);
+    },
+  } as unknown as MediaQueryList;
+});
 
 /* jsdom n'implémente pas le défilement : il écrit un « Not implemented » sur
    la sortie d'erreur à chaque appel. Le comportement testé est ailleurs — que

@@ -75,6 +75,9 @@ export type { SmoothScrollProps } from "./components/smooth-scroll";
 export { Cursor } from "./components/cursor";
 export type { CursorProps } from "./components/cursor";
 
+export { Magnet } from "./components/magnet";
+export type { MagnetProps } from "./components/magnet";
+
 export { BrushUnderline } from "./components/brush-underline";
 export type { BrushUnderlineProps } from "./components/brush-underline";
 
@@ -117,6 +120,7 @@ export type {
   GraphEdge,
   CursorOptions,
   CursorVariant,
+  MagnetOptions,
   BrushUnderlineOptions,
   BlindsOptions,
   LoaderOptions,

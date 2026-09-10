@@ -301,11 +301,20 @@ export function Banc() {
                   }}
                 />
               ) : brouillon ? (
-                <brouillon.Composant
-                  key={cle}
-                  {...brouillon.defauts}
-                  {...propsLibres}
-                />
+                /* UN BROUILLON N'A PAS DE `Scene`. Les familles en ont une, qui
+                   prend l'aire entière et centre ce qu'elle contient ; un
+                   candidat, lui, arrive nu — donc comme item de grille, donc
+                   ÉTIRÉ. Le bouton de l'Aimant occupait les 560 px de la
+                   scène, bordure comprise, et on lisait son cadre comme celui
+                   de la scène. Ce div lui rend ce que `Scene` donne aux
+                   autres. */
+                <div className="flex h-full w-full items-center justify-center px-6 sm:px-10">
+                  <brouillon.Composant
+                    key={cle}
+                    {...brouillon.defauts}
+                    {...propsLibres}
+                  />
+                </div>
               ) : (
                 <Demo key={cle} nom={nom} forme={forme} reglages={finales} nu />
               )}

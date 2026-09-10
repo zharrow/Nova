@@ -118,8 +118,9 @@ Les formes partagent-elles le mécanisme ?
 | `blinds` | frère de `reveal` | 2 — colonnes, rangs |
 | `marquee` | option | 4 sens — `left` `right` `up` `down` |
 | `scroll-marquee` | frère de `marquee` | 1 |
-| `loader` | option | 4 — `blades` `greetings` `splash` `seam` |
+| `loader` | option | 14 — dix rideaux à lames, plus `greetings` `splash` `seam` `settle` |
 | `cursor` | option | 2 — `blob`, `dot-ring` |
+| `magnet` | — | 1, mais l'arbitrage se joue ENTRE les instances, pas dedans |
 | `scramble-text` | usage | 2 — au survol, à intervalle |
 | `counter` | usage | 3 — brut, localisé, monétaire |
 | `halftone` | option | 2 formes de module, 3 natures de source |
@@ -133,6 +134,7 @@ Les formes partagent-elles le mécanisme ?
 | `lightbox` | — | 1 |
 | `graph` | — | 1 |
 | `date-picker` | option | 3 — la grille d'abord, les cadrans d'abord, les cadrans seuls |
+| `progress` | option | 6 — `bar` `ticks` `curve` `ring` `blades` `count` |
 
 Trois familles sont nées de la récolte elle-même, en réunissant des pièces
 écrites séparément dans des projets différents :

@@ -23,6 +23,7 @@ import {
   RollText,
   Spotlight,
   Cursor,
+  Magnet,
   Halftone,
   Graph,
   useConfetti,
@@ -756,6 +757,69 @@ export function DemoRollText({ compact, geometrie, nomAffiche, reglages, nu }: P
           souris="survolez le bouton, pas le mot"
           doigt="appuyez sur le bouton, pas sur le mot"
         />
+      </div>
+    </Scene>
+  );
+}
+
+/**
+ * L'aimant se démontre à PLUSIEURS, jamais seul.
+ *
+ * Un bouton isolé qui penche vers le curseur ne montre rien qu'on n'ait vu
+ * cent fois — et surtout, il ne montre pas ce que ce moteur fait de différent.
+ * Ce qui se voit ici est l'ARBITRAGE : trois aimants dont les champs se
+ * recouvrent largement, et un seul tenu à la fois. Le curseur posé entre deux
+ * d'entre eux ne les fait pas pencher ensemble ; le plus proche gagne, et les
+ * autres se rangent.
+ *
+ * L'anneau du tenu vient de `data-nova-magnet-state`, et le halo de
+ * `--nova-magnet-pull` : le moteur ne dessine rien, il publie. C'est la
+ * doctrine du dépôt rendue littérale sur la seule famille où le mouvement, lui,
+ * ne peut pas être du CSS.
+ *
+ * Pas de bouton « rejouer » : l'effet EST le geste du visiteur. Une commande
+ * de rejeu serait morte.
+ */
+export function DemoMagnet({ compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
+  return (
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
+      <div className="flex w-full flex-col items-center gap-6">
+        {/* Serrés VOLONTAIREMENT : à cet écart, les rayons se recouvrent, et
+            c'est exactement le cas qu'une barre de navigation produit. C'est
+            là que les implémentations sans arbitre font gondoler la rangée. */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {["Travaux", "Atelier", "Contact"].map((mot) => (
+            <Magnet
+              key={mot}
+              as="button"
+              type="button"
+              {...reglages}
+              className={cn(
+                "rounded-presse border border-filet bg-banc-haut px-5 py-2.5",
+                "text-sm font-semibold text-encre",
+                // Le liseré du tenu, et son halo. Deux règles de CSS branchées
+                // sur ce que le moteur publie — rien à demander au moteur.
+                "transition-[border-color,box-shadow] duration-150",
+                "data-[nova-magnet-state=held]:border-filet-vif",
+              )}
+              style={{
+                boxShadow:
+                  "0 0 calc(var(--nova-magnet-pull, 0) * 20px) rgb(0 0 0 / 0.07)",
+              }}
+            >
+              {mot}
+            </Magnet>
+          ))}
+        </div>
+        {compact ? null : (
+          <Consigne
+            souris="approchez le curseur — un seul aimant tient à la fois"
+            /* Au doigt il n'y a pas d'approche, seulement un contact : l'effet
+               ne se déclencherait qu'au moment d'appuyer, et déplacerait la
+               cible sous le pouce. Le moteur ne monte donc rien. */
+            doigt="l'aimant répond à une souris — inactif au doigt"
+          />
+        )}
       </div>
     </Scene>
   );
@@ -1802,6 +1866,7 @@ const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   "text-highlight": DemoTextHighlight,
   spotlight: DemoSpotlight,
   cursor: DemoCursor,
+  magnet: DemoMagnet,
   halftone: DemoHalftone,
   graph: DemoGraph,
   confetti: DemoConfetti,

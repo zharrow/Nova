@@ -360,6 +360,26 @@
 }
 
 /* --------------------------------------------------------------------------
+   Magnet
+
+   `translate` ET NON `transform`, et c'est tout l'intérêt de la règle. Les deux
+   déplacent, mais `transform` est une propriété unique : un appelant qui pose
+   `transform: scale(1.02)` au survol effacerait la translation, et devrait
+   redéclarer celle du moteur pour la récupérer — donc forker ce qu'il ne
+   devrait pas avoir à connaître. `translate` est une propriété INDÉPENDANTE :
+   les deux se composent, et le `transform` reste à l'appelant.
+
+   Aucune transition ici. Le ressort est intégré en JavaScript à chaque image ;
+   une transition CSS par-dessus ajouterait un second lissage et ferait traîner
+   ce que le ressort vient de poser. Le socle ne pose que le structurel — ni
+   dimension, ni marge, ni fond : l'élément aimanté est habillé par l'appelant.
+   -------------------------------------------------------------------------- */
+
+[data-nova-magnet] {
+  translate: var(--nova-magnet-x, 0) var(--nova-magnet-y, 0);
+}
+
+/* --------------------------------------------------------------------------
    Cursor
    -------------------------------------------------------------------------- */
 

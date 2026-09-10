@@ -286,6 +286,12 @@ export const REGLAGES: Record<string, Reglage[]> = {
     N("lerp", "Suivi", 0.05, 1, 0.01, 0.2),
     N("hoverScale", "Grossissement", 1, 6, 0.1, 2.6, "×"),
   ],
+  magnet: [
+    N("force", "Force", 0.05, 1, 0.05, 0.35),
+    N("radius", "Rayon", 40, 300, 10, 140, "px"),
+    N("stiffness", "Raideur", 0.04, 0.5, 0.01, 0.18),
+    N("overshoot", "Dépassement", 0, 1, 0.05, 0.35),
+  ],
   confetti: [
     N("count", "Nombre", 10, 300, 10, 50),
     N("spread", "Étalement", 50, 500, 10, 200, "px"),
@@ -827,6 +833,41 @@ export const familles: Fiche[] = [
         note: "Un point posé exactement sur le pointeur, et un anneau qui traîne derrière. Le point dit où l'on est, l'anneau d'où l'on vient. Sur une interface dense, c'est la seule forme lisible : le point ne masque rien.",
       },
     ],
+  },
+  {
+    /* PAS DE `valide` — et ce n'est pas un oubli. Une famille écrite, testée,
+       dotée d'une fiche et d'une entrée de registry n'est toujours pas
+       disponible : le drapeau est un geste, pris en relecture, et il se pose
+       après avoir REGARDÉ. En attendant, `Magnet` vit sur /banc. */
+    nom: "magnet",
+    geometrie: "bloc",
+    titre: "Magnet",
+    categorie: "pointeur",
+    nouveau: true,
+    accroche: "L'attraction au pointeur, arbitrée entre tous les aimants de la page.",
+    apport:
+      "L'effet est partout, et partout de la même façon : chaque élément pose son écouteur, mesure sa distance, et tire dès que le pointeur entre dans son rayon. Sur une rangée de boutons espacés de moins de deux rayons — c'est-à-dire une barre de navigation — le curseur posé entre deux d'entre eux est dans les DEUX champs, les deux penchent ensemble, et la rangée gondole. Ce n'est pas du magnétisme, c'est de la gelée : un champ réel a un gagnant. Ici les aimants sont tenus dans un registre unique et départagés à chaque image — le plus proche capture, les autres lâchent — ce qui demande justement une librairie plutôt qu'un extrait recopié, puisqu'il faut un endroit où ils se connaissent. Le reste suit de là : un seul écouteur de pointeur et une seule boucle pour toute la page quel que soit le nombre d'aimants, un ressort amorti critique tant qu'on tient et sous-amorti au relâchement — l'élément DÉPASSE sa place en rentrant, comme une chose qu'on lâche — et une hystérésis de capture sans laquelle un élément posé sur la limite du rayon clignote à chaque image.",
+    options: [
+      { nom: "force", type: "number", defaut: "0.35", role: "Part de la distance couverte, entre 0 et 1. À 1 l'élément rejoint le pointeur et perd sa place : on doit le voir PENCHER, pas déménager." },
+      { nom: "radius", type: "number", defaut: "140", role: "Rayon de capture, en pixels. Le relâchement se fait 15 % plus loin — sans cette marge, un élément posé sur la limite entre et sort de la capture à chaque image." },
+      { nom: "stiffness", type: "number", defaut: "0.18", role: "Raideur du ressort. Plus haut, l'élément colle au pointeur ; plus bas, il traîne." },
+      { nom: "overshoot", type: "number", defaut: "0.35", role: "Dépassement au retour, entre 0 et 1. À 0 l'élément rentre sans dépasser, ce qui se lit comme un calcul et non comme un relâchement." },
+    ],
+    usage: `/* Aimantez l'élément LUI-MÊME : la zone cliquable se déplace avec lui. */
+<Magnet as="button" force={0.35} radius={140} stiffness={0.18} overshoot={0.35}>
+  Envoyer
+</Magnet>
+
+/* Plusieurs aimants sur une page n'ont RIEN à se déclarer : ils se connaissent
+   par le registre du moteur, et un seul est tenu à la fois. */
+<nav>
+  <Magnet as="a" href="/travaux">Travaux</Magnet>
+  <Magnet as="a" href="/contact">Contact</Magnet>
+</nav>
+
+/* Le moteur ne pose que des variables — le dessin reste au CSS : */
+.mon-bouton { box-shadow: 0 0 calc(var(--nova-magnet-pull, 0) * 24px) #0003; }
+.mon-bouton[data-nova-magnet-state="held"] { border-color: currentColor; }`,
   },
   {
     nom: "confetti",

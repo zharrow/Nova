@@ -347,6 +347,27 @@
       "dependencies": []
     },
     {
+      "name": "magnet",
+      "title": "Magnet",
+      "description": "Attraction au pointeur, arbitrée : tous les aimants de la page se connaissent, le plus proche capture et les autres lâchent.",
+      "exports": [
+        "Magnet"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/magnet.ts",
+          "target": "engines/magnet.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/magnet.tsx",
+          "target": "magnet.tsx",
+          "kind": "component"
+        }
+      ],
+      "dependencies": []
+    },
+    {
       "name": "confetti",
       "title": "Confetti",
       "description": "Salve de particules, interrompue proprement au démontage.",

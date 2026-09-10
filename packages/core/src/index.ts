@@ -72,6 +72,9 @@ export type { SpotlightOptions } from "./engines/spotlight";
 export { createCursor } from "./engines/cursor";
 export type { CursorOptions, CursorVariant } from "./engines/cursor";
 
+export { createMagnet } from "./engines/magnet";
+export type { MagnetOptions } from "./engines/magnet";
+
 export { createBrushUnderline } from "./engines/brush-underline";
 export type { BrushUnderlineOptions } from "./engines/brush-underline";
 
