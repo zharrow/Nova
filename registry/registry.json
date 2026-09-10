@@ -41,6 +41,10 @@
         "target": "internal/ticker.ts"
       },
       {
+        "path": "packages/core/src/internal/curtain.ts",
+        "target": "internal/curtain.ts"
+      },
+      {
         "path": "packages/core/src/internal/in-view.ts",
         "target": "internal/in-view.ts"
       },
@@ -407,16 +411,49 @@
       "dependencies": []
     },
     {
+      "name": "progress",
+      "title": "Progress",
+      "description": "La jauge d'avancement, en six formes. Radix apporte la sémantique, Nova le geste — et une valeur inconnue est marquée comme telle au lieu d'être feinte.",
+      "exports": [
+        "Progress"
+      ],
+      "files": [
+        {
+          "path": "packages/core/src/engines/progress.ts",
+          "target": "engines/progress.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/components/progress.tsx",
+          "target": "progress.tsx",
+          "kind": "component"
+        }
+      ],
+      "dependencies": [
+        "radix-ui"
+      ]
+    },
+    {
       "name": "loader",
       "title": "Loader",
-      "description": "Le rideau d'ouverture, en quatre formes. Se saute, ne rejoue pas, n'existe pas en mouvement réduit.",
+      "description": "Le rideau d'ouverture, en quatorze formes, qui attend un vrai signal — polices, images, une promesse. Se saute, ne rejoue pas, n'existe pas en mouvement réduit, et n'attend jamais sans plafond.",
       "exports": [
         "Loader"
       ],
       "files": [
         {
+          "path": "packages/core/src/engines/ready.ts",
+          "target": "engines/ready.ts",
+          "kind": "lib"
+        },
+        {
           "path": "packages/core/src/engines/loader.ts",
           "target": "engines/loader.ts",
+          "kind": "lib"
+        },
+        {
+          "path": "packages/react/src/hooks/use-ready.ts",
+          "target": "use-ready.ts",
           "kind": "lib"
         },
         {

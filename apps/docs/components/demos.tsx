@@ -29,6 +29,7 @@ import {
   BrushUnderline,
   Blinds,
   Loader,
+  Progress,
   useFlight,
   useExpand,
   ScrollScene,
@@ -210,7 +211,13 @@ function Scene({
         // centrage parce que la majorité des scènes sont des figures.
         "justify-center",
         nu
-          ? "h-full w-full"
+          ? // Le banc cadre la HAUTEUR, la scène garde ses marges latérales :
+            // ce qui s'écrit dans le flux respire, ce qui se pose en
+            // `absolute inset-0` — le rideau du Loader, sa planche — couvre
+            // quand même la boîte entière. La marge posée par le banc, elle,
+            // aurait rentré le rideau de 24 px et laissé un liseré de scène
+            // tout autour.
+            "h-full w-full px-6 sm:px-10"
           : compact
             ? // Une case du catalogue est INERTE, et c'est sa carte qui donne
               // la hauteur : l'aperçu y est un rectangle de proportion fixe.
@@ -1018,6 +1025,68 @@ export function DemoBrushUnderline({ compact, geometrie, nomAffiche, reglages, n
 }
 
 /**
+ * La jauge — six formes, et une valeur qu'on scrube à la main.
+ *
+ * Le curseur `value` de la fiche EST la démonstration : on tire la valeur et
+ * on voit ce que chaque forme en fait. Un bouton « rejouer » ne montrerait
+ * qu'une course, toujours la même, et ne dirait rien de ce qui distingue une
+ * règle graduée d'un filet.
+ *
+ * D'où l'absence de `onRejouer` : ce serait une commande morte, au même titre
+ * que sur `Spotlight` ou `Cursor` dont l'effet EST le geste du visiteur.
+ *
+ * Le bouton « inconnue », lui, est la seule façon de montrer la propriété la
+ * plus distinctive de la famille : une valeur qu'on ne sait pas compter est
+ * MARQUÉE, pas feinte.
+ */
+export function DemoProgress({ forme = "bar", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
+  const [inconnue, setInconnue] = useState(false);
+  /* `?? 0.62` ne convient PAS : `null` est nullish, et un `value: null` écrit
+     dans le JSON du banc redevenait 0,62 — la démonstration ne savait pas
+     exprimer la propriété la plus distinctive de la famille. On distingue donc
+     « absent » de « explicitement inconnu » par la présence de la clé. */
+  const fourni =
+    reglages && "value" in reglages ? (reglages.value as number | null) : 0.62;
+  const valeur = fourni ?? 0.62;
+  const compte = !inconnue && fourni !== null;
+
+  return (
+    <Scene compact={compact} geometrie={geometrie} nom={nomAffiche} nu={nu}>
+      <div className="flex w-full flex-col items-center gap-5">
+        <Progress
+          /* `reglages` AVANT les props calculées, et après `form` : c'est la
+             convention du dépôt — le JSON libre du banc écrase la forme, mais
+             `value` reste calculée puisqu'elle lit déjà le réglage. */
+          form={forme as never}
+          {...reglages}
+          value={compte ? valeur : null}
+          label={compte ? undefined : "Avancement inconnu"}
+          className={cn(
+            "text-encre",
+            forme === "ring" ? "shrink-0" : "w-full max-w-[34rem]",
+          )}
+        />
+        {compact ? null : (
+          <div className="flex items-center gap-4">
+            <p className="cote tabular-nums">
+              {compte ? `${Math.round(valeur * 100)} %` : "valeur inconnue"}
+            </p>
+            <button
+              type="button"
+              onClick={() => setInconnue((v) => !v)}
+              aria-pressed={inconnue}
+              className="cote lien hover:text-encre"
+            >
+              {inconnue ? "revenir au compté" : "je ne sais pas compter"}
+            </button>
+          </div>
+        )}
+      </div>
+    </Scene>
+  );
+}
+
+/**
  * Le rideau est monté DANS la scène, pas sur la page : `position: fixed` le
  * sortirait de son encadré et couvrirait tout le site. Une démonstration ne
  * doit pas faire ce que le composant ferait en production.
@@ -1033,10 +1102,58 @@ export function DemoBrushUnderline({ compact, geometrie, nomAffiche, reglages, n
  *
  * LE RIDEAU ATTEND D'ÊTRE REGARDÉ. Voir `useEnVue`.
  */
+/** Les dix formes qui portent leur propre rideau de lames. */
+const FORMES_A_LAMES = new Set([
+  "blades", "alternate", "center", "accordion", "slats",
+  "shutter", "slide", "diagonal", "checker", "edge",
+]);
+
+/**
+ * La jauge d'avancement.
+ *
+ * Le moteur ne DESSINE rien : il pose `--nova-loader-progress` de 0 à 1, et
+ * c'est au projet consommateur de décider ce qu'il en fait. La vitrine est ce
+ * consommateur, et cette barre est la démonstration littérale de la division
+ * du travail — trois lignes de CSS, aucune ligne de moteur.
+ *
+ * Neutre, et pas bleue : le bleu marque ce qui agit ou ce qui identifie, et une
+ * jauge ne fait ni l'un ni l'autre — elle rend compte. Voir DESIGN.md.
+ *
+ * POURQUOI PAS `<Progress>` ICI. La famille `Progress` prend une valeur en
+ * prop, donc un état React ; branchée sur le rideau, elle ferait rendre la
+ * scène soixante fois par seconde pendant toute l'attente. Le rideau publie
+ * son avancement en VARIABLE CSS précisément pour que personne n'ait à payer
+ * ça — et cette barre-ci est la démonstration littérale de ce que la variable
+ * permet. Sur une page qui tient déjà la valeur en état, `<Progress>` est le
+ * bon choix ; ici, non.
+ *
+ * La valeur est écrite EN CLAIR dans le `transform`. Une classe construite à
+ * l'exécution produirait un nom correct auquel ne correspondrait aucune règle,
+ * et rien ne préviendrait.
+ */
+function JaugeLoader() {
+  return (
+    <span
+      aria-hidden
+      className="mx-auto mt-4 block h-px w-24 overflow-hidden bg-filet"
+    >
+      <span
+        className="block h-full w-full origin-left bg-second"
+        style={{ transform: "scaleX(var(--nova-loader-progress, 0))" }}
+      />
+    </span>
+  );
+}
+
 export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, reglages, nu }: PropsDemo) {
   const { cle, rejouer } = useRejeu(forme);
   const { ref, enVue } = useEnVue<HTMLDivElement>();
-  const lames = forme === "blades";
+  const lames = FORMES_A_LAMES.has(forme);
+  const miseEnPlace = forme === "settle";
+  /* La place, tenue dans un ÉTAT et non dans une ref : le nœud n'existe pas au
+     premier rendu, et une ref ne provoque aucun re-rendu quand il arrive. Voir
+     le piège du portail dans CLAUDE.md — même cause, même remède. */
+  const [place, setPlace] = useState<HTMLElement | null>(null);
 
   return (
     <Scene
@@ -1047,13 +1164,33 @@ export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, r
       nu={nu}
       className="isolate"
     >
+      {/* L'EN-TÊTE DE LA SCÈNE, et la place que la marque doit rejoindre.
+          `settleTo` reçoit ce nœud-ci et non le sélecteur par défaut : à
+          l'échelle du site, la démonstration d'une fiche irait se poser dans la
+          barre de navigation, ce qui est exactement le geste — mais au mauvais
+          endroit. Le bleu est admis ici : la marque est ce qui IDENTIFIE. */}
+      {miseEnPlace ? (
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 border-b border-filet px-4 py-2.5">
+          <Repere
+            ref={setPlace}
+            className="mx-0 h-5 text-signal"
+          />
+          <span className="valeur text-[11px] text-encre">Nova</span>
+        </div>
+      ) : null}
       {enVue ? (
         <Loader
           key={cle}
           form={forme as never}
+          settleTo={place ?? undefined}
           /* `null` : le rideau doit rejouer à chaque clic sur « rejouer ». En
              production il ne rejoue pas dans la même session. */
           sessionKey={null}
+          /* Ce rideau ne couvre que son encadré. En `page` — le défaut, et le
+             bon en production — il retiendrait les animations d'entrée de TOUT
+             le document jusqu'à sa sortie : sur une fiche, la moitié du site
+             attendrait qu'une démonstration ait fini de jouer. */
+          covers="element"
           /* Plus lent que le défaut de la librairie, et volontairement : sur
              une vraie page on traverse un rideau, sur une fiche on le REGARDE.
              Les curseurs de la fiche passent après et gagnent. */
@@ -1063,7 +1200,13 @@ export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, r
           skippable={false}
           className={cn(
             "!absolute inset-0 !z-10",
-            lames ? "bg-transparent" : "bg-banc-haut",
+            /* Le fond appartient à la FORME, pas à la scène. Les lames sont le
+               rideau, et `settle` a son propre panneau — c'est lui qui se
+               rétracte. Un fond posé sur la racine ne serait jamais découpé :
+               il resterait opaque pendant que le disque se referme dessous, et
+               la scène ne se découvrirait pas. Les autres formes n'ont pas de
+               rideau propre et ont besoin de ce fond. */
+            lames || miseEnPlace ? "bg-transparent" : "bg-banc-haut",
           )}
           /* Les lames prennent le plan interne d'une scène : assez proche du
              banc pour rester du décor, assez distinct pour qu'on voie les
@@ -1072,8 +1215,22 @@ export function DemoLoader({ forme = "blades", compact, geometrie, nomAffiche, r
           {...reglages}
         >
           {/* Le voile porte un repère, pas un mot. La forme `greetings`
-              apporte elle-même son texte et n'en veut pas un second. */}
-          {forme === "greetings" ? null : <Repere />}
+              apporte elle-même son texte et n'en veut pas un second — mais la
+              jauge, elle, vaut pour toutes : c'est la seule surface du site où
+              l'on voit que le rideau REND COMPTE de son attente. */}
+          {/* HAUTEUR EXPLICITE. `Repere` se dimensionne en `clamp(28px, 32%,
+              64px)`, et `.nova-loader__content` n'a pas de hauteur définie :
+              le pourcentage ne résout rien, la déclaration tombe, et le
+              repère mesurait 0 × 0 — invisible depuis toujours sur cette
+              démonstration, sans que rien ne le signale. Ailleurs il vit dans
+              une boîte en `inset: 0`, où les 32 % ont un référent. */}
+          {forme === "greetings" ? null : (
+            <Repere className={cn("h-12", miseEnPlace && "text-second")} />
+          )}
+          {/* La forme `settle` ne rend pas compte d'une attente : elle DÉPLACE
+              la marque. Une jauge y serait un second sujet, et le geste n'en a
+              qu'un. */}
+          {miseEnPlace ? null : <JaugeLoader />}
         </Loader>
       ) : null}
       {/* Un rideau qui se lève sur du vide ne démontre pas un rideau : il faut
@@ -1648,6 +1805,7 @@ const demos: Record<string, (props: PropsDemo) => React.ReactElement> = {
   halftone: DemoHalftone,
   graph: DemoGraph,
   confetti: DemoConfetti,
+  progress: DemoProgress,
   loader: DemoLoader,
   flight: DemoFlight,
   expand: DemoExpand,

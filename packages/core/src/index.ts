@@ -78,8 +78,12 @@ export type { BrushUnderlineOptions } from "./engines/brush-underline";
 export { createBlinds } from "./engines/blinds";
 export type { BlindsOptions } from "./engines/blinds";
 
+export { createProgress } from "./engines/progress";
+export type { ProgressOptions, ProgressForm } from "./engines/progress";
+export { createReady } from "./engines/ready";
+export type { ReadyOptions, ReadySignal, ReadyInstance } from "./engines/ready";
 export { createLoader } from "./engines/loader";
-export type { LoaderOptions, LoaderForm } from "./engines/loader";
+export type { LoaderOptions, LoaderForm, LoaderSignal } from "./engines/loader";
 
 export { flight } from "./engines/flight";
 export type { FlightOptions, FlightResult } from "./engines/flight";

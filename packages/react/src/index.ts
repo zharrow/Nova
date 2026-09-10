@@ -81,6 +81,10 @@ export type { BrushUnderlineProps } from "./components/brush-underline";
 export { Blinds } from "./components/blinds";
 export type { BlindsProps } from "./components/blinds";
 
+export { Progress } from "./components/progress";
+export type { ProgressProps } from "./components/progress";
+export { useReady } from "./hooks/use-ready";
+export type { ReadyState } from "./hooks/use-ready";
 export { Loader } from "./components/loader";
 export type { LoaderProps } from "./components/loader";
 

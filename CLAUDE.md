@@ -58,6 +58,17 @@ s'arrête dès qu'il n'a plus d'abonné. Un moteur qui ouvre son propre
 `IntersectionObserver` : le pool de `internal/in-view.ts` mutualise par couple
 (rootMargin, threshold).
 
+**Couvert n'est pas vu.** Un rideau de page se déclare dans
+`internal/curtain.ts`, et tant qu'il est posé, les moteurs d'entrée RETIENNENT
+leur geste — `isAlreadyInView` renvoie faux, et le pool de `internal/in-view.ts`
+diffère ses rappels. Sans cela, tout ce qui est dans la fenêtre au montage
+renonce à son entrée pendant que le voile couvre, et le voile se lève sur une
+page qui est simplement LÀ : le geste que le rideau promettait n'existe pas, et
+on ne l'obtenait qu'en câblant un état à la main dans l'application. Corollaire :
+ce qui déborde de sa propre boîte — le registre ET le drapeau `data-nova-loaded`
+sur `<html>` — est conditionné à `covers: "page"`. Un rideau d'encadré, celui
+d'une démonstration, ne retient rien et n'annonce rien.
+
 **Tout moteur se démonte proprement.** `destroy()` rend l'élément à son état de
 départ : listeners retirés, observers détachés, ticker désabonné, DOM injecté
 retiré, attributs et variables CSS supprimés. Il existe un test par moteur.
@@ -152,6 +163,19 @@ autrement.
 
 Chacun a coûté un débogage. Ils sont ici pour ne pas le repayer.
 
+### Outillage
+
+- **Ne jamais lancer `pnpm build` pendant qu'un `next dev` tourne.** `tsup` VIDE
+  `packages/core/dist` au début de chaque build. Si le serveur de développement
+  compile pendant cette fenêtre, il ne trouve ni `dist/nova.css` ni les
+  sous-chemins d'`exports`, et **Turbopack mémorise l'échec** : l'erreur
+  survit à la reconstruction, à un rechargement et même à un redémarrage du
+  serveur. Le symptôme est un `CssSyntaxError` sur `globals.css` disant
+  « Package path ./styles.css is exported ... but no valid target file was
+  found », alors que le fichier est bien là et que `require.resolve` le trouve.
+  Seul `rm -rf apps/docs/.next` en sort. Arrêter le serveur avant de construire,
+  ou construire d'abord et lancer le serveur ensuite.
+
 ### Bundling et frontière serveur
 
 - **`"use client"` disparaît au bundling.** esbuild supprime le prologue de
@@ -220,6 +244,13 @@ Chacun a coûté un débogage. Ils sont ici pour ne pas le repayer.
   `` `-left-[${MARGE}]` `` produit à l'exécution un nom de classe correct qui
   ne correspond à aucune règle — rien ne bouge, rien ne prévient. Écrire la
   valeur en clair et mettre la constante dans le commentaire, jamais l'inverse.
+- **Un pourcentage dans un `clamp()` de hauteur ne résout rien sous un parent
+  en hauteur automatique.** `h-[clamp(28px,32%,64px)]` sur `Repere` donnait un
+  élément de 0 × 0 dans `.nova-loader__content`, qui se dimensionne sur son
+  contenu : le pourcentage n'a pas de référent, la déclaration tombe, et le
+  repère de la démonstration du Loader était invisible sans que rien ne le
+  signale. Le même composant marche partout ailleurs parce qu'il y vit dans une
+  boîte en `inset: 0`. Même famille de piège que `dial` ci-dessous.
 - **La feuille de style de Nova est chargée APRÈS celle du projet.** À
   spécificité égale, elle gagne. Ne jamais y poser de dimension, de marge ou de
   couleur de fond sur un élément que l'appelant habille : `width: 100%` sur le
@@ -287,6 +318,22 @@ Un test qui mesure une valeur en cours d'animation dépend de la charge de la
 machine. Soit on porte la durée à une valeur qui rend la mesure déterministe,
 soit on assume une tolérance et on l'écrit.
 
+Deux pièges des faux minuteurs, chacun payé une fois :
+
+- **`vi.useFakeTimers()` simule les IMAGES, pas leur horodatage.** Les
+  `requestAnimationFrame` se déclenchent bien quand on avance l'horloge, mais
+  l'argument reçu par le callback reste sur l'horloge réelle : mille
+  millisecondes avancées n'en font passer que trois. Un moteur qui divise cet
+  horodatage par un budget tenu en `setTimeout` mélange deux horloges — il
+  affichait 0,2 % d'avancement là où il en fallait 70. Mesurer une fraction de
+  budget sur l'horloge du budget, donc `Date.now()`.
+- **Un moteur qui survit à son test bloque le ticker pour tous les suivants.**
+  Le ticker est un module global : si le dernier abonné n'est jamais retiré, il
+  garde `frame` non nul avec un handle qui appartient à l'horloge que
+  `useRealTimers()` vient de jeter. Plus aucun abonné n'est appelé ensuite, dans
+  aucun test, sans le moindre message. Enregistrer les instances créées et les
+  démonter en `afterEach` — voir `test/loader.test.ts`.
+
 ## Vitrine
 
 `apps/docs` est un catalogue à barre latérale : filtre, navigation par
@@ -317,17 +364,42 @@ options.
 
 ## Banc de test
 
-`/banc` — hors vitrine, liée depuis aucune navigation, et **absente de la
-production** : la route y répond 404 et le code des brouillons n'est même pas
-livré. `noindex` ne suffisait pas — il demande aux moteurs de ne pas indexer,
-il n'empêche personne d'ouvrir l'adresse. La garde tient à une branche morte à
-la compilation : `process.env.NODE_ENV` devient une constante au build, et
-l'import dynamique du banc part avec la branche. Un import en tête de fichier
-laissait la page en 404 mais expédiait quand même l'établi.
+`/banc` — hors vitrine, liée depuis aucune navigation, `noindex`, et
+**joignable partout, production comprise**.
 
-Trois usages qu'une fiche ne couvre pas : régler un composant **au-delà** des options curées
-de sa fiche (éditeur de props JSON), le voir changer de plan, de hauteur,
-d'alignement et de largeur sans toucher au code, et essayer un **brouillon**.
+Elle ne l'était pas. La garde tenait sur `process.env.NODE_ENV`, ce qui revenait
+à dire « le banc n'existe que sur la machine qui compile » — or c'est
+exactement le cas où l'on en a besoin : regarder un geste depuis un autre
+appareil, où la seule adresse qui existe est celle du déploiement. Un outil
+qu'on ne peut pas ouvrir là où l'on regarde n'est pas un outil.
+
+**L'interrupteur est `NOVA_BANC`.** Lu dans `next.config.ts`, republié en
+constante par `env`, ouvert par défaut ; `NOVA_BANC=0` dans les variables
+d'environnement du déploiement referme la route sans toucher au code. Ce qu'il
+faut préserver en le modifiant : le drapeau doit rester **inliné au build**,
+parce que c'est ce qui rend la branche fermée morte à la compilation et fait
+partir avec elle l'import dynamique du banc — donc le code des brouillons. Un
+import en tête de fichier laissait la page en 404 mais expédiait quand même
+l'établi. `noindex`, lui, ne ferme rien : il demande aux moteurs de ne pas
+indexer, il n'empêche personne d'ouvrir l'adresse.
+
+Trois usages qu'une fiche ne couvre pas : régler un composant **au-delà** des
+options curées de sa fiche (éditeur de props JSON), **comparer ses formes**
+— une par une aux flèches `←` `→`, ou toutes à la fois sur la planche — et
+essayer un **brouillon**.
+
+La planche monte le VRAI composant, une vignette par forme, sous une clé de
+remontage commune : « remonter » ou `F` les relance ensemble. C'est ce que
+faisait le brouillon `lames` avec ses dix chorégraphies, rendu à toutes les
+familles et sans dupliquer une ligne de moteur. Ce qui est hors écran s'arme
+quand on arrive dessus — un rideau joué pendant qu'on regarde ailleurs est un
+rideau dépensé.
+
+**Le banc ne cadre plus la scène.** Il faisait varier le plan, la hauteur, la
+largeur et l'alignement : seize jetons en travers du chemin entre le sujet et
+ses réglages, pour une question qu'on ne se pose pas ici. La scène garde les
+valeurs qui servaient — plan surélevé, hauteur de champ, pleine largeur,
+centrée. Ne pas les remettre sans une raison qui ait manqué.
 
 C'est aussi le seul endroit où l'on voit une famille **en attente** — écrite,
 mais pas encore publiée. Le banc rend `familles` là où le site rend
